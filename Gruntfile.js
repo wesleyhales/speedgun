@@ -5,9 +5,9 @@ module.exports = function(grunt) {
     docco: {
       debug: {
         src: [
-          'utils/schedule-loadreport.js',
+          'utils/schedule-speedgun.js',
           'core/speedreport.js',
-          'core/loadreport.js',
+          'core/speedgun.js',
           'utils/lib/main.js',
           'utils/lib/webserver.js'
         ],
@@ -33,7 +33,7 @@ module.exports = function(grunt) {
         npmtag: true,
         tagName: '<%= version %>',
         github: {
-          repo: 'wesleyhales/loadreport',
+          repo: 'wesleyhales/speedgun',
           usernameVar: 'GITHUB_USERNAME',
           passwordVar: 'GITHUB_PASSWORD'
         }

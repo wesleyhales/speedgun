@@ -2,11 +2,11 @@
 var fs = require('fs'),
     WebPage = require('webpage');
 
-var loadreport = {
+var speedgun = {
 
   run: function () {
     var cliConfig = {};
-    loadreport.performancecache = this.clone(loadreport.performance);
+    speedgun.performancecache = this.clone(speedgun.performance);
     if (!this.processArgs(cliConfig, [
       {
         name: 'url',
@@ -25,7 +25,7 @@ var loadreport = {
         name: 'configFile',
         def: 'config.json',
         req: false,
-        desc: 'a local configuration file of further loadreport settings'
+        desc: 'a local configuration file of further speedgun settings'
       }
     ])) {
       return;
@@ -131,7 +131,7 @@ var loadreport = {
 
         report.domperfLoad = {value: 0, label: '', index: 41};
 
-//        loadreport.reportData = report;
+//        speedgun.reportData = report;
 
         if(string){
           return JSON.stringify(report);
@@ -212,7 +212,7 @@ var loadreport = {
         }
 
         //}, this.performance.perfObj.data(true)); this needs to be inititialized earlier
-      }, JSON.stringify(loadreport.reportData));
+      }, JSON.stringify(speedgun.reportData));
 
     },
 
@@ -231,9 +231,9 @@ var loadreport = {
     onInitialized: function (page) {
       console.log('###### onInitialized');
 
-      if(Object.keys(loadreport.reportData).length === 0){
+      if(Object.keys(speedgun.reportData).length === 0){
         console.log('init report data');
-        loadreport.reportData = loadreport.performance.perfObj.data(false);
+        speedgun.reportData = speedgun.performance.perfObj.data(false);
       }
 
       page.evaluate(function (perfObj) {
@@ -493,22 +493,22 @@ var loadreport = {
         //todo - paramaterize
         setTimeout(function () {
           task.onLoadFinished.call(scope, page, config, status);
-          loadreport.reportData.screenshot.value = loadreport.reportData.nowms.value + '.png';
+          speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
           page.viewportSize = { width: 1024, height: 768 };
-          page.render('reports/' + loadreport.reportData.url.value.replace('://','_') + '/' + loadreport.reportData.screenshot.value);
+          page.render('reports/' + speedgun.reportData.url.value.replace('://','_') + '/' + speedgun.reportData.screenshot.value);
 
-          printReport(loadreport.reportData);
+          printReport(speedgun.reportData);
 
 
           //log the entries
-          for (var entry in loadreport.reportData) {
-            if(loadreport.reportData[entry].value instanceof Array){
-              for (var i = 0; i <  loadreport.reportData[entry].value.length;i++) {
-                console.log('2--',loadreport.reportData[entry].label,loadreport.reportData[entry].value[i])
+          for (var entry in speedgun.reportData) {
+            if(speedgun.reportData[entry].value instanceof Array){
+              for (var i = 0; i <  speedgun.reportData[entry].value.length;i++) {
+                console.log('2--',speedgun.reportData[entry].label,speedgun.reportData[entry].value[i])
               }
 
             }else{
-              console.log('1--',entry,loadreport.reportData[entry].label,loadreport.reportData[entry].value)
+              console.log('1--',entry,speedgun.reportData[entry].label,speedgun.reportData[entry].value)
             }
 
           }
@@ -524,17 +524,17 @@ var loadreport = {
     }
 
     function printReport(report) {
-      var reportLocation = loadreport.reportData.url.value.replace('://','_') + '/loadreport';
+      var reportLocation = speedgun.reportData.url.value.replace('://','_') + '/speedgun';
       if (phantom.args.indexOf('csv') >= 0) {
-        loadreport.printToFile(report, reportLocation, 'csv', phantom.args.indexOf('wipe') >= 0);
+        speedgun.printToFile(report, reportLocation, 'csv', phantom.args.indexOf('wipe') >= 0);
       }
 
       if (phantom.args.indexOf('json') >= 0) {
-        loadreport.printToFile(report, reportLocation, 'json', phantom.args.indexOf('wipe') >= 0);
+        speedgun.printToFile(report, reportLocation, 'json', phantom.args.indexOf('wipe') >= 0);
       }
 
       if (phantom.args.indexOf('junit') >= 0) {
-        loadreport.printToFile(report, reportLocation, 'xml', phantom.args.indexOf('wipe') >= 0);
+        speedgun.printToFile(report, reportLocation, 'xml', phantom.args.indexOf('wipe') >= 0);
       }
     }
 
@@ -568,7 +568,7 @@ var loadreport = {
           incoming = msg;
 
       if (msg.indexOf('error:') >= 0) {
-        loadreport.reportData.errors.value.push(msg.substring('error:'.length, msg.length));
+        speedgun.reportData.errors.value.push(msg.substring('error:'.length, msg.length));
         error = true;
       }
 
@@ -581,13 +581,13 @@ var loadreport = {
           //if being logged with no format, assume error
           msg = msg.replace('\n','');
           msg = msg.replace(',','&#044;')
-          incoming = loadreport.reportData.errors.value.push(msg);
+          incoming = speedgun.reportData.errors.value.push(msg);
         }
       }
 
-      for (var entry in loadreport.reportData) {
-        if(loadreport.reportData[entry].index === incoming.index && !error){
-          loadreport.reportData[entry] = incoming;
+      for (var entry in speedgun.reportData) {
+        if(speedgun.reportData[entry].index === incoming.index && !error){
+          speedgun.reportData[entry] = incoming;
         }
       }
 
@@ -595,7 +595,7 @@ var loadreport = {
 
     page.onError = function (msg, trace) {
       trace.forEach(function (item) {
-        loadreport.reportData.errors.value.push(msg + ':' + item.file + ':' + item.line);
+        speedgun.reportData.errors.value.push(msg + ':' + item.file + ':' + item.line);
       })
     };
 
@@ -852,4 +852,4 @@ var loadreport = {
 
 };
 
-loadreport.run();
+speedgun.run();

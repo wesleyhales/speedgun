@@ -81,7 +81,7 @@ function printToFile(data) {
     		    fs.remove(myfile);
     		}
             if(!fs.exists('speedreport.html')){
-                html = fs.read('loadreport/speedreport.html');
+                html = fs.read('speedgun/speedreport.html');
             }else{
                 html = fs.read('speedreport.html');
             }

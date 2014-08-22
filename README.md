@@ -1,11 +1,11 @@
-# loadreport.js
-[PhantomJS](http://www.phantomjs.org/) 2.0 is required and must be installed before running loadreport. [Instructions here] (https://github.com/ariya/phantomjs/wiki/PhantomJS-2)
+# speedgun.js
+[PhantomJS](http://www.phantomjs.org/) 2.0 is required and must be installed before running speedgun. [Instructions here] (https://github.com/ariya/phantomjs/wiki/PhantomJS-2)
 
 ## Install
 ### npm install -g
 
 #Usage
-`phantomjs --ssl-protocol=any --ignore-ssl-errors=yes loadreport.js http://www.onslyde.com performance csv`
+`phantomjs --ssl-protocol=any --ignore-ssl-errors=yes speedgun.js http://www.onslyde.com performance csv`
 
 ## License
 

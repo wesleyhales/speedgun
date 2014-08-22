@@ -10,7 +10,7 @@ page.onConsoleMessage = function (msg) {
 
 page.onInitialized = function () {
 //  page.evaluate(function () {
-  //loadreport(performance)
+  //speedgun(performance)
 
 };
 
@@ -59,7 +59,7 @@ page.open(address, function (status) {
 });
 
 
-function loadreport(performance){
+function speedgun(performance){
   var now = new Date().getTime(),
       timing = performance.timing,
       report = {};

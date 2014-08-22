@@ -1,24 +1,24 @@
 {
-  "name": "loadreport",
+  "name": "speedgun",
   "version": "2.0.0",
   "private": true,
   "description": "Builds a report of DOM and resource load times using phantomjs",
   "keywords": "",
   "bugs": {
-    "url": "https://github.com/wesleyhales/loadreport/issues",
+    "url": "https://github.com/wesleyhales/speedgun/issues",
     "email": "none@host.com"
   },
   "main": "./core/main.js",
   "license": "",
   "repository": {
     "type": "git",
-    "url": "http://github.com/wesleyhales/loadreport.git"
+    "url": "http://github.com/wesleyhales/speedgun.git"
   },
   "scripts": {
     "test": "make test_all"
   },
   "bin": {
-    "loadreport": "./core/loadreport.js"
+    "speedgun": "./core/speedgun.js"
   },
   "dependencies": {
     "express": "~3.4.8",
