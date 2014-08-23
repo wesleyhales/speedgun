@@ -66,60 +66,67 @@ var speedgun = {
 
         report.pageProcessTime = {label: 'Total time spent processing page', value: 0, index: 8};
 
-        report.domLoading = {value: 0, label: '', index: 30};
+        report.domLoading = {value: 0, label: 'Return the time immediately before the user agent sets the current document readiness to \"loading\"', index: 30};
 
-        report.domComplete = {value: 0, label: '', index: 23};
+        report.domComplete = {value: 0, label: 'Return the time immediately before the user agent sets the current document readiness to \"complete\"', index: 23};
 
-        report.loadEventStart = {value: 0, label: '', index: 25};
+        report.loadEventStart = {value: 0, label: 'Return the time immediately before the load event of the current document is fired. It must return zero when the load event is not fired yet.', index: 25};
 
-        report.loadEventEnd = {value: 0, label: '', index: 31};
+        report.loadEventEnd = {value: 0, label: 'Return the time when the load event of the current document is completed. It must return zero when the load event is not fired or is not completed.', index: 31};
 
         report.loadEventTime = {label: 'Total time spent during load event', value: 0, index: 9};
 
-        report.domInteractive = {value: 0, label: '', index: 17};
+        report.domInteractive = {value: 0, label: 'Return the time immediately before the user agent sets the current document readiness to \"interactive\".', index: 17};
 
-        report.connectStart = {value: 0 , label: '', index: 11};
+        report.connectStart = {value: 0 , label: 'Return the time immediately before the user agent start establishing the connection to the server to retrieve the document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return value of domainLookupEnd.', index: 11};
 
-        report.connectEnd = {value: 0, label: '', index: 28};
+        report.connectEnd = {value: 0, label: 'Return the time immediately after the user agent finishes establishing the connection to the server to retrieve the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the value of domainLookupEnd', index: 28};
 
         report.connectTime = {label: 'Time spent during connect', value: 0, index: 28};
 
         report.navigationStart = {value: 0, label: '', index: 12};
 
-        report.secureConnectionStart = {value: 0, label: '', index: 13};
+        report.secureConnectionStart = {value: 0, label: 'This attribute is optional. User agents that don\'t have this attribute available must set it as undefined. When this attribute is available, if the scheme of the current page is HTTPS, this attribute must return the time immediately before the user agent starts the handshake process to secure the current connection. If this attribute is available but HTTPS is not used, this attribute must return zero.', index: 13};
 
-        report.fetchStart = {value: 0, label: '', index: 14};
+        report.fetchStart = {value: 0, label: 'If the new resource is to be fetched using HTTP GET or equivalent, fetchStart must return the time immediately before the user agent starts checking any relevant application caches. Otherwise, it must return the time when the user agent starts fetching the resource.', index: 14};
 
-        report.domContentLoadedEventStart = {value: 0, label: '', index: 15};
+        report.domContentLoadedEventStart = {value: 0, label: 'This attribute must return the time immediately before the user agent fires the DOMContentLoaded event at the Document.', index: 15};
 
-        report.domContentLoadedEventEnd = {value: 0, label: '', index: 26};
+        report.domContentLoadedEventEnd = {value: 0, label: 'This attribute must return the time immediately after the document\'s DOMContentLoaded event completes.', index: 26};
 
         report.domContentTime = {label: 'Total time spent during DomContentLoading event', value: 0, index: 10};
 
-        report.requestStart = {value: 0, label: '', index: 20};
 
-        report.responseStart = {value: 0, label: '', index: 16};
+//      If the transport connection fails after a request is sent and the user agent reopens a connection and resend the request, requestStart should return the corresponding values of the new request.
+//      This interface does not include an attribute to represent the completion of sending the request, e.g., requestEnd.
+//      Completion of sending the request from the user agent does not always indicate the corresponding completion time in the network transport, which brings most of the benefit of having such an attribute.
+//      Some user agents have high cost to determine the actual completion time of sending the request due to the HTTP layer encapsulation.
+        report.requestStart = {value: 0, label: 'This attribute must return the time immediately before the user agent starts requesting the current document from the server, or from relevant application caches or from local resources.', index: 20};
 
-        report.responseEnd = {value: 0, label: '', index: 29};
+        report.responseStart = {value: 0, label: 'This attribute must return the time immediately after the user agent receives the first byte of the response from the server, or from relevant application caches or from local resources.', index: 16};
+
+        report.responseEnd = {value: 0, label: 'This attribute must return the time immediately after the user agent receives the last byte of the current document or immediately before the transport connection is closed, whichever comes first. The document here can be received either from the server, relevant application caches or from local resources.', index: 29};
 
         report.responseTime = {label: 'Total time spent during response', value: 0, index: 34};
 
-        report.domainLookupStart = {value: 0, label: '', index: 24};
+        report.domainLookupStart = {value: 0, label: 'This attribute must return the time immediately before the user agent starts the domain name lookup for the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the same value as fetchStart.', index: 24};
 
-        report.domainLookupEnd = {value: 0, label: '', index: 18};
+        report.domainLookupEnd = {value: 0, label: 'This attribute must return the time immediately after the user agent finishes the domain name lookup for the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the same value as fetchStart.', index: 18};
 
+//      In cases where the user agent already has the domain information in cache, domainLookupStart and domainLookupEnd represent the times when the user agent starts and ends the domain data retrieval from the cache.
         report.domainLookupTime = {label: 'Total time spent in domain lookup', value: 0, index: 35};
 
-        report.redirectStart = {value: 0, label: '', index: 19};
+        report.redirectStart = {value: 0, label: 'If there are HTTP redirects or equivalent when navigating and if all the redirects or equivalent are from the same origin, this attribute must return the starting time of the fetch that initiates the redirect. Otherwise, this attribute must return zero.', index: 19};
 
-        report.redirectEnd = {value: 0, label: '', index: 27};
+        report.redirectEnd = {value: 0, label: 'If there are HTTP redirects or equivalent when navigating and all redirects and equivalents are from the same origin, this attribute must return the time immediately after receiving the last byte of the response of the last redirect. Otherwise, this attribute must return zero.', index: 27};
 
         //network level redirects
         report.redirectTime = {label: 'Time spent during redirect', value: 0, index: 6};
 
-        report.unloadEventStart = {value: 0, label: '', index: 22};
+        report.unloadEventStart = {value: 0, label: 'If the previous document and the current document have the same origin [IETF RFC 6454], this attribute must return the time immediately before the user agent starts the unload event of the previous document. If there is no previous document or the previous document has a different origin than the current document, this attribute must return zero.', index: 22};
 
-        report.unloadEventEnd = {value: 0, label: '', index: 21};
+//      If there are HTTP redirects or equivalent when navigating and not all the redirects or equivalent are from the same origin, both unloadEventStart and unloadEventEnd must return the zero.
+        report.unloadEventEnd = {value: 0, label: 'If the previous document and the current document have the same same origin, this attribute must return the time immediately after the user agent finishes the unload event of the previous document. If there is no previous document or the previous document has a different origin than the current document or the unload is not yet completed, this attribute must return zero.', index: 21};
 
         //navigation timing
         report.timing = {value: 0, label: '', index: 36};
