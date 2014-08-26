@@ -138,6 +138,8 @@ var speedgun = {
 
         report.domperfLoad = {value: 0, label: '', index: 41};
 
+        report.navEvents = {label:'',value:[],index:99};
+
 //        speedgun.reportData = report;
 
         if(string){
@@ -227,8 +229,32 @@ var speedgun = {
       console.log('###### onLoadStarted');
     },
 
-    onNavigationRequested: function (page, config) {
-      console.log('###### onNavigationRequested');
+    onNavigationRequested: function(page, config, url, type, willNavigate, main) {
+
+      if(Object.keys(speedgun.reportData).length === 0){
+        //init report
+        speedgun.reportData = speedgun.performance.perfObj.data(false);
+      }
+
+      var eventData = {};
+      try{
+        if(url !== undefined && type !== undefined && willNavigate !== undefined && main !== undefined){
+
+          eventData = {
+            url: url,
+            cause: type,
+            willNavigate:willNavigate,
+            mainFrame: main
+          };
+
+        }
+      }catch(e){
+        console.log('Problem with event data:',e)
+      }
+
+      speedgun.reportData.navEvents.value.push(eventData);
+
+
     },
 
     onPageCreated: function (page, config) {
@@ -239,7 +265,7 @@ var speedgun = {
       console.log('###### onInitialized');
 
       if(Object.keys(speedgun.reportData).length === 0){
-        console.log('init report data');
+        //init report
         speedgun.reportData = speedgun.performance.perfObj.data(false);
       }
 
@@ -274,16 +300,6 @@ var speedgun = {
 
         //--------------- End DOM event Listeners
       });
-    }
-  },
-
-  navigation: {
-    onLoadStarted: function () {
-      var nav = performance.navigation;
-
-      console.log('Navigation Timing Description');
-
-
     }
   },
 
@@ -511,11 +527,11 @@ var speedgun = {
           for (var entry in speedgun.reportData) {
             if(speedgun.reportData[entry].value instanceof Array){
               for (var i = 0; i <  speedgun.reportData[entry].value.length;i++) {
-                console.log('2--',speedgun.reportData[entry].label,speedgun.reportData[entry].value[i])
+                console.log('2--',entry,speedgun.reportData[entry].value[i])
               }
 
             }else{
-              console.log('1--',entry,speedgun.reportData[entry].label,speedgun.reportData[entry].value)
+              console.log('1--',entry,speedgun.reportData[entry].value)
             }
 
           }
