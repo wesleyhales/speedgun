@@ -802,7 +802,15 @@ var speedgun = {
     for (var key in report) {
       if (report.hasOwnProperty(key)) {
         keys.push(key);
-        values.push(report[key].value);
+        var value = report[key].value;
+        if(typeof value === 'object'){
+          for (var secondkey in value) {
+            if (value.hasOwnProperty(secondkey)) {
+              values.push(value[secondkey].url + ' ' + value[secondkey].willNavigate)
+            }
+          }
+        }
+        values.push(value);
       }
     }
     if (phantom.args[3] && phantom.args[3] != 'wipe') {
