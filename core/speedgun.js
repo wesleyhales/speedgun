@@ -800,19 +800,18 @@ var speedgun = {
         values = [];
 
     for (var key in report) {
-      if (report.hasOwnProperty(key)) {
-        keys.push(key);
         var value = report[key].value;
         if(typeof value === 'object'){
           for (var secondkey in value) {
-            if (value.hasOwnProperty(secondkey)) {
+              keys.push('navEvent' + secondkey);
               values.push(value[secondkey].url + ' ' + value[secondkey].willNavigate)
-            }
           }
+        }else{
+          keys.push(key);
+          values.push(value);
         }
-        values.push(value);
       }
-    }
+
     if (phantom.args[3] && phantom.args[3] != 'wipe') {
       myfile = 'reports/' + filename + '-' + phantom.args[3] + '.' + extension;
     } else {
