@@ -138,7 +138,17 @@ var speedgun = {
 
         report.domperfLoad = {value: 0, label: '', index: 41};
 
-        report.navEvents = {label:'',value:[],index:99};
+        report.navEvents = {label:'',value:[],index:50};
+
+        report.resources = {label:'',value:{},index:51};
+
+        report.resourcesSmallest = {label:'',value:'',index:52};
+
+        report.resourcesLargest = {label:'',value:'',index:53};
+
+        report.resourcesFastest = {label:'',value:'',index:54};
+
+        report.resourcesSlowest = {label:'',value:'',index:55};
 
 //        speedgun.reportData = report;
 
@@ -154,11 +164,65 @@ var speedgun = {
 
     onLoadFinished: function (page, config) {
 
+
+      var size = 0, key, resources = speedgun.reportData.resources.value,slowest, fastest, totalDuration = 0,
+          largest, smallest, totalSize = 0,
+          missingList = [],
+          missingSize = false;
+
+//      for (key in resources) {
+//        if (resources.hasOwnProperty(key)){
+//          console.log('----',resources[key].url,resources[key].duration);
+//        }
+//      }
+
+      for(var resource in resources){
+        resource = resources[resource];
+
+//        if (resources.hasOwnProperty(resource)) {
+          if (!resource.times.start || !resource.times.end) {
+            //if one of start or end times is undefined - don't calculate
+            resource.times.start = resource.times.end = 0;
+          }
+
+          if (!slowest || resource.times.start !== 0 || resource.duration > slowest.duration) {
+            slowest = resource;
+          }
+          if (!fastest || resource.times.start !== 0 || resource.duration < fastest.duration) {
+            fastest = resource;
+          }
+          //console.log(totalDuration);
+          totalDuration += resource.duration;
+
+
+          if (resource.size) {
+            if (!largest || resource.size > largest.size) {
+              largest = resource;
+            }
+            if (!smallest || resource.size < smallest.size) {
+              smallest = resource;
+            }
+            totalSize += resource.size;
+          } else {
+            resource.size = 0;
+            missingSize = true;
+            missingList.push(resource.url);
+          }
+//        }
+      };
+
+      speedgun.reportData.resourcesSmallest.value = smallest;
+      speedgun.reportData.resourcesLargest.value = largest;
+      speedgun.reportData.resourcesFastest.value = fastest;
+      speedgun.reportData.resourcesSlowest.value = slowest;
+
+
       page.evaluate(function (perfObj) {
 
         var report = JSON.parse(perfObj),
             timing = performance.timing,
             nav = performance.navigation;
+
 
         //--------------- Begin PhantomJS supported user timing and performance timing measurements
 
@@ -300,6 +364,44 @@ var speedgun = {
 
         //--------------- End DOM event Listeners
       });
+    },
+
+    onResourceRequested: function (page, config, request) {
+      var now = new Date().getTime();
+      speedgun.reportData.resources.value[request.id] = {
+        id: request.id,
+        url: request.url,
+        request: request,
+        responses: {},
+        duration: '',
+        times: {
+          request: now
+        }
+      };
+
+    },
+    onResourceReceived: function (page, config, response) {
+      var now = new Date().getTime(),
+          resource = speedgun.reportData.resources.value[response.id];
+
+      resource.responses[response.stage] = response;
+
+      if (!resource.times[response.stage]) {
+        resource.times[response.stage] = now;
+        resource.duration = now - resource.times.request;
+      }
+
+      if (response.bodySize) {
+        resource.size = response.bodySize;
+        response.headers.forEach(function (header) {
+        });
+      } else if (!resource.size) {
+        response.headers.forEach(function (header) {
+          if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
+            resource.size = parseInt(header.value);
+          }
+        });
+      }
     }
   },
 
@@ -354,7 +456,6 @@ var speedgun = {
       } else if (!resource.size) {
         response.headers.forEach(function (header) {
           if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
-            //console.log('backup-------' + header.name + ':' + header.value);
             resource.size = parseInt(header.value);
           }
         });
