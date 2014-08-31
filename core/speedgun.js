@@ -138,17 +138,17 @@ var speedgun = {
 
         report.domperfLoad = {value: 0, label: '', index: 41};
 
-        report.navEvents = {label:'',value:[],index:50};
-
         report.resources = {label:'',value:{},index:51};
 
-        report.resourcesSmallest = {label:'',value:'',index:52};
+        report.resourceSingleSmallest = {label:'',value:'',index:52};
 
-        report.resourcesLargest = {label:'',value:'',index:53};
+        report.resourceSingleLargest = {label:'',value:'',index:53};
 
-        report.resourcesFastest = {label:'',value:'',index:54};
+        report.resourceSingleFastest = {label:'',value:'',index:54};
 
-        report.resourcesSlowest = {label:'',value:'',index:55};
+        report.resourceSingleSlowest = {label:'',value:'',index:55};
+
+        report.navEvents = {label:'',value:[],index:56};
 
 //        speedgun.reportData = report;
 
@@ -211,10 +211,10 @@ var speedgun = {
 //        }
       };
 
-      speedgun.reportData.resourcesSmallest.value = smallest;
-      speedgun.reportData.resourcesLargest.value = largest;
-      speedgun.reportData.resourcesFastest.value = fastest;
-      speedgun.reportData.resourcesSlowest.value = slowest;
+      speedgun.reportData.resourceSingleSmallest.value = smallest;
+      speedgun.reportData.resourceSingleLargest.value = largest;
+      speedgun.reportData.resourceSingleFastest.value = fastest;
+      speedgun.reportData.resourceSingleSlowest.value = slowest;
 
 
       page.evaluate(function (perfObj) {
@@ -904,8 +904,17 @@ var speedgun = {
         var value = report[key].value;
         if(typeof value === 'object'){
           for (var secondkey in value) {
-              keys.push('navEvent' + secondkey);
-              values.push(value[secondkey].url + ' ' + value[secondkey].willNavigate)
+            if(key === 'navEvents'){
+              keys.push(key);
+              values.push(value[secondkey].url + ' ' + value[secondkey].willNavigate);
+            }else if(key.indexOf('resourceSingle') >= 0){
+              //only store for url
+              if(value[secondkey].url){
+                keys.push(key);
+                values.push(value[secondkey].url)
+              }
+            }
+
           }
         }else{
           keys.push(key);
