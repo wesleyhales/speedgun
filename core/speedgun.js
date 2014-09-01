@@ -150,8 +150,6 @@ var speedgun = {
 
         report.navEvents = {label:'',value:[],index:56};
 
-//        speedgun.reportData = report;
-
         if(string){
           return JSON.stringify(report);
         }else{
@@ -625,17 +623,17 @@ var speedgun = {
 
 
           //log the entries
-          for (var entry in speedgun.reportData) {
-            if(speedgun.reportData[entry].value instanceof Array){
-              for (var i = 0; i <  speedgun.reportData[entry].value.length;i++) {
-                console.log('2--',entry,speedgun.reportData[entry].value[i])
-              }
-
-            }else{
-              console.log('1--',entry,speedgun.reportData[entry].value)
-            }
-
-          }
+//          for (var entry in speedgun.reportData) {
+//            if(speedgun.reportData[entry].value instanceof Array){
+//              for (var i = 0; i <  speedgun.reportData[entry].value.length;i++) {
+//                console.log('2--',entry,speedgun.reportData[entry].value[i])
+//              }
+//
+//            }else{
+//              console.log('1--',entry,speedgun.reportData[entry].value)
+//            }
+//
+//          }
 
           exit();
 
@@ -692,7 +690,7 @@ var speedgun = {
           incoming = msg;
 
       if (msg.indexOf('error:') >= 0) {
-        speedgun.reportData.errors.value.push(msg.substring('error:'.length, msg.length));
+        speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length, msg.length)));
         error = true;
       }
 
@@ -705,7 +703,7 @@ var speedgun = {
           //if being logged with no format, assume error
           msg = msg.replace('\n','');
           msg = msg.replace(',','&#044;')
-          incoming = speedgun.reportData.errors.value.push(msg);
+          incoming = speedgun.reportData.errors.value.push(encodeURIComponent(msg));
         }
       }
 
@@ -719,7 +717,7 @@ var speedgun = {
 
     page.onError = function (msg, trace) {
       trace.forEach(function (item) {
-        speedgun.reportData.errors.value.push(msg + ':' + item.file + ':' + item.line);
+        speedgun.reportData.errors.value.push(encodeURIComponent(msg + ':' + item.file + ':' + item.line));
       })
     };
 
@@ -819,31 +817,11 @@ var speedgun = {
     return ((new Date()).getTime() - start);
   },
 
-  /*worker: function(now,page){
-   var currentTime = now - this.performance_old.start;
-   var ths = this;
-
-
-   if((currentTime) >= this.performance_old.count1){
-   var worker = new Worker('file:///Users/wesleyhales/phantom-test/worker.js');
-   worker.addEventListener('message', function (event) {
-   //getting errors after 3rd thread with...
-   //_this.workerTask.callback(event);
-   //mycallback(event);
-   console.log('message' + event.data);
-   }, false);
-   worker.postMessage(page);
-   this.performance_old.count2++;
-   this.performance_old.count1 = currentTime + (this.performance_old.count2 * 100);
-   }
-   },*/
-
   screenshot: function (now, page) {
     var start = this.timerStart();
     var currentTime = now - this.performance_old.start;
     var ths = this;
     if ((currentTime) >= this.performance_old.count1) {
-      //var ashot = page.renderBase64();
       page.render('filmstrip/screenshot' + this.performance_old.timer + '.png');
       this.performance_old.count2++;
       this.performance_old.count1 = currentTime + (this.performance_old.count2 * 100);
@@ -906,15 +884,17 @@ var speedgun = {
           for (var secondkey in value) {
             if(key === 'navEvents'){
               keys.push(key);
-              values.push(value[secondkey].url + ' ' + value[secondkey].willNavigate);
+              values.push(value[secondkey].url);
             }else if(key.indexOf('resourceSingle') >= 0){
               //only store for url
               if(value[secondkey].url){
                 keys.push(key);
                 values.push(value[secondkey].url)
               }
+            }else if(key.indexOf('error') >= 0){
+                keys.push(key);
+                values.push(value[secondkey])
             }
-
           }
         }else{
           keys.push(key);
