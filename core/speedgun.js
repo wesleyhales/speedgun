@@ -1,6 +1,8 @@
 #!/usr/bin/env phantomjs
 var fs = require('fs'),
-    WebPage = require('webpage');
+    WebPage = require('webpage'),
+    system = require('system');
+    args = system.args;
 
 var speedgun = {
 
@@ -43,7 +45,7 @@ var speedgun = {
 
         var report = {};
 
-        report.url = {label: 'URL', value: phantom.args[0], index: 32};
+        report.url = {label: 'URL', value: args[1], index: 32};
 
         report.screenshot = {label: 'Screenshot', value: '', index: 33};
 
@@ -504,8 +506,8 @@ var speedgun = {
       }
 
       var report = {};
-      report.url = phantom.args[0];
-      report.phantomCacheEnabled = phantom.args.indexOf('yes') >= 0 ? 'yes' : 'no';
+      report.url = args[1];
+      report.phantomCacheEnabled = args.indexOf('yes') >= 0 ? 'yes' : 'no';
       report.taskName = config.task;
       var drsi = parseInt(this.performance_old.evalConsole.interactive);
       var drsl = parseInt(this.performance_old.evalConsole.loading);
@@ -647,16 +649,16 @@ var speedgun = {
 
     function printReport(report) {
       var reportLocation = speedgun.reportData.url.value.replace('://','_') + '/speedgun';
-      if (phantom.args.indexOf('csv') >= 0) {
-        speedgun.printToFile(report, reportLocation, 'csv', phantom.args.indexOf('wipe') >= 0);
+      if (args.indexOf('csv') >= 0) {
+        speedgun.printToFile(report, reportLocation, 'csv', args.indexOf('wipe') >= 0);
       }
 
-      if (phantom.args.indexOf('json') >= 0) {
-        speedgun.printToFile(report, reportLocation, 'json', phantom.args.indexOf('wipe') >= 0);
+      if (args.indexOf('json') >= 0) {
+        speedgun.printToFile(report, reportLocation, 'json', args.indexOf('wipe') >= 0);
       }
 
-      if (phantom.args.indexOf('junit') >= 0) {
-        speedgun.printToFile(report, reportLocation, 'xml', phantom.args.indexOf('wipe') >= 0);
+      if (args.indexOf('junit') >= 0) {
+        speedgun.printToFile(report, reportLocation, 'xml', args.indexOf('wipe') >= 0);
       }
     }
 
@@ -724,12 +726,12 @@ var speedgun = {
   },
 
   processArgs: function (config, contract) {
-    var a = 0;
+    var a = 1;
     var ok = true;
 
     contract.forEach(function (argument) {
-      if (a < phantom.args.length) {
-        config[argument.name] = phantom.args[a];
+      if (a < args.length) {
+        config[argument.name] = args[a];
       } else {
         if (argument.req) {
           console.log('"' + argument.name + '" argument is required. This ' + argument.desc + '.');
@@ -902,8 +904,8 @@ var speedgun = {
         }
       }
 
-    if (phantom.args[3] && phantom.args[3] != 'wipe') {
-      myfile = 'reports/' + filename + '-' + phantom.args[3] + '.' + extension;
+    if (args[4] && args[4] != 'wipe') {
+      myfile = 'reports/' + filename + '-' + args[4] + '.' + extension;
     } else {
       myfile = 'reports/' + filename + '.' + extension;
     }
