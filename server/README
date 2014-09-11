@@ -1,0 +1,3 @@
+sudo docker run -ti -v /vagrant/reports:/root/speedgun/core/reports -v /vagrant/data:/var/lib/mysql c4a6686c8abc /bin/bash
+sudo docker run -ti -v /vagrant/reports:/root/speedgun/core/reports c4a6686c8abc /bin/bash
+

@@ -46,7 +46,7 @@ RUN ln -s /root/phantomjs/bin/phantomjs /usr/bin/phantomjs
 
 #ADD data tmp2
 
-EXPOSE 80 443 8080 8443
+EXPOSE 80:80 3306:3306 443 8080 8443
 
 RUN git clone git://github.com/wesleyhales/speedgun.git
 
@@ -58,20 +58,33 @@ RUN cd speedgun/core && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes spe
 
 #Install MYSQL
 RUN \
-  apt-get update && \
+  sudo apt-get update && \
   DEBIAN_FRONTEND=noninteractive \
-  apt-get install -y mysql-server && \
+  apt-get install -y mysql-server-5.6 && \
   rm -rf /var/lib/apt/lists/* && \
   sed -i 's/^\(bind-address\s.*\)/# \1/' /etc/mysql/my.cnf && \
   sed -i 's/^\(log_error\s.*\)/# \1/' /etc/mysql/my.cnf && \
   echo "mysqld_safe &" > /tmp/config && \
   echo "mysqladmin --silent --wait=30 ping || exit 1" >> /tmp/config && \
   echo "mysql -e 'GRANT ALL PRIVILEGES ON *.* TO \"root\"@\"%\" WITH GRANT OPTION;'" >> /tmp/config && \
+  echo "mysql -e 'CREATE database fluxui;'" >> /tmp/config && \
+  echo "mysql -e 'CREATE USER \"fluxui\"@\"localhost\" IDENTIFIED BY \"fluxui123\";'" >> /tmp/config && \
+  echo "mysql -e 'GRANT ALL PRIVILEGES ON fluxui.* TO \"fluxui\"@\"localhost\" WITH GRANT OPTION;'" >> /tmp/config && \
   bash /tmp/config && \
   rm -f /tmp/config
 
 #this is an alternative http://txt.fliglio.com/2013/11/creating-a-mysql-docker-container/
 #CMD ["/bin/bash", "/opt/mysql.sh"]
+
+# Define default command.
+CMD ["mysqld_safe"]
+
+ADD server.tar /root/server.tar
+
+RUN echo "sudo /etc/init.d/mysql start && " >> /root/.bashrc \
+    echo "sudo /root/server.tar/jboss-as-7.1.1.Final-fluxui/bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
+
+#RUN sudo /root/server.tar/jboss-as-7.1.1.Final-fluxui/bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0
 
 # Define mountable directories.
 #VOLUME ["/etc/mysql", "/var/lib/mysql"]
