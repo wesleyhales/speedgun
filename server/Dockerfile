@@ -44,14 +44,20 @@ RUN cd /root/phantomjs/ && ./build.sh --confirm
 
 RUN ln -s /root/phantomjs/bin/phantomjs /usr/bin/phantomjs
 
+#ADD data tmp2
+
+EXPOSE 80 443 8080 8443
+
 RUN git clone git://github.com/wesleyhales/speedgun.git
 
-VOLUME ["./data":"/root/speedgun/core/reports"]
+#RUN mkdir /root/speedgun/core/reports
 
-RUN cd speedgun/core && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes speedgun.js http://www.onslyde.com performance csv
+#VOLUME ["/root/speedgun/core/reports"]
+
+RUN cd speedgun/core && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes speedgun.js http://www.google.com performance csv
 
 #Install MYSQL
-#RUN \
+RUN \
   apt-get update && \
   DEBIAN_FRONTEND=noninteractive \
   apt-get install -y mysql-server && \

@@ -16,4 +16,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provision "shell", inline:"sudo service docker start"
 
+  #config.vm.synced_folder "data","data", create:true
 end
