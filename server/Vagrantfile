@@ -1,0 +1,19 @@
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "chef/centos-6.5"
+
+  #config.vm.network "public_network"
+
+  config.vm.provision "shell", path: "install.sh", privileged: false
+
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["modifyvm", :id, "--memory", 2048]
+    v.customize ["modifyvm", :id, "--cpus", 1]
+    v.customize ["modifyvm", :id, "--cpuexecutioncap", "80"]
+    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+  end
+
+  config.vm.provision "shell", inline:"sudo service docker start"
+
+end
