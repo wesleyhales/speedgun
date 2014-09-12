@@ -1,3 +1,18 @@
-sudo docker run -ti -v /vagrant/reports:/root/speedgun/core/reports -v /vagrant/data:/var/lib/mysql c4a6686c8abc /bin/bash
-sudo docker run -ti -v /vagrant/reports:/root/speedgun/core/reports c4a6686c8abc /bin/bash
+sudo docker run -ti -v /vagrant/data:/root/speedgun/core/reports -p 8080 --net=host 082c01e8024d /bin/bash
+run -ti === interactive mode, should be -d for prod server
+--net=host === allows use of host network stack.. otherwise no access
 
+
+problems with vagrant:
+
+$ vagrant plugin install vagrant-vbguest
+
+$ vagrant up
+
+$ vagrant ssh
+
+In the guest (VM logged).
+$ sudo ln -s /opt/VBoxGuestAdditions-4.3.10/lib/VBoxGuestAdditions /usr/lib/VBoxGuestAdditions
+
+Back on the host, reload Vagrant
+$ vagrant reload
