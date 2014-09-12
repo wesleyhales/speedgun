@@ -81,7 +81,7 @@ CMD ["mysqld_safe"]
 
 ADD server.tar /root/server.tar
 
-RUN echo "sudo /etc/init.d/mysql start && \n sudo /root/server.tar/jboss-as-7.1.1.Final-fluxui/bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
+RUN echo "sudo /etc/init.d/mysql start && \n cd /root/server.tar/jboss-as-7.1.1.Final-fluxui/ && sudo ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
 
 #RUN sudo /root/server.tar/jboss-as-7.1.1.Final-fluxui/bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0
 
