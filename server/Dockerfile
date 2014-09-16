@@ -83,7 +83,19 @@ ADD server.tar /root/server.tar
 
 RUN echo "sudo /etc/init.d/mysql start && \n cd /root/server.tar/jboss-as-7.1.1.Final-fluxui/ && sudo ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
 
-#RUN sudo /root/server.tar/jboss-as-7.1.1.Final-fluxui/bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0
+# install maven
+RUN sudo apt-get update && apt-get install -y maven
+
+ADD src /root/src
+ADD pom.xml /root/pom.xml
+
+RUN mvn clean install
+
+RUN cp -rf /root/target/fluxui.war /root/server.tar/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
+
+RUN mkdir /root/server.tar/jboss-as-7.1.1.Final-fluxui/speedgun
+RUN cd /root/server.tar/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/speedgun.js
+RUN cd /root/server.tar/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/config.json
 
 # Define mountable directories.
 #VOLUME ["/etc/mysql", "/var/lib/mysql"]

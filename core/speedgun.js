@@ -619,7 +619,11 @@ var speedgun = {
           task.onLoadFinished.call(scope, page, config, status);
           speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
           page.viewportSize = { width: 1024, height: 768 };
-          page.render('reports/' + speedgun.reportData.url.value.replace('://','_') + '/' + speedgun.reportData.screenshot.value);
+          var reportLocation = '';
+          if(!args[4]){
+            reportLocation = speedgun.reportData.url.value.replace('://','_') + '/';
+          }
+          page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
 
           printReport(speedgun.reportData);
 
@@ -648,7 +652,13 @@ var speedgun = {
     }
 
     function printReport(report) {
-      var reportLocation = speedgun.reportData.url.value.replace('://','_') + '/speedgun';
+
+      var reportLocation = '/speedgun';
+      if(!args[4]){
+        reportLocation = speedgun.reportData.url.value.replace('://','_') + '/speedgun';
+      }
+
+
       if (args.indexOf('csv') >= 0) {
         speedgun.printToFile(report, reportLocation, 'csv', args.indexOf('wipe') >= 0);
       }
