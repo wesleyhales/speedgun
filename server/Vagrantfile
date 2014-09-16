@@ -5,8 +5,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   #config.vm.network "public_network"
 
-  config.vm.provision "shell", path: "install.sh", privileged: false
-
   config.vm.provider "virtualbox" do |v|
     v.customize ["modifyvm", :id, "--memory", 2048]
     v.customize ["modifyvm", :id, "--cpus", 1]
@@ -14,7 +12,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
   end
 
-  config.vm.provision "shell", inline:"sudo service docker start"
+  config.vm.provision "shell", inline:"sudo rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm && \
+                                       sudo yum -y update && \
+                                       sudo yum -y install docker-io"
+
+  config.vm.provision "shell", inline:"sudo /etc/init.d/docker start"
 
   config.vm.network "forwarded_port", guest: 8080, host: 8080
 end

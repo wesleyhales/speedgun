@@ -12,11 +12,6 @@ RUN \
   apt-get install -y byobu curl git htop man unzip vim wget && \
   rm -rf /var/lib/apt/lists/*
 
-# Add files.
-#ADD . /root
-#ADD . /root/.gitconfig
-#ADD . /root/.scripts
-
 # Set environment variables.
 ENV HOME /root
 
@@ -92,6 +87,9 @@ ADD pom.xml /root/pom.xml
 RUN mvn clean install
 
 RUN cp -rf /root/target/fluxui.war /root/server.tar/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
+
+# Cleanup old JMS queue
+RUN rm -rf /root/server.tar/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/server.tar/jboss-as-7.1.1.Final-fluxui/standalone/data/*
 
 RUN mkdir /root/server.tar/jboss-as-7.1.1.Final-fluxui/speedgun
 RUN cd /root/server.tar/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/speedgun.js
