@@ -1,0 +1,276 @@
+body {
+    background-color: #000;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font: 80% / 1.5em "Lucida Sans Unicode", "Lucida Grande", Geneva, Verdana, Arial, sans-serif;
+}
+
+a {
+    text-decoration: none;
+}
+
+/*************************************************
+Mobile Device Page Setup
+*************************************************/
+
+#browser,
+#slide-group-container,
+.slide-group {
+    width: 100%;
+    height: 100%;
+}
+
+#browser {
+    position: relative;
+}
+
+#slide-group-container {
+    position:absolute;
+    overflow: hidden;
+}
+
+.slide-group {
+    position: absolute;
+    /*top: 0;*/
+    background-color: #fff;
+    /*activate the GPU for compositing each page */
+    /*-webkit-transform: translate3d(0, 0, 0);*/
+    /*height:auto;*/
+    /*bottom:0;*/
+    /*top:0;*/
+    /*left:0;*/
+    /*right:0;*/
+    /*width: auto;*/
+}
+
+.slide {
+    position: absolute;
+    background-color: #ececec;
+    border-radius: 15px;
+    border: 3px solid white;
+    margin: 35px;
+    padding:  15px;
+    bottom:0;
+    top:0;
+    left:0;
+    right:0;
+    width: auto;
+    -moz-box-shadow: 0 0 27px -3px #777;
+    -webkit-box-shadow: 0 0 27px -3px #777;
+    box-shadow: 0 0 27px -3px #777;
+    background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(246,246,246,1) 47%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(47%,rgba(246,246,246,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(246,246,246,1) 47%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+	background: linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(246,246,246,1) 47%,rgba(237,237,237,1) 100%); /* W3C */
+}
+
+/*************************************************
+UX Utils
+*************************************************/
+
+.none {
+    display: none
+}
+
+.hide-it {
+    opacity: 0;
+}
+
+.show {
+    opacity: 100;
+}
+
+.transition {
+    -moz-transition-duration: .5s;
+    -webkit-transition-duration: .5s;
+    -o-transition-duration: .5s;
+}
+
+/*************************************************
+Device Specific Styles
+*************************************************/
+.stage-left,
+.stage-right,
+.stage-center {
+    /*height:auto;*/
+    /*bottom:0;*/
+    /*top:0;*/
+    /*left:0;*/
+    /*right:0;*/
+    /*width: auto;*/
+}
+
+.stage-left {
+    left: -100%;
+    right: 100%;
+    width: auto;
+    /*opacity: 0;*/
+}
+
+.stage-right {
+    left: 100%;
+    right: -100%;
+    width: auto;
+}
+
+/*************************************************
+Flip Transition
+*************************************************/
+
+#back,
+#front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    -webkit-transition-duration: .5s;
+    -webkit-transform-style: preserve-3d;
+}
+
+.normal {
+    -webkit-transform: rotateY(0deg);
+}
+
+.flipped {
+    -webkit-user-select: element;
+    -webkit-transform: rotateY(180deg);
+}
+
+/*************************************************
+formatting
+*************************************************/
+
+#controller {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    text-align: center;
+    background-color: #777;
+    z-index: 10;
+}
+
+.address {
+    width: 59%;
+    position: absolute;
+    top: 9px;
+    left: 15%;
+    text-align: center;
+    border-radius: 10px;
+    padding: 23px;
+    z-index: 10;
+    border: 3px solid #777;
+    color:white;
+    font-weight: bold;
+    font-size: 3em;
+    background: #4c4c4c; /* Old browsers */
+    background: -moz-linear-gradient(top,  #4c4c4c 0%, #595959 12%, #666666 25%, #474747 39%, #2c2c2c 50%, #000000 51%, #111111 60%, #2b2b2b 76%, #1c1c1c 91%, #131313 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#4c4c4c), color-stop(12%,#595959), color-stop(25%,#666666), color-stop(39%,#474747), color-stop(50%,#2c2c2c), color-stop(51%,#000000), color-stop(60%,#111111), color-stop(76%,#2b2b2b), color-stop(91%,#1c1c1c), color-stop(100%,#131313)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%); /* Opera 11.10+ */
+}
+
+.address-small {
+    width: 37%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    top: auto;
+    text-align: center;
+    border-radius: 10px;
+    padding: 20px;
+    z-index: 10;
+    border: 3px solid #777;
+    color:white;
+    font-weight: bold;
+    font-size: 2em;
+    background: #4c4c4c; /* Old browsers */
+    background: -moz-linear-gradient(top,  #4c4c4c 0%, #595959 12%, #666666 25%, #474747 39%, #2c2c2c 50%, #000000 51%, #111111 60%, #2b2b2b 76%, #1c1c1c 91%, #131313 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#4c4c4c), color-stop(12%,#595959), color-stop(25%,#666666), color-stop(39%,#474747), color-stop(50%,#2c2c2c), color-stop(51%,#000000), color-stop(60%,#111111), color-stop(76%,#2b2b2b), color-stop(91%,#1c1c1c), color-stop(100%,#131313)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%); /* Opera 11.10+ */
+}
+
+
+
+.slide h1 {
+   font-size: 3em;
+    line-height: 1.2em;
+}
+
+.slide h2 {
+   font-size: 2.8em;
+    line-height: 1.2em;
+}
+
+.slide h3 {
+   font-size: 2.4em;
+    line-height: 1.2em;
+}
+
+.slide ul li {
+   font-size: 2.4em;
+   padding:  15px;
+   line-height: 1.2em;
+}
+
+.slide ul li>ul li{
+   font-size: .9em;
+   padding:  6px;
+   line-height: 1.2em;
+}
+
+.max-width-100 {
+    max-width: 100%;
+}
+
+.slide>pre>code {
+    font-size: 2.2em;
+}
+
+#wtf {
+
+}
+.hide-wtf {
+    opacity:0;
+    width:1px;
+    height: 1px;
+    background-color: red;
+    color: #fff;
+    position: absolute;
+    top:0;
+    right:0;
+    left:0;
+    bottom: 0;
+    font-size: .01em;
+    z-index: 10;
+}
+
+.show-wtf {
+    opacity: 1;
+    width: 100%;
+    height: 100%;
+    background-color: red;
+    color: #fff;
+    text-align: center;
+    vertical-align: middle;
+    top:0;
+    right:0;
+    left:0;
+    bottom: 0;
+    padding: 30% 0 0 0;
+    position: absolute;
+    font-size: 3em;
+    z-index: 10;
+}
+
+.nice {
+    background-color: green;
+}

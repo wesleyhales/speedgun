@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Loadreport.js</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Wesley Hales">
+
+    <!-- Le styles -->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+        }
+    </style>
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+
+</head>
+
+<body>
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="hero-unit">
+                <div class="row-fluid">
+                    <div class="span6">
+                        <form name="reportform" id="reportform" class="form-horizontal">
+                            <fieldset class="control-group">
+                                <!--<legend style="margin: 0">Get a report:</legend>-->
+                                <div id="formMsgs"></div>
+                                <div id="formInputs">
+                                    <label for="url">Enter any valid URL:</label>
+                                    <input type="text" name="url" id="url" placeholder="http://www.whatever.com" required autofocus/>
+                                    <label for="cachedCheckbox">Cached? <input type="checkbox" name="cachedCheckbox" id="cachedCheckbox" value="true"></label>
+                                    <label for="email">Email me when the report is done (recommended):</label>
+                                    <input type="text" name="email" id="email" placeholder="you@email.com" />
+                                    <input type="submit" name="Report" id="reportbutton" value="Report!" class="btn btn-primary">
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+                    <div class="span6 offset6">
+                        <h1>loadreport.js</h1>
+                        <p>This <a href="https://github.com/wesleyhales/loadreport">handy little script</a> uses phantomjs to build a report of DOM and resource load times. The reports are created one-at-a-time to deliver the most accurate results - that's why it takes a few seconds.</p>
+                        <p>loadreport.js generates a JSON or CSV file (since there's no simple way to hook phantom up to a database). It will also generate a png filmstrip with how your site appears as it loads. Read this <a href="http://wesleyhales.com/blog/2012/08/16/Site-Load-Time-Testing-with-PhantomJS/">blog post</a> for more.</p>
+                        <p style="font-size:14px">loadreport.js was forked from confess.js, so serious props to <a href="http://twitter.com/jamespearce">James Pearce</a> for the awesome work!</p>
+                    </div>
+
+                </div>
+            </div>
+        </div><!--/span-->
+    </div><!--/row-->
+    <div class="row-fluid" >
+        <div class="span12">
+            <div id="report">
+                <div id="formProgress"></div>
+                <div class="progress progress-striped active" style="display:none"><div class="bar" style="width: 10%;"></div></div>
+            </div>
+        </div>
+    </div>
+    <hr>
+
+    <footer>
+        <p class="pull-right">By: <a href="http://twitter.com/wesleyhales">Wesley Hales</a> and <a href="http://twitter.com/ryanbridges">Ryan Bridges</a></p>
+    </footer>
+
+</div><!--/.fluid-container-->
+
+<!-- Le javascript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="bootstrap/js/jquery.js"></script>
+<script src="bootstrap/js/bootstrap-transition.js"></script>
+<script src="bootstrap/js/bootstrap-alert.js"></script>
+<script src="bootstrap/js/bootstrap-modal.js"></script>
+<script src="bootstrap/js/bootstrap-dropdown.js"></script>
+<script src="bootstrap/js/bootstrap-scrollspy.js"></script>
+<script src="bootstrap/js/bootstrap-tab.js"></script>
+<script src="bootstrap/js/bootstrap-tooltip.js"></script>
+<script src="bootstrap/js/bootstrap-popover.js"></script>
+<script src="bootstrap/js/bootstrap-button.js"></script>
+<script src="bootstrap/js/bootstrap-collapse.js"></script>
+<script src="bootstrap/js/bootstrap-carousel.js"></script>
+<script src="bootstrap/js/bootstrap-typeahead.js"></script>
+
+<script type="text/javascript">
+    var $this = $('.bar');
+    $("#formProgress").ajaxStart(function() {
+        //$('#formInputs').fadeOut(200);
+        $('#report .progress-striped').fadeIn(200);
+
+
+    });//.ajaxStop(function() {
+
+                //$('#formInputs').fadeIn(200);
+    //});
+
+</script>
+<script type="text/javascript" src="js/app.js"></script>
+<script type="text/javascript">
+
+    $( document ).ready( function() {
+        var bartimer;
+        //Register an event listener on the sumbit action
+        $('#reportform').submit(function(event) {
+            event.preventDefault();
+            var reportType = "cached";
+
+            var reportData = $(this).serializeObject();
+
+            if( reportData.reportbutton ) {
+                delete reportData.reportbutton;
+            }
+
+            if(!reportData.cachedCheckbox){
+                reportData.cachedCheckbox = false;
+                reportType = "noncached";
+            }
+
+            if(reportData.url.indexOf('http://') === -1){
+                reportData.url = 'http://' + reportData.url;
+            }
+//            console.log(reportData);
+
+            disableForm();
+
+
+                $.get("/rest/performance/go", { url: reportData.url, cached: reportData.cachedCheckbox, email: reportData.email},
+                    function(data){
+                    console.log('data',data);
+                    if(data === "#fail"){
+                        hideProgress();
+                        enableForm();
+                        alert('Bad URL or problem with my server');
+                    }else{
+                    var per = 10;
+                        bartimer = window.setInterval(function(){
+                        per += 1;
+                        $('#report .progress-striped .bar').attr('style','width:'+ per +'%');
+                    },2000);
+
+                    data = $.parseJSON(data);
+//                    console.log('parsedjson',data);
+                    if(!$.trim($("#email").val())){
+                        $('<h3>The report for '+reportData.url+' is <span style=\"color:blue\">#' + data.position + '</span> in line. It will show up below when it\'s ready.</h3>').prependTo('#report').fadeOut(9000);
+                        var reportchecker = window.setInterval(function(){
+//                        console.log('reportchecker');
+                            setupReport();
+                        },10000);
+                    }else{
+                        $('#report .progress-striped .bar').hide();
+                        $('<h3>The report for '+reportData.url+' is <span style=\"color:blue\">#' + data.position + '</span> in line. It will show up in your inbox when it\'s ready.</h3>').prependTo('#report').fadeOut(9000);
+                        enableForm();
+                    }
+
+
+                    function setupReport(){
+//                        console.log('setupreport');
+                        $.getJSON('\/rest\/performance\/report\?uuid\='+ data.uuid, function(json) {
+//                            console.log('json.length',json.length);
+                            if(json === "#fail" || json.length === undefined || json.length < 5){
+                                //setupReport();
+//                                console.log('fail',json);
+                            }else{
+//                                console.log('success',json);
+                                clearInterval(bartimer);
+                                clearInterval(reportchecker);
+                                hideProgress();
+
+                               $("#email").removeAttr("disabled");
+                                $("#url").removeAttr("disabled");
+                                $("#reportbutton").removeAttr("disabled");
+
+                                $('#formProgress').html('<div class=\"progress progress-striped active\"><div class=\"bar\" style=\"width: 100%;\"></div></div>').fadeOut(200);
+                                $('<h2>'+ reportData.url +'</h2><h3>' + reportType + '</h3>' +
+                                        '<button class="btn btn-info pull-right" onclick="location.href=\'\/rest\/performance\/speedreport\?uuid\='+ data.uuid +'\'\">Show Me Some Charts!</button>' +
+                                        '<a href=\"\/rest\/performance\/report\?uuid\='+ data.uuid +'\">JSON</a>').appendTo('#report');
+                                buildReport(json);
+                            }
+                        });
+                    }
+
+                    }
+
+                });
+
+        });
+
+        function disableForm(){
+            $("#email").attr("disabled", "disabled");
+            $("#url").attr("disabled", "disabled");
+            $("#reportbutton").attr("disabled", "disabled");
+        }
+
+        function enableForm(){
+            $("#email").removeAttr("disabled");
+            $("#url").removeAttr("disabled");
+            $("#reportbutton").removeAttr("disabled");
+        }
+
+        function hideProgress(){
+            $('#report .progress-striped .bar').fadeOut(200);
+        }
+
+        function buildReport(reportjson){
+            var rows = [], gotem = false;
+            var $header = $('<thead></thead>');
+            var $table = $('<table class=\"table table-bordered table-striped\"></table>');
+            var errorIdx = 0;
+            for(obj in reportjson){
+                var thisreport = reportjson[obj];
+                if(!gotem){
+                for(var key in thisreport)
+                {
+                    if(thisreport.hasOwnProperty(key))
+                    {
+                        //console.log(key);
+                        if(key !== 'timeStamp' && key !== 'taskName' && key !== 'phantomCacheEnabled'){
+                            var htext = key.replace(/([A-Z])/g, " $1");
+                            $header.append('<th>' + (htext.charAt(0).toUpperCase() + htext.slice(1)) + '</th>');
+                        }
+                    }
+                }
+                    gotem = true;
+                    $table.append($header);
+                }
+                var $row = $('<tr></tr>'),thisrow;
+                for(var key2 in thisreport){
+                    //console.log(key2);
+                    if(key2 === 'errors'){
+                        var rowWithErrors = $('<td></td>');
+                        $('<a>',{
+                            text: thisreport[key2].length + ' JavaScript Errors',
+                            title: 'errors',
+                            click: function(){$('.js-error').toggle();}
+                        }).appendTo(rowWithErrors);
+
+                        for(error in thisreport[key2]){
+                            rowWithErrors.append('<div id=\"js-errors' + errorIdx + '\" class=\"js-error\" style=\"display:none\">' + thisreport[key2][error] + '</div>');
+                            errorIdx++;
+                        }
+                        thisrow = $row.append(rowWithErrors);
+                    }else if(key2 === 'slowestResource' || key2 === 'largestResource'){
+                        var resRow = $('<td></td>');
+                        $('<a>',{
+                            text: 'Show it',
+                            title: 'res',
+                            click: function(){$('.res').toggle();}
+                        }).appendTo(resRow);
+                        resRow.append('<div class=\"res\" style=\"display:none\">' + thisreport[key2] + '</div>');
+                        thisrow = $row.append(resRow);
+                    }else if(key2 !== 'timeStamp' && key2 !== 'taskName' && key2 !== 'phantomCacheEnabled'){
+                        thisrow = $row.append('<td>'+ thisreport[key2] +'</td>');
+                    }
+
+                }
+                $table.append(thisrow).appendTo('#report');
+            }
+            //$('<table></table>').append(header).append(rows.join('')).appendTo('#report');
+            //("#report").html(reportjson[0]);
+        }
+
+
+    });
+
+    $.fn.serializeObject = function() {
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function() {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+
+</script>
+
+<script type="text/javascript">
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-1241000-11']);
+    _gaq.push(['_setDomainName', 'wesleyhales.com']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+</script>
+</body>
+</html>
