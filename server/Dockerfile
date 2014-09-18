@@ -74,9 +74,12 @@ RUN \
 # Define default command.
 CMD ["mysqld_safe"]
 
-ADD server.tar /root/server.tar
+#ADD server.tar /root/server.tar
+RUN cd /root && wget https://www.dropbox.com/s/824hh0sv0nsejhj/server.tar
 
-RUN echo "sudo /etc/init.d/mysql start && \n cd /root/server.tar/jboss-as-7.1.1.Final-fluxui/ && sudo ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
+RUN cd /root && tar -xzvf server.tar
+
+RUN echo "sudo /etc/init.d/mysql start && \n cd /root/jboss-as-7.1.1.Final-fluxui/ && sudo ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
 
 # install maven
 RUN sudo apt-get update && apt-get install -y maven
@@ -86,14 +89,14 @@ ADD pom.xml /root/pom.xml
 
 RUN mvn clean install
 
-RUN cp -rf /root/target/fluxui.war /root/server.tar/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
+RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
 
 # Cleanup old JMS queue
-RUN rm -rf /root/server.tar/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/server.tar/jboss-as-7.1.1.Final-fluxui/standalone/data/*
+RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/jboss-as-7.1.1.Final-fluxui/standalone/data/*
 
-RUN mkdir /root/server.tar/jboss-as-7.1.1.Final-fluxui/speedgun
-RUN cd /root/server.tar/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/speedgun.js
-RUN cd /root/server.tar/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/config.json
+RUN mkdir /root/jboss-as-7.1.1.Final-fluxui/speedgun
+RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/speedgun.js
+RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/config.json
 
 # Define mountable directories.
 #VOLUME ["/etc/mysql", "/var/lib/mysql"]
