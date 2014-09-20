@@ -252,17 +252,18 @@ public class PerfQueueManager {
                     System.out.println("--------------phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js "+ url +" "+ taskName +" json " + random );
                     Process p=Runtime.getRuntime().exec("phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js "+ url +" "+ taskName +" json " + random );
 
-                  String line;
+                    String line;
                     BufferedReader in = new BufferedReader(
                         new InputStreamReader(p.getInputStream()) );
                     while ((line = in.readLine()) != null) {
                       System.out.println(line);
                     }
-                    in.close();
+
 
                     p.waitFor();
 
-                    Thread.sleep(2000);
+                    Thread.sleep(3000);
+                  in.close();
 //                    BufferedReader reader=new BufferedReader(new InputStreamReader(p.getInputStream()));
 //                    String line=reader.readLine();
 //                    while(line!=null)

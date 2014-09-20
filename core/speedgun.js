@@ -621,9 +621,11 @@ var speedgun = {
           page.viewportSize = { width: 1024, height: 768 };
           var reportLocation = '';
           if(!args[4]){
+            //if not running on the server, create a special folder and render screenshot
             reportLocation = speedgun.reportData.url.value.replace('://','_') + '/';
+            page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
           }
-          page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
+
 
           printReport(speedgun.reportData);
 
