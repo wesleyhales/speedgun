@@ -115,8 +115,13 @@ RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubu
 # install maven
 #RUN apt-get install -y maven
 
+#add server name to etc/hosts
+#RUN sudo echo "127.0.0.1         speedgun" >> /etc/hosts
+
 # run terminal
 CMD ["/bin/bash"]
+
+
 
 #RUN yum -y install wget
 #RUN wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/7u65-b17/jre-7u65-linux-x64.rpm
