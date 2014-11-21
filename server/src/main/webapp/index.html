@@ -107,8 +107,9 @@
 <script type="text/javascript">
 
     $( document ).ready( function() {
+      var emailInput = $("#email");
         var bartimer;
-        //Register an event listener on the sumbit action
+        //test Register an event listener on the sumbit action
         $('#reportform').submit(function(event) {
             event.preventDefault();
             var reportType = "cached";
@@ -148,15 +149,14 @@
 
                     data = $.parseJSON(data);
 //                    console.log('parsedjson',data);
-                    if(!$.trim($("#email").val())){
-                        $('<h3>The report for '+reportData.url+' is <span style=\"color:blue\">#' + data.position + '</span> in line. It will show up below when it\'s ready.</h3>').prependTo('#report').fadeOut(9000);
+                    $('<h3>The report for '+reportData.url+' is <span style=\"color:blue\">#' + data.position + '</span> in line. It will show up ' + (!$.trim(emailInput.val()) ? 'in your inbox' : '') + ' when it\'s ready.</h3>').prependTo('#report').fadeOut(9000);
+                    if(!$.trim(emailInput.val())){
                         var reportchecker = window.setInterval(function(){
 //                        console.log('reportchecker');
                             setupReport();
                         },10000);
                     }else{
                         $('#report .progress-striped .bar').hide();
-                        $('<h3>The report for '+reportData.url+' is <span style=\"color:blue\">#' + data.position + '</span> in line. It will show up in your inbox when it\'s ready.</h3>').prependTo('#report').fadeOut(9000);
                         enableForm();
                     }
 
@@ -174,7 +174,7 @@
                                 clearInterval(reportchecker);
                                 hideProgress();
 
-                               $("#email").removeAttr("disabled");
+                              emailInput.removeAttr("disabled");
                                 $("#url").removeAttr("disabled");
                                 $("#reportbutton").removeAttr("disabled");
 
@@ -194,13 +194,13 @@
         });
 
         function disableForm(){
-            $("#email").attr("disabled", "disabled");
+          emailInput.attr("disabled", "disabled");
             $("#url").attr("disabled", "disabled");
             $("#reportbutton").attr("disabled", "disabled");
         }
 
         function enableForm(){
-            $("#email").removeAttr("disabled");
+          emailInput.removeAttr("disabled");
             $("#url").removeAttr("disabled");
             $("#reportbutton").removeAttr("disabled");
         }

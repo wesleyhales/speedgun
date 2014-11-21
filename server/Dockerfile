@@ -37,6 +37,8 @@ RUN \
 
 #RUN cd /root/phantomjs/ && ./build.sh --confirm
 
+
+
 ADD phantomjs /root/phantomjs
 
 RUN ln -s /root/phantomjs /usr/bin/phantomjs
@@ -91,7 +93,9 @@ ADD pom.xml /root/pom.xml
 
 RUN mvn clean install
 
-RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
+#RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
+
+RUN ln -s /root/target/speedgun /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war
 
 # Cleanup old JMS queue
 RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/jboss-as-7.1.1.Final-fluxui/standalone/data/*

@@ -1,7 +1,30 @@
+sudo docker build -t speedgun .
+
+
+
 sudo docker run -ti -v /vagrant/data:/root/speedgun/core/reports -p 8080 --net=host 082c01e8024d /bin/bash
+
+
+sudo docker run -ti -v /vagrant/data:/root/speedgun/core/reports -v /vagrant/bin:/root/phantomjs/bin2 -p 8080 --net=host 0d5c86e5cafc /bin/bash
+
+
 run -ti === interactive mode, should be -d for prod server
 --net=host === allows use of host network stack.. otherwise no access
 
+###run everything from /vagrant
+
+dev:
+sudo docker run -ti
+    #report data
+   -v /vagrant/data:/root/speedgun/core/reports
+    #custom build of phantomjs
+   -v /vagrant/bin:/root/phantomjs/bin
+    #mount the speedgun.war exploded for local dev
+   -v /vagrant/target/speedgun:/root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war -p 8080 --net=host 0d5c86e5cafc /bin/bash
+
+prod:
+sudo docker run -d -p 80:8080 speedgun:latest /bin/bash -c "sudo /etc/init.d/mysql start &&
+ cd /root/jboss-as-7.1.1.Final-fluxui/ && sudo ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0"
 
 problems with vagrant:
 
