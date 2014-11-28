@@ -140,7 +140,7 @@ var speedgun = {
 
         report.domperfLoad = {value: 0, label: '', index: 41};
 
-        report.resources = {label:'',value:{},index:51};
+        report.resources = {label: '', value: {}, index: 51};
 
         report.resourceSingleSmallest = {label:'',value:'',index:52};
 
@@ -169,12 +169,6 @@ var speedgun = {
           largest, smallest, totalSize = 0,
           missingList = [],
           missingSize = false;
-
-//      for (key in resources) {
-//        if (resources.hasOwnProperty(key)){
-//          console.log('----',resources[key].url,resources[key].duration);
-//        }
-//      }
 
       for(var resource in resources){
         resource = resources[resource];
@@ -284,13 +278,12 @@ var speedgun = {
           console.log(JSON.stringify(report[key]));
         }
 
-        //}, this.performance.perfObj.data(true)); this needs to be inititialized earlier
       }, JSON.stringify(speedgun.reportData));
 
     },
 
     onLoadStarted: function (page, config) {
-      console.log('###### onLoadStarted');
+      console.log('###### onLoadStarteda');
     },
 
     onNavigationRequested: function(page, config, url, type, willNavigate, main) {
@@ -626,7 +619,14 @@ var speedgun = {
             page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
           }
 
+          //grand finally for the report. need a better final method that cleans up and
+          //decides which data to filter on.
 
+          //simple filter for detailed reporting
+          if(args.indexOf('detailed') <= 0){
+            console.log('delete')
+            delete speedgun.reportData.resources;
+          }
           printReport(speedgun.reportData);
 
 
