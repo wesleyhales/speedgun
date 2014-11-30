@@ -23,7 +23,7 @@ sudo docker run -ti
    -v /vagrant/target/speedgun:/root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war -p 8080 --net=host 0d5c86e5cafc /bin/bash
 
 prod:
-sudo docker run -d -p 80:8080 speedgun:latest /bin/bash -c "sudo /etc/init.d/mysql start &&
+sudo docker run -d -p 80:8080 141ebfdef87a /bin/bash -c "sudo /etc/init.d/mysql start &&
  cd /root/jboss-as-7.1.1.Final-fluxui/ && sudo ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0"
 
 problems with vagrant:

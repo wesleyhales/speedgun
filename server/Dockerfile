@@ -31,11 +31,13 @@ RUN \
   sudo apt-get update && apt-get -y install g++ flex bison gperf ruby perl \
   libsqlite3-dev libfontconfig1-dev libicu-dev libfreetype6 libssl-dev libjpeg-dev libqt5webkit5-dev
 
-#RUN rm -rf phantomjs
+#build latest phantom
 
-#RUN git clone git://github.com/ariya/phantomjs.git
+RUN rm -rf phantomjs
 
-#RUN cd /root/phantomjs/ && ./build.sh --confirm
+RUN git clone git://github.com/ariya/phantomjs.git
+
+RUN cd /root/phantomjs/ && ./build.sh --confirm
 
 
 
@@ -93,7 +95,7 @@ ADD pom.xml /root/pom.xml
 
 RUN mvn clean install
 
-#RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
+RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
 
 RUN ln -s /root/target/speedgun /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war
 

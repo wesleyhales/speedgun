@@ -14,6 +14,12 @@
       padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
     }
 
+    .sr-container {
+      position:relative;
+      width:100%;
+      height:100%;
+    }
+
     .cell {
       width: 44%;
       height: 115px;
@@ -167,194 +173,239 @@
 <script type="text/javascript" src="js/app.js"></script>
 <script type="text/javascript">
 
-  $( document ).ready( function() {
-    var emailInput = $("#email");
-    var bartimer;
-    //test Register an event listener on the sumbit action
-    $('#reportform').submit(function(event) {
-      event.preventDefault();
-      var reportType = "cached";
+$( document ).ready( function() {
+  var emailInput = $("#email");
+  var bartimer;
+  //test Register an event listener on the sumbit action
+  $('#reportform').submit(function(event) {
+    event.preventDefault();
+    var reportType = "cached";
 
-      var reportData = $(this).serializeObject();
+    var reportData = $(this).serializeObject();
 
-      if( reportData.reportbutton ) {
-        delete reportData.reportbutton;
-      }
+    if( reportData.reportbutton ) {
+      delete reportData.reportbutton;
+    }
 
-      if(!reportData.cachedCheckbox){
-        reportData.cachedCheckbox = false;
-        reportType = "noncached";
-      }
+    if(!reportData.cachedCheckbox){
+      reportData.cachedCheckbox = false;
+      reportType = "noncached";
+    }
 
-      if(reportData.url.indexOf('http://') === -1){
-        reportData.url = 'http://' + reportData.url;
-      }
+    if(reportData.url.indexOf('http://') === -1){
+      reportData.url = 'http://' + reportData.url;
+    }
 //            console.log(reportData);
 
-      disableForm();
+    disableForm();
 
 
-      $.get("/rest/performance/go", { url: reportData.url, cached: reportData.cachedCheckbox, email: reportData.email},
-          function(data){
-            console.log('data',data);
-            if(data === "#fail"){
-              hideProgress();
-              enableForm();
-              alert('Bad URL or problem with my server');
-            }else{
-              var per = 10;
-              bartimer = window.setInterval(function(){
-                per += 1;
-                $('#report .progress-striped .bar').attr('style','width:'+ per +'%');
-              },2000);
+    $.get("/rest/performance/go", { url: reportData.url, cached: reportData.cachedCheckbox, email: reportData.email},
+        function(data){
+          console.log('data',data);
+          if(data === "#fail"){
+            hideProgress();
+            enableForm();
+            alert('Bad URL or problem with my server');
+          }else{
+            var per = 10;
+            bartimer = window.setInterval(function(){
+              per += 1;
+              $('#report .progress-striped .bar').attr('style','width:'+ per +'%');
+            },2000);
 
-              data = $.parseJSON(data);
+            data = $.parseJSON(data);
 //                    console.log('parsedjson',data);
-              $('<h3>The report for '+reportData.url+' is <span style=\"color:blue\">#' + data.position + '</span> in line. It will show up ' + (!$.trim(emailInput.val()) ? 'in your inbox' : '') + ' when it\'s ready.</h3>').prependTo('#report').fadeOut(9000);
-              if(!$.trim(emailInput.val())){
-                var reportchecker = window.setInterval(function(){
+            $('<h3>The report for '+reportData.url+' is <span style=\"color:blue\">#' + data.position + '</span> in line. It will show up ' + (!$.trim(emailInput.val()) ? 'in your inbox' : '') + ' when it\'s ready.</h3>').prependTo('#report').fadeOut(9000);
+            if(!$.trim(emailInput.val())){
+              var reportchecker = window.setInterval(function(){
 //                        console.log('reportchecker');
-                  setupReport();
-                },10000);
-              }else{
-                $('#report .progress-striped .bar').hide();
-                enableForm();
-              }
+                setupReport();
+              },10000);
+            }else{
+              $('#report .progress-striped .bar').hide();
+              enableForm();
+            }
 
 
-              function setupReport(){
+            function setupReport(){
 //                        console.log('setupreport');
-                $.getJSON('\/rest\/performance\/report\?uuid\='+ data.uuid, function(json) {
+              $.getJSON('\/rest\/performance\/report\?uuid\='+ data.uuid, function(json) {
 //                            console.log('json.length',json.length);
-                  if(json === "#fail" || json.length === undefined || json.length < 5){
-                    //setupReport();
+                if(json === "#fail" || json.length === undefined || json.length < 5){
+                  //setupReport();
 //                                console.log('fail',json);
-                  }else{
+                }else{
 //                                console.log('success',json);
-                    clearInterval(bartimer);
-                    clearInterval(reportchecker);
-                    hideProgress();
+                  clearInterval(bartimer);
+                  clearInterval(reportchecker);
+                  hideProgress();
 
-                    emailInput.removeAttr("disabled");
-                    $("#url").removeAttr("disabled");
-                    $("#reportbutton").removeAttr("disabled");
+                  emailInput.removeAttr("disabled");
+                  $("#url").removeAttr("disabled");
+                  $("#reportbutton").removeAttr("disabled");
 
-                    $('#formProgress').html('<div class=\"progress progress-striped active\"><div class=\"bar\" style=\"width: 100%;\"></div></div>').fadeOut(200);
-                    $('<h2>'+ reportData.url +'</h2><h3>' + reportType + '</h3>' +
-                        '<button class="btn btn-info pull-right" onclick="location.href=\'\/rest\/performance\/speedreport\?uuid\='+ data.uuid +'\'\">Show Me Some Charts!</button>' +
-                        '<a href=\"\/rest\/performance\/report\?uuid\='+ data.uuid +'\">JSON</a>').appendTo('#report');
-                    buildReport(json);
-                  }
-                });
-              }
-
+                  $('#formProgress').html('<div class=\"progress progress-striped active\"><div class=\"bar\" style=\"width: 100%;\"></div></div>').fadeOut(200);
+                  $('<h2>'+ reportData.url +'</h2><h3>' + reportType + '</h3>' +
+                      '<button class="btn btn-info pull-right" onclick="location.href=\'\/rest\/performance\/speedreport\?uuid\='+ data.uuid +'\'\">Show Me Some Charts!</button>' +
+                      '<a href=\"\/rest\/performance\/report\?uuid\='+ data.uuid +'\">JSON</a>').appendTo('#report');
+                  buildReport(json);
+                }
+              });
             }
 
-          });
-
-    });
-
-    function disableForm(){
-      emailInput.attr("disabled", "disabled");
-      $("#url").attr("disabled", "disabled");
-      $("#reportbutton").attr("disabled", "disabled");
-    }
-
-    function enableForm(){
-      emailInput.removeAttr("disabled");
-      $("#url").removeAttr("disabled");
-      $("#reportbutton").removeAttr("disabled");
-    }
-
-    function hideProgress(){
-      $('#report .progress-striped .bar').fadeOut(200);
-    }
-
-//    buildReport(speedgun);
-
-    function buildReport(reportjson){
-      var rows = [], gotem = false;
-      var $table = $('<div class=\"container\"></div>');
-      var errorIdx = 0;
-      for(obj in reportjson){
-        var thisreport = reportjson[obj], thisrow;
-
-        //only want one run through of headers
-        for(var key in thisreport)
-        {
-          if(thisreport.hasOwnProperty(key))
-          {
-            //console.log(key);
-            if(key !== 'timeStamp' && key !== 'taskName' && key !== 'phantomCacheEnabled'){
-              var htext = key.replace(/([A-Z])/g, " $1");
-              var $cell = $('<div class=\"cell ' + key + '\"></div>');
-
-              $cell.append('<div class=\"header\">' + (htext.charAt(0).toUpperCase() + htext.slice(1)) + '</div>');
-
-              if(key === 'errors'){
-                var rowWithErrors = $('<div></div>');
-                $('<a>',{
-                  text: thisreport[key].value.length + ' JavaScript Errors',
-                  title: 'errors',
-                  click: function(){$('.js-error').toggle();}
-                }).appendTo(rowWithErrors);
-
-                for(error in thisreport[key]){
-                  rowWithErrors.append('<div id=\"js-errors' + errorIdx + '\" class=\"js-error\" style=\"display:none\">' + decodeURIComponent(thisreport[key][error]) + '</div><hr/>');
-                  errorIdx++;
-                }
-                thisrow = $cell.append(rowWithErrors);
-              }else if(key.indexOf('resourceSingle') >= 0) {
-                var resRow = $('<div></div>');
-                $('<a>', {
-                  text: 'Show it',
-                  title: 'res',
-                  click: function () {
-                    $('.res').toggle();
-                  }
-                }).appendTo(resRow);
-                resRow.append('<div class=\"res\" style=\"display:none\">' + thisreport[key].value.url + '</div>');
-                thisrow = $cell.append(resRow);
-              }else if(key.indexOf('navEvents') >= 0){
-                var rowWithNavEvents = $('<div></div>');
-                for(navEvent in thisreport[key].value){
-                  rowWithNavEvents.append('<div>'+ thisreport[key].value[navEvent].url +'<hr/></div>');
-                }
-                thisrow = $cell.append(rowWithNavEvents);
-              }else if(key !== 'timeStamp' && key !== 'taskName' && key !== 'phantomCacheEnabled'){
-                $cell.append('<div class=\"desc\">'+ thisreport[key].label +'</div>');
-                thisrow = $cell.append('<div class=\"value\">'+ thisreport[key].value +'</div>');
-              }
-              $table.append(thisrow)
-            }
           }
-        }
 
-      }
-
-      $('#report').append($table);
-    }
-
-
-
+        });
 
   });
 
-  $.fn.serializeObject = function() {
-    var o = {};
-    var a = this.serializeArray();
-    $.each(a, function() {
-      if (o[this.name]) {
-        if (!o[this.name].push) {
-          o[this.name] = [o[this.name]];
+  function disableForm(){
+    emailInput.attr("disabled", "disabled");
+    $("#url").attr("disabled", "disabled");
+    $("#reportbutton").attr("disabled", "disabled");
+  }
+
+  function enableForm(){
+    emailInput.removeAttr("disabled");
+    $("#url").removeAttr("disabled");
+    $("#reportbutton").removeAttr("disabled");
+  }
+
+  function hideProgress(){
+    $('#report .progress-striped .bar').fadeOut(200);
+  }
+
+  buildReport(speedgun);
+  gatherCells();
+
+  function gatherCells(){
+//    .cell.pageLoadTime,
+//    .cell.perceivedLoadTime,
+//    .cell.pageProcessTime,
+//    .cell.loadEventTime,
+//    .cell.connectTime,
+//    .cell.domContentTime,
+//    .cell.responseTime,
+//    .cell.redirectTime,
+//    .cell.domainLookupTime,
+//    .cell.domperfDOMContentLoaded,
+//    .cell.domperfLoad
+    var cellMap = {},cellMap1 = {};
+    cellMap.list = document.querySelectorAll('.cell.cell0');
+    for(cell in cellMap.list){
+      cellMap[cell] = {};
+//        cellMap0[cell].x = cellMap0.list[cell].offsetLeft;
+//        cellMap0[cell].y = cellMap0.list[cell].offsetTop;
+    }
+
+
+    for(var i=1;i<5;i++){
+
+      cellMap[i] = {};
+      cellMap[i].list = document.querySelectorAll('.cell.cell' + i);
+
+      for(cell in cellMap[i].list){
+        var cellEle = document.getElementById(cellMap[i].list[cell].id);
+
+        try {
+          if (cellMap.list[cell].offsetLeft != 0 && cellMap.list[cell].offsetTop !== 0){
+            cellEle.style.position = 'absolute';
+            cellEle.style.left = cellMap.list[cell].offsetLeft + 'px';
+            cellEle.style.top = cellMap.list[cell].offsetTop + 'px';
+            console.log(cellEle, cellMap.list[cell], cellMap.list[cell].offsetLeft,cellMap.list[cell].offsetTop);
+          }
+        } catch (e) {
         }
-        o[this.name].push(this.value || '');
-      } else {
-        o[this.name] = this.value || '';
       }
-    });
-    return o;
-  };
+
+      console.log(cellMap);
+    }
+  }
+
+  function buildReport(reportjson){
+    var rows = [], gotem = false;
+    var $table = $('<div class=\"sr-container\"></div>');
+    var errorIdx = 0;
+    for(obj in reportjson){
+      var thisreport = reportjson[obj], thisrow;
+
+      //only want one run through of headers
+      for(var key in thisreport)
+      {
+        if(thisreport.hasOwnProperty(key))
+        {
+          //console.log(key);
+          if(key !== 'timeStamp' && key !== 'taskName' && key !== 'phantomCacheEnabled'){
+            var htext = key.replace(/([A-Z])(?=[a-z])/g, " $1");
+            var $cell = $('<div class=\"cell ' + key + ' cell' + obj + '\" id=\"' + key + '_' + obj +'\"></div>');
+
+            $cell.append('<div class=\"header\">' + (htext.charAt(0).toUpperCase() + htext.slice(1)) + '</div>');
+
+            if(key === 'errors'){
+              var rowWithErrors = $('<div></div>');
+              $('<a>',{
+                text: thisreport[key].value.length + ' JavaScript Errors',
+                title: 'errors',
+                click: function(){$('.js-error').toggle();}
+              }).appendTo(rowWithErrors);
+
+              for(error in thisreport[key]){
+                rowWithErrors.append('<div id=\"js-errors' + errorIdx + '\" class=\"js-error\" style=\"display:none\">' + decodeURIComponent(thisreport[key][error]) + '</div><hr/>');
+                errorIdx++;
+              }
+              thisrow = $cell.append(rowWithErrors);
+            }else if(key.indexOf('resourceSingle') >= 0) {
+              var resRow = $('<div></div>');
+              $('<a>', {
+                text: 'Show it',
+                title: 'res',
+                click: function () {
+                  $('.res').toggle();
+                }
+              }).appendTo(resRow);
+              resRow.append('<div class=\"res\" style=\"display:none\">' + thisreport[key].value.url + '</div>');
+              thisrow = $cell.append(resRow);
+            }else if(key.indexOf('navEvents') >= 0){
+              var rowWithNavEvents = $('<div></div>');
+              for(navEvent in thisreport[key].value){
+                rowWithNavEvents.append('<div>'+ thisreport[key].value[navEvent].url +'<hr/></div>');
+              }
+              thisrow = $cell.append(rowWithNavEvents);
+            }else if(key !== 'timeStamp' && key !== 'taskName' && key !== 'phantomCacheEnabled'){
+              $cell.append('<div class=\"desc\">'+ thisreport[key].label +'</div>');
+              thisrow = $cell.append('<div class=\"value\">'+ thisreport[key].value +'</div>');
+            }
+            $table.append(thisrow)
+          }
+        }
+      }
+
+    }
+
+    $('#report').append($table);
+  }
+
+
+
+
+});
+
+$.fn.serializeObject = function() {
+  var o = {};
+  var a = this.serializeArray();
+  $.each(a, function() {
+    if (o[this.name]) {
+      if (!o[this.name].push) {
+        o[this.name] = [o[this.name]];
+      }
+      o[this.name].push(this.value || '');
+    } else {
+      o[this.name] = this.value || '';
+    }
+  });
+  return o;
+};
 
 </script>
 
