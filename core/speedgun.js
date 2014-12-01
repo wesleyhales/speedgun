@@ -136,9 +136,9 @@ var speedgun = {
         //PhantomJS Error Detection
         report.errors = {value: [], label: '', index: 37};
 
-        report.domperfDOMContentLoaded = {value: 0, label: '', index: 40};
+        report.DOMContentLoaded = {value: 0, label: 'Old perf measurement', index: 40};
 
-        report.domperfLoad = {value: 0, label: '', index: 41};
+        report.Load = {value: 0, label: 'Old perf measurement', index: 41};
 
         report.resources = {label: '', value: {}, index: 51};
 

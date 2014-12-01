@@ -24,7 +24,7 @@
       width: 44%;
       height: 115px;
       float: left;
-      margin: 20px;
+      margin: 0;
       padding: 5px;
       position: relative;
       border: 1px solid #ececec;
@@ -96,9 +96,11 @@
 
     .cell .value {
       position: absolute;
-      bottom: 0;
+      bottom: 5px;
       right: 0;
+      left: 1%;
       font-size: 3em;
+      text-align: right;
     }
   </style>
   <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
@@ -247,9 +249,9 @@ $( document ).ready( function() {
 
                   $('#formProgress').html('<div class=\"progress progress-striped active\"><div class=\"bar\" style=\"width: 100%;\"></div></div>').fadeOut(200);
                   $('<h2>'+ reportData.url +'</h2><h3>' + reportType + '</h3>' +
-                      '<button class="btn btn-info pull-right" onclick="location.href=\'\/rest\/performance\/speedreport\?uuid\='+ data.uuid +'\'\">Show Me Some Charts!</button>' +
                       '<a href=\"\/rest\/performance\/report\?uuid\='+ data.uuid +'\">JSON</a>').appendTo('#report');
                   buildReport(json);
+                  gatherCells();
                 }
               });
             }
@@ -293,11 +295,9 @@ $( document ).ready( function() {
 //    .cell.domperfLoad
     var cellMap = {},cellMap1 = {};
     cellMap.list = document.querySelectorAll('.cell.cell0');
-    for(cell in cellMap.list){
-      cellMap[cell] = {};
-//        cellMap0[cell].x = cellMap0.list[cell].offsetLeft;
-//        cellMap0[cell].y = cellMap0.list[cell].offsetTop;
-    }
+//      for(cell in cellMap.list){
+//        cellMap[cell] = {};
+//      }
 
 
     for(var i=1;i<5;i++){
@@ -309,17 +309,19 @@ $( document ).ready( function() {
         var cellEle = document.getElementById(cellMap[i].list[cell].id);
 
         try {
-          if (cellMap.list[cell].offsetLeft != 0 && cellMap.list[cell].offsetTop !== 0){
-            cellEle.style.position = 'absolute';
-            cellEle.style.left = cellMap.list[cell].offsetLeft + 'px';
-            cellEle.style.top = cellMap.list[cell].offsetTop + 'px';
-            console.log(cellEle, cellMap.list[cell], cellMap.list[cell].offsetLeft,cellMap.list[cell].offsetTop);
-          }
+//          if (cellMap.list[cell].offsetLeft != -1000 && cellMap.list[cell].offsetTop !== -1000){
+          cellEle.style.position = 'absolute';
+          cellEle.style.opacity = i * .20;
+          cellEle.style.left = cellMap.list[cell].offsetLeft + 'px';
+          cellEle.style.top = cellMap.list[cell].offsetTop + 'px';
+          cellEle.querySelector('.value').setAttribute("style","width:"+  (i * .20) * 100 + "%");
+//            console.log(cellEle, cellMap.list[cell], cellMap.list[cell].offsetLeft,cellMap.list[cell].offsetTop);
+//          }
         } catch (e) {
         }
       }
 
-      console.log(cellMap);
+//      console.log(cellMap);
     }
   }
 
@@ -374,7 +376,7 @@ $( document ).ready( function() {
               thisrow = $cell.append(rowWithNavEvents);
             }else if(key !== 'timeStamp' && key !== 'taskName' && key !== 'phantomCacheEnabled'){
               $cell.append('<div class=\"desc\">'+ thisreport[key].label +'</div>');
-              thisrow = $cell.append('<div class=\"value\">'+ thisreport[key].value +'</div>');
+              thisrow = $cell.append('<div class=\"value\" onclick=\"alert(obj)\">'+ thisreport[key].value +'</div>');
             }
             $table.append(thisrow)
           }
