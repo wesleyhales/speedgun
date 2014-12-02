@@ -24,7 +24,8 @@ RUN \
   add-apt-repository -y ppa:webupd8team/java && \
   apt-get update && \
   apt-get install -y oracle-java7-installer && \
-  rm -rf /var/lib/apt/lists/*
+  rm -rf /var/lib/apt/lists/* \
+  echo "done"
 
 # Install Phantom2 build requirements    (Won't build on systems < 2GB ram)
 RUN \
@@ -39,11 +40,9 @@ RUN git clone git://github.com/ariya/phantomjs.git
 
 RUN cd /root/phantomjs/ && ./build.sh --confirm
 
+#ADD phantomjs /root/phantomjs
 
-
-ADD phantomjs /root/phantomjs
-
-RUN ln -s /root/phantomjs /usr/bin/phantomjs
+RUN ln -s /root/phantomjs/bin/phantomjs /usr/bin/phantomjs
 
 #ADD data tmp2
 
@@ -95,9 +94,11 @@ ADD pom.xml /root/pom.xml
 
 RUN mvn clean install
 
-RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
+#RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
 
 RUN ln -s /root/target/speedgun /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war
+
+RUN touch /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war.dodeploy
 
 # Cleanup old JMS queue
 RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/jboss-as-7.1.1.Final-fluxui/standalone/data/*
