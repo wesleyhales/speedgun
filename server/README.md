@@ -1,3 +1,13 @@
+##Running server locally
+
+1. vagrant up
+2. vagrant ssh
+3. cd /vagrant && sudo docker build .
+4. sudo docker run -ti -p 8080 --net=host [latest image ID] /bin/bash (get the image ID from ```sudo docker ps -a```)
+
+
+##Everything from hereon is notes that need formatting
+
 sudo docker build -t speedgun .
 sudo docker run -ti -v /vagrant/data:/root/speedgun/core/reports -p 8080 --net=host 082c01e8024d /bin/bash
 sudo docker run -ti -v /vagrant/data:/root/speedgun/core/reports -v /vagrant/bin:/root/phantomjs/bin2 -p 8080 --net=host 0d5c86e5cafc /bin/bash
