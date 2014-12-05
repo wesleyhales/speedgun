@@ -56,3 +56,6 @@ $>vagrant ssh
 $>yum update kernel*
 
 #ref https://gist.github.com/kazu69/4576d886089358ad61b0
+
+#Docker no sudo
+sudo chmod +s /usr/bin/docker
