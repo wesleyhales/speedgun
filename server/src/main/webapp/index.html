@@ -100,8 +100,12 @@
       bottom: 25px;
       right: 0;
       left: 1%;
-      font-size: 1em;
+      font-size: 1.2em;
       text-align: right;
+    }
+
+    .cell .value span {
+      font-size: .5em;
     }
 
     .cell.cell3 .header,
@@ -117,6 +121,13 @@
     .cell.cell4{
       opacity: .5;
       font-size: 2em;
+    }
+
+    .cell.cell0 .value,
+    .cell.cell1 .value,
+    .cell.cell2 .value,
+    .cell.cell4 .value{
+      font-size: .7em;
     }
 
     .cell.cell3 {
@@ -139,7 +150,7 @@
     input#reportbutton{
       float: left;
       width: 20%;
-      height: 127px;
+      height: 109px;
     }
 
     fieldset {
@@ -541,7 +552,7 @@ $( document ).ready( function() {
               thisrow = $cell.append(rowWithNavEvents);
             }else if(key !== 'timeStamp' && key !== 'taskName' && key !== 'phantomCacheEnabled'){
               $cell.append('<div class=\"desc\">'+ thisreport[key].label +'</div>');
-              thisrow = $cell.append('<div class=\"value\" onclick=\"alert(obj)\">'+ thisreport[key].value +'ms</div>');
+              thisrow = $cell.append('<div class=\"value\" onclick=\"alert(obj)\">'+ thisreport[key].value +'<span>ms</span></div>');
             }
             $table.append(thisrow)
           }
