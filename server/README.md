@@ -4,6 +4,7 @@
 2. vagrant ssh
 3. cd /vagrant && sudo docker build .
 4. sudo docker run -ti -p 8080 --net=host [latest image ID] /bin/bash (get the image ID from ```sudo docker ps -a```)
+5. Open browser go to http://localhost:8081
 
 
 ##Everything from hereon is notes that need formatting
