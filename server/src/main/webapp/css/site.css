@@ -1,0 +1,106 @@
+body {
+  padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+}
+
+.sr-container {
+  position:relative;
+  width:100%;
+  height:100%;
+}
+
+.cell {
+  height: 150px;
+  float: left;
+  margin: 0;
+  padding: 5px;
+  position: relative;
+  border: 1px solid #ececec;
+  display:none;
+}
+
+
+
+.cell.pageLoadTime,
+.cell.perceivedLoadTime,
+.cell.pageProcessTime,
+.cell.loadEventTime,
+.cell.connectTime,
+.cell.domContentTime,
+.cell.responseTime,
+.cell.redirectTime,
+.cell.domainLookupTime,
+.cell.domperfDOMContentLoaded,
+.cell.domperfLoad {
+  display:block;
+}
+
+.cell .header {
+  font-size: 1.6em;
+  margin: 0 0 18px 0;
+}
+
+.cell .desc {
+  font-size: .7em;
+}
+
+.cell .value {
+  position: absolute;
+  bottom: 25px;
+  right: 0;
+  left: 1%;
+  font-size: 1.2em;
+  text-align: right;
+}
+
+.cell .value span {
+  font-size: .5em;
+}
+
+.cell.cell3 .header,
+.cell.cell3 .desc {
+  opacity: 1;
+}
+
+
+.cell.cell0,
+.cell.cell1,
+.cell.cell2,
+.cell.cell3,
+.cell.cell4{
+  opacity: .5;
+  font-size: 2em;
+}
+
+.cell.cell0 .value,
+.cell.cell1 .value,
+.cell.cell2 .value,
+.cell.cell4 .value{
+  font-size: .7em;
+}
+
+.cell.cell3 {
+  /*font-size: 3em*/
+}
+
+input#url {
+  color: white;
+  border: 3px solid white;
+  padding: .5em;
+  font-weight: 100;
+  border-radius: 5px;
+  line-height: 1em;
+  font-size: 3em;
+  width:79%;
+  background-color: transparent;
+  float:left;
+}
+
+input#reportbutton{
+  float: left;
+  width: 20%;
+  height: 109px;
+}
+
+fieldset {
+  border: 0
+}
