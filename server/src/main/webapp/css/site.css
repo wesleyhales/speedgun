@@ -1,99 +1,159 @@
-body {
-  padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+
+@media only screen
+and (min-width : 600px) {
+  .main .masthead, .main .results, .main .marketing {
+    width:100%;
+    max-width:1200px;
+  }
+
+  card {
+    width:50%;
+    float:left;
+  }
 }
 
-.sr-container {
-  position:relative;
-  width:100%;
-  height:100%;
+.z-anim { transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+.z-0 { box-shadow: 0 0px 0px 0 rgba(0, 0, 0, 0); }
+.z-1 { box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26); }
+.z-2 { box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4); }
+
+.card {
+  transition: opacity .5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transparent {
+  opacity:0;
 }
 
 .cell {
-  height: 150px;
-  padding:10px;
-}
-
-.cell.pageLoadTime,
-.cell.perceivedLoadTime,
-.cell.pageProcessTime,
-.cell.loadEventTime,
-.cell.connectTime,
-.cell.domContentTime,
-.cell.responseTime,
-.cell.redirectTime,
-.cell.domainLookupTime,
-.cell.domperfDOMContentLoaded,
-.cell.domperfLoad {
-  display:block;
+  min-height: 150px;
 }
 
 .cell .header {
-  font-size: 1.6em;
-  margin: 0 0 18px 0;
+  font-size:30px;
+  margin-bottom:10px;
 }
 
 .cell .desc {
-  font-size: .7em;
+  margin-bottom:10px;
+  min-height:1em;
 }
 
-.cell .value {
-  position: absolute;
-  bottom: 25px;
-  right: 0;
-  left: 1%;
-  font-size: 1.2em;
-  text-align: right;
+.cell .stat {
+  text-align: center;
+  height: 60px;
+  margin:10px;
+  border-radius:1px;
 }
 
-.cell .value span {
-  font-size: .5em;
+.stat.best {
+  background-color: #4CAF50;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4);
+  color:white;
 }
 
-.cell.cell3 .header,
-.cell.cell3 .desc {
-  opacity: 1;
+.stat.worst {
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  background-color: #9f0000;
+  color:white;
 }
 
-
-.cell.cell0,
-.cell.cell1,
-.cell.cell2,
-.cell.cell3,
-.cell.cell4{
-  opacity: .5;
-  font-size: 2em;
+.url-input {
+  width:79%;
+  max-width:800px;
+  background-color: white;
 }
 
-.cell.cell0 .value,
-.cell.cell1 .value,
-.cell.cell2 .value,
-.cell.cell4 .value{
-  font-size: .7em;
+.url-input-container {
+  margin:20px 0 50px 0;
+  opacity:.85;
 }
 
-.cell.cell3 {
-  /*font-size: 3em*/
+.btn-go {
+  opacity:.95;
+  text-transform:none;
+  color:black !important;
+  font-family: RobotoDraft, Roboto, 'Helvetica Neue', sans-serif;
+  font-weight:500;
+  letter-spacing: 1px;
+}
+
+.fixed {
+  position:fixed;
 }
 
 input#url {
-  color: white;
-  border: 3px solid white;
-  padding: .5em;
+  text-align:center;
+  border: 0;
+  padding: .2em;
   font-weight: 100;
-  border-radius: 5px;
   line-height: 1em;
-  font-size: 3em;
-  width:79%;
+  font-size: 1.5em;
+  width:100%;
   background-color: transparent;
   float:left;
 }
 
-input#reportbutton{
-  float: left;
-  width: 20%;
-  height: 109px;
+.results .subheader {
+  margin:0;
 }
 
-fieldset {
-  border: 0
+.masthead p {
+  margin:25px 0 0 0;
+  font-size:1.2em;
+}
+
+.masthead-container {
+  width:100%;
+  background-image: url('../images/road2.jpg');
+  background-position: 0px -20px;
+  background-size: cover;
+  background-color:#D7CCC8;
+}
+
+md-content.masthead {
+  height:360px;
+  background-color: transparent;
+  /*background-color:#D7CCC8;*/
+}
+
+.logo {
+}
+
+.masthead .logo {
+  width:125px;
+  margin:20px;
+}
+
+.marketing .logo {
+  margin:20px 30px;
+}
+
+.marketing .logo-1, .marketing .logo-3 {
+  width:100px;
+}
+
+.marketing .logo-2 {
+  width:150px;
+}
+
+.results {
+  height:0;
+}
+
+.results md-card {
+  background-color:white;
+}
+
+.results.visible {
+  height:auto;
+}
+
+#reportform {
+  width:100%;
+}
+
+.md-fab {
+  border-radius:2px !important;
+
 }

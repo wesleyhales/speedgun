@@ -3,7 +3,9 @@
 var host = '';
 //host = 'http://localhost:8081';
 
-angular.module('app', [])
+angular.module('app', [
+  'ngMaterial'
+])
   .service('api', ['$q', '$http', '$timeout', function ($q, $http, $timeout) {
     var numReports = 5, retryDelay = 500;
     this.go = function(url, email, cached){
@@ -55,10 +57,26 @@ angular.module('app', [])
   }])
   .controller('MainCtrl', ['$scope', 'api', function ($scope, api) {
     $scope.url = 'http://yahoo.com';
-    api.get().then(function(res){
-      $scope.speedgun = res;
-    });
-    $scope.go = function(url, email, cached){
+
+    $scope.speedgun = [];
+
+    var animate = function () {
+      var cells = document.querySelectorAll('.cell');
+      Array.prototype.forEach.call(cells, function(cell){cell.childNodes[0].classList.remove('transparent')});
+      Array.prototype.forEach.call(cells, function(cell){cell.classList.remove('z-0')});
+      setTimeout(function(){
+        Array.prototype.forEach.call(cells, function(cell){cell.childNodes[0].classList.remove('transparent')});
+      },200);
+    };
+
+    $scope.go = function() {
+      animate();
+      api.get().then(function(res){
+        $scope.speedgun = res;
+      });
+    };
+
+    $scope.xgo = function(url, email, cached){
       api.go(url, email, cached).then(function(initResponse){
         var uuid = initResponse.data.uuid;
         console.log(uuid);
@@ -92,11 +110,11 @@ angular.module('app', [])
         suffix: '@'
       },
       template:
-        '<md-card class="cell {{property}}">' +
-          '<div class=card>' +
+        '<md-card class="cell {{property}} z-anim z-0">' +
+          '<div class="card ">' +
             '<div class="header">{{property | deCamelCase}}</div>' +
             '<div class="desc">{{data[0][property].label}}</div>' +
-            '<stats data="data" property="{{property}}" suffix="{{suffix}}" class="pure-g"></stats>' +
+            '<stats data="data" property="{{property}}" suffix="{{suffix}}"></stats>' +
           '</div>' +
         '</md-card>'
     };
@@ -110,12 +128,42 @@ angular.module('app', [])
         prefix: '@',
         suffix: '@'
       },
-      template: '<div class="pure-u-1-5"><span class="prefix">{{prefix}}</span>{{data[0][property].value}}<span class="suffix">{{suffix}}</span></div>' +
-                '<div class="pure-u-1-5"><span class="prefix">{{prefix}}</span>{{data[1][property].value}}<span class="suffix">{{suffix}}</span></div>' +
-                '<div class="pure-u-1-5"><span class="prefix">{{prefix}}</span>{{data[2][property].value}}<span class="suffix">{{suffix}}</span></div>' +
-                '<div class="pure-u-1-5"><span class="prefix">{{prefix}}</span>{{data[3][property].value}}<span class="suffix">{{suffix}}</span></div>' +
-                '<div class="pure-u-1-5"><span class="prefix">{{prefix}}</span>{{data[4][property].value}}<span class="suffix">{{suffix}}</span></div>'
-    };
+      link: function ($scope, element) {
+        var statNodes = element.children().children();
+        $scope.$watch('data', function(){
+          var stats = $scope.data.map(function(run, i){return {value : run[$scope.property].value, index: i}; });
+          stats.sort(function(a,b){return a.value > b.value ? 1 : a.value < b.value ? -1 : 0});
+          var best;
+          if (stats[0] !== undefined) {
+            best = stats[0].value;
+            // if less than half the values are "best" values, mark them, otherwise leave them naked.
+            if (stats.filter(function(stat){return stat.value === best}).length < (stats.length / 2)) {
+              stats.forEach(function(stat){
+                if (stat.value === best) statNodes[stat.index].classList.add('best');
+              });
+            }
+          }
+          if (stats[4] !== undefined) {
+            var worst = stats[4].value;
+            if (best !== worst) {
+              if (stats.filter(function(stat){return stat.value === worst}).length < (stats.length / 2)) {
+                stats.forEach(function (stat) {
+                  if (stat.value === worst) statNodes[stat.index].classList.add('worst');
+                });
+              }
+            }
+          }
+        })
+      },
+      template:
+        '<div layout="row">' +
+          '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[0][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
+          '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[1][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
+          '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[2][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
+          '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[3][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
+          '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[4][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
+        '</div>'
+      };
   }]);
 
 
