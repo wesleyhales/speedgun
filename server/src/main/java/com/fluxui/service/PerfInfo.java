@@ -3,11 +3,7 @@ package com.fluxui.service;
 /**
  * Created by wesleyhales on 12/14/14.
  */
-public class SGStatus {
-
-  private String id;
-  private long timestamp;
-  private String ip;
+public class PerfInfo {
 
   private int availableCores;
   private long freeMemory;
@@ -73,27 +69,4 @@ public class SGStatus {
     this.usableSpace = usableSpace;
   }
 
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public long getTimestamp() {
-    return timestamp;
-  }
-
-  public void setTimestamp(long timestamp) {
-    this.timestamp = timestamp;
-  }
-
-  public String getIp() {
-    return ip;
-  }
-
-  public void setIp(String ip) {
-    this.ip = ip;
-  }
 }

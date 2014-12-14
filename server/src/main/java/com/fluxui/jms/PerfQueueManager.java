@@ -11,6 +11,7 @@ import org.hornetq.core.remoting.impl.netty.TransportConstants;
 import org.hornetq.jms.client.HornetQConnectionFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.jms.*;
 import javax.jms.Session;
 import javax.json.Json;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -51,6 +53,9 @@ public class PerfQueueManager {
 
 //    todo implement for async code
 //    https://community.jboss.org/thread/178079
+
+    @Inject
+    private transient Logger log;
 
     private static final String DEFAULT_USERNAME = "quickstartUser";
     private static final String DEFAULT_PASSWORD = "quickstartPassword";
@@ -70,55 +75,22 @@ public class PerfQueueManager {
 
     private Timer timer = null;
 
-  private JsonObject readJSON(String data) {
-    System.out.println("------data-" + data);
-    JsonReader reader = Json.createReader(new StringReader(data));
-    JsonObject myObject = reader.readObject();
-    reader.close();
-    return myObject;
-  }
 
-
-  public void transmit() {
-
-    Client client = ClientBuilder.newBuilder().build();
-    WebTarget target = client.target("http://localhost:8080/rest/beacon/receive");
-
-    //post the data
-    //time,cpu,etc...
-    String input = "{\"timestamp\":1418511362847,\"ip\":\"127.0.0.1\",\"id\":\"0001\"}";
-
-    Response response = target.request().post(Entity.entity(input, "application/json"));
-
-    //parse the response to email
-    JsonObject askObject = readJSON(response.readEntity(String.class));
-
-    //look for possible errors
-
-    //System.out.println("----on client: msg sent then received-> " + askObject);
-
-    response.close();
-
-
-  }
 
     private void startTimer(){
         if(timer == null){
             timer = new Timer();
-            System.out.println("+++timer is null");
+            log.info("+++timer is null");
             if(incomingMsgs >= 0){
                 timer.schedule(new TimerTask() {
                     public void run()  {
                         // do stuff
-                        System.out.println("*****TimerTask running poll1: " + incomingMsgs);
-
-                        //running peer beacon:
-                        transmit();
+                      log.info("*****TimerTask running poll1: " + incomingMsgs);
 
                         if(incomingMsgs > 0){
                             //if(done){
-                                runTest();
-                                System.out.println("*****test ran poll2: " + incomingMsgs);
+                          runTest();
+                          log.info("*****test ran poll2: " + incomingMsgs);
                             //}
                         }
 
@@ -161,7 +133,7 @@ public class PerfQueueManager {
                 toAddress[i] = new InternetAddress(to[i]);
             }
             InternetAddress bccAddress = new InternetAddress(bcc);
-            System.out.println("send email to:" + email + " uuid:" + uuid);
+            log.info("send email to:" + email + " uuid:" + uuid);
 
             for( int i=0; i < toAddress.length; i++) { // changed from a while loop
                 message.addRecipient(javax.mail.Message.RecipientType.TO, toAddress[i]);
@@ -171,7 +143,7 @@ public class PerfQueueManager {
             message.setText("Check it out. Here's your report: http://loadreport.wesleyhales.com/rest/performance/speedreport?uuid=" + uuid);
             Transport transport = session.getTransport("smtps");
             transport.connect(host,from,pass);
-            System.out.println("-------send mail");
+            log.info("-------send mail");
             transport.sendMessage(message, message.getAllRecipients());
             transport.close();
         } catch (MessagingException e) {
@@ -210,7 +182,7 @@ public class PerfQueueManager {
             consumer = session.createConsumer(destination);
             connection.start();
         }
-        //System.out.println("connection " + connection.toString());
+        //log.info("connection " + connection.toString());
     }
 
     public int storeMessage(String url, String taskName, String uuid, String email){
@@ -224,9 +196,9 @@ public class PerfQueueManager {
             message.setString("taskName", taskName);
             message.setString("uuid",uuid);
             message.setString("email",email);
-            System.out.println("before message sent===");
+            log.info("before message sent===");
             messageProducer.send(message);
-            System.out.println("message sent===========> uuid= " + uuid + " email=" + email + " url=" + url);
+            log.info("message sent===========> uuid= " + uuid + " email=" + email + " url=" + url);
             incomingMsgs++;
 
         } catch (JMSException e) {
@@ -251,7 +223,7 @@ public class PerfQueueManager {
         String taskName = "performance";
         MapMessage message = null;
         if(incomingMsgs == 0){
-//            System.out.println("---------->closing connection");
+//            log.info("---------->closing connection");
             try {
                 if (context != null) {
                     context.close();
@@ -276,7 +248,7 @@ public class PerfQueueManager {
                 taskName = message.getString("taskName");
                 random = message.getString("uuid");
                 email = message.getString("email");
-                System.out.println("JMS received for: " + url + "--" + taskName + "--" + random + "--" + incomingMsgs);
+                log.info("JMS received for: " + url + "--" + taskName + "--" + random + "--" + incomingMsgs);
                 //tempMap = ((HashMap)message.getObject("tempMap"));
                 incomingMsgs--;
 
@@ -292,21 +264,21 @@ public class PerfQueueManager {
             }
 
 
-            //System.out.println("---" + url);
+            //log.info("---" + url);
 
 
             try
             {
 
                 for(int i = 0; i <= 5; i++) {
-                    System.out.println("--------------phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js "+ url +" "+ taskName +" json " + random );
+                    log.info("--------------phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js "+ url +" "+ taskName +" json " + random );
                     Process p=Runtime.getRuntime().exec("phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js "+ url +" "+ taskName +" json " + random );
 
                     String line;
                     BufferedReader in = new BufferedReader(
                         new InputStreamReader(p.getInputStream()) );
                     while ((line = in.readLine()) != null) {
-                      System.out.println(line);
+                      log.info(line);
                     }
 
 
@@ -334,7 +306,7 @@ public class PerfQueueManager {
             }
             catch(InterruptedException e2) {e2.printStackTrace();}
 
-            System.out.println("Done : " + random);
+            log.info("Done : " + random);
             done = true;
         }
 
