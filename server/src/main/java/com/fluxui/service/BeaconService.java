@@ -103,16 +103,16 @@ public class BeaconService {
 
 
 
-    if(addr == null){
-        try {
-            addr = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            log.severe("can't get IP address, falling back to local");
-            addr = "0.0.0.0";
-        }
-    }
+//    if(addr == null){
+//        try {
+//            addr = InetAddress.getLocalHost().getHostAddress();
+//        } catch (UnknownHostException e) {
+//            log.severe("can't get IP address, falling back to local");
+//            addr = "0.0.0.0";
+//        }
+//    }
 
-    sgStatus.setIp(addr);
+    sgStatus.setIp("0.0.0.0");
 
     sgStatus.setTimestamp(new Date().getTime());
 
@@ -188,8 +188,8 @@ public class BeaconService {
 
     log.info("----Beacon received msg from: " + req.getRemoteHost() + " port: " + req.getRemotePort());
 
-
-    sessionMap.put(sgstatus.getIp(), sgstatus);
+    sgstatus.setIp(req.getRemoteHost());
+    sessionMap.put(req.getRemoteHost(), sgstatus);
     //need a timer... or check on page load and then call purge if not available
 
     log.info("----sessionMap size: " + sessionMap.size());
