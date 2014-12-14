@@ -29,6 +29,8 @@ import javax.ws.rs.core.Response;
 
 import java.io.*;
 import java.lang.management.OperatingSystemMXBean;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -66,6 +68,10 @@ public class BeaconService {
     }
   }
 
+  private void stopBeaconTimer(){
+    timer = null;
+  }
+
   private JsonObject readJSON(String data) {
     log.info("------data-" + data);
     JsonReader reader = Json.createReader(new StringReader(data));
@@ -76,11 +82,12 @@ public class BeaconService {
 
   private SGStatus sgStatus = new SGStatus();
 
+  private String addr;
 
   public void transmit() {
 
     Client client = ClientBuilder.newBuilder().build();
-    WebTarget target = client.target("http://localhost:8080/rest/beacon/receive");
+    WebTarget target = client.target("http://107.170.209.199/rest/beacon/receive");
 
     //post the data
     //time,cpu,etc...
@@ -91,7 +98,19 @@ public class BeaconService {
       e.printStackTrace();
     }
 
-    sgStatus.setIp("127.0.0.1");
+
+
+    if(addr == null){
+        try {
+            addr = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            log.severe("can't get IP address, falling back to local");
+            addr = "0.0.0.0";
+        }
+    }
+
+    sgStatus.setIp(addr);
+
     sgStatus.setTimestamp(new Date().getTime());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -144,9 +163,7 @@ public class BeaconService {
     }
   }
 
-  private void stopBeaconTimer(){
 
-  }
 
   private Map<String, SGStatus> sessionMap = new HashMap<String, SGStatus>();
 
@@ -217,7 +234,9 @@ public class BeaconService {
 
 
     response = Response.ok(responseString, MediaType.APPLICATION_JSON);
-
+    response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    response.header("Access-Control-Allow-Origin", "*");
+    response.header("Access-Control-Allow-Headers", "accept, origin, ag-mobile-variant, content-type");
 
     return response.build();
   }
