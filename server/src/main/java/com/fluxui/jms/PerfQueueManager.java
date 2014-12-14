@@ -13,6 +13,9 @@ import org.hornetq.jms.client.HornetQConnectionFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.jms.*;
 import javax.jms.Session;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.mail.*;
 import javax.mail.Message;
 import javax.mail.internet.InternetAddress;
@@ -20,9 +23,20 @@ import javax.mail.internet.MimeMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -56,6 +70,38 @@ public class PerfQueueManager {
 
     private Timer timer = null;
 
+  private JsonObject readJSON(String data) {
+    System.out.println("------data-" + data);
+    JsonReader reader = Json.createReader(new StringReader(data));
+    JsonObject myObject = reader.readObject();
+    reader.close();
+    return myObject;
+  }
+
+
+  public void transmit() {
+
+    Client client = ClientBuilder.newBuilder().build();
+    WebTarget target = client.target("http://localhost:8080/rest/beacon/receive");
+
+    //post the data
+    //time,cpu,etc...
+    String input = "{\"timestamp\":1418511362847,\"ip\":\"127.0.0.1\",\"id\":\"0001\"}";
+
+    Response response = target.request().post(Entity.entity(input, "application/json"));
+
+    //parse the response to email
+    JsonObject askObject = readJSON(response.readEntity(String.class));
+
+    //look for possible errors
+
+    //System.out.println("----on client: msg sent then received-> " + askObject);
+
+    response.close();
+
+
+  }
+
     private void startTimer(){
         if(timer == null){
             timer = new Timer();
@@ -64,11 +110,15 @@ public class PerfQueueManager {
                 timer.schedule(new TimerTask() {
                     public void run()  {
                         // do stuff
-                        //System.out.println("TimerTask running poll1: " + incomingMsgs);
-                        if(incomingMsgs >= 0){
+                        System.out.println("*****TimerTask running poll1: " + incomingMsgs);
+
+                        //running peer beacon:
+                        transmit();
+
+                        if(incomingMsgs > 0){
                             //if(done){
                                 runTest();
-//                                System.out.println("test ran poll2: " + incomingMsgs);
+                                System.out.println("*****test ran poll2: " + incomingMsgs);
                             //}
                         }
 

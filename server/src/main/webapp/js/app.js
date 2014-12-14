@@ -8,7 +8,7 @@ var host = '';
 
 angular.module('app', [])
   .service('api', ['$q', '$http', '$timeout', function ($q, $http, $timeout) {
-    var numReports = 5, retryDelay = 500;
+    var numReports = 5, retryDelay = 1500;
     this.go = function(url, email, cached){
       //http://localhost:8081/rest/performance/go?url=http%3A%2F%2Fgoogle.com&cached=false&email=
       var config = {
