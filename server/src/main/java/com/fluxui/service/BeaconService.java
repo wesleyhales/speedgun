@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import javax.ws.rs.*;
@@ -24,6 +25,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -85,6 +87,7 @@ public class BeaconService {
   private String addr;
 
   public void transmit() {
+
 
     Client client = ClientBuilder.newBuilder().build();
     WebTarget target = client.target("http://107.170.209.199/rest/beacon/receive");
@@ -171,7 +174,7 @@ public class BeaconService {
   @Path("/receive")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response receive(SGStatus sgstatus) {
+  public Response receive(SGStatus sgstatus, @Context HttpServletRequest req) {
 
     //process the message for in memory list
     //get JSON
@@ -180,10 +183,10 @@ public class BeaconService {
     Response.ResponseBuilder response = null;
 
       //Create an "ok" response
-    response = Response.ok("{\"status\":\"msg received from: " + sgstatus.getIp() + "\"}", MediaType.APPLICATION_JSON);
+    response = Response.ok("{\"status\":\"msg received from: " + req.getRemoteHost() + "\"}", MediaType.APPLICATION_JSON);
 
 
-    log.info("----server received msg from: " + sgstatus.getIp());
+    log.info("----Beacon received msg from: " + req.getRemoteHost() + " port: " + req.getRemotePort());
 
 
     sessionMap.put(sgstatus.getIp(), sgstatus);

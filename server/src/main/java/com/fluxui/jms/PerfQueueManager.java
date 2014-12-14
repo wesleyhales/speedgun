@@ -85,7 +85,7 @@ public class PerfQueueManager {
                 timer.schedule(new TimerTask() {
                     public void run()  {
                         // do stuff
-                      log.info("*****TimerTask running poll1: " + incomingMsgs);
+                      log.info("*****Execute timer for checking the queue : " + incomingMsgs);
 
                         if(incomingMsgs > 0){
                             //if(done){
