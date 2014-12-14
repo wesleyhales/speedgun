@@ -85,7 +85,7 @@ RUN \
 CMD ["mysqld_safe"]
 
 #ADD server.tar /root/server.tar
-RUN cd /root && wget https://www.dropbox.com/s/824hh0sv0nsejhj/server.tar
+RUN cd /root && wget https://dl.dropboxusercontent.com/u/12278845/server.tar
 
 RUN cd /root && tar -xzvf server.tar
 
