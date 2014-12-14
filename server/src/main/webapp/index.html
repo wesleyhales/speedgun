@@ -6,260 +6,112 @@
   <meta name="description" content="A layout example that shows off a responsive product landing page.">
 
   <title>Landing Page &ndash; Layout Examples &ndash; Pure</title>
-  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
-  <!--[if lte IE 8]>
-  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-old-ie-min.css">
-  <![endif]-->
-  <!--[if gt IE 8]><!-->
-  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-min.css">
-  <!--<![endif]-->
-  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
-  <!--[if lte IE 8]>
-  <link rel="stylesheet" href="http://purecss.io/combo/1.17.30?/css/layouts/marketing-old-ie.css">
-  <![endif]-->
-  <!--[if gt IE 8]><!-->
-  <link rel="stylesheet" href="http://purecss.io/combo/1.17.30?/css/layouts/marketing.css">
-  <!--<![endif]-->
-  <!--[if lt IE 9]>
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
-  <![endif]-->
 
+
+  <link rel="stylesheet" href="bower_components/angular-material/angular-material.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/red-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/green-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/light-blue-dark-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/themes/blue-theme.css">
   <link rel="stylesheet" href="css/site.css">
-
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.27/angular.min.js"></script>
 
 </head>
 <body ng-controller="MainCtrl">
 
-  <div class="header">
-    <div class="home-menu pure-menu pure-menu-open pure-menu-horizontal pure-menu-fixed">
-      <a class="pure-menu-heading" href="">Speedgun</a>
-
-      <ul>
-        <li class="pure-menu-selected"><a href="#">Home</a></li>
-        <li><a href="#">Tour</a></li>
-        <li><a href="#">Sign Up</a></li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="splash-container">
-    <div class="splash">
-
-
-      <form name="reportform" id="reportform" class="pure-form" ng-submit="go(url)">
-        <fieldset>
-          <input type="text" name="url" id="url" placeholder="http://www.whatever.com" ng-model="url" required autofocus/>
-          <input type="submit" name="Report" id="reportbutton" value="Report!" class="pure-button">
-        </fieldset>
-        <fieldset>
-          <label for="cachedCheckbox" class="">Cached?</label>
-          <input type="checkbox" name="cachedCheckbox" id="cachedCheckbox" value="true">
-        </fieldset>
-        <fieldset>
-          <input type="text" name="email" id="email" placeholder="you@email.com"/>
-        </fieldset>
-      </form>
-
-      <p class="splash-subhead">
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-      </p>
-
-    </div>
-  </div>
-
-  <div class="content-wrapper">
-
-
-    <div id="report" class="pure-g">
-      <div id="formProgress"></div>
-      <div class="progress progress-striped active" style="display:none">
-        <div class="bar" style="width: 10%;"></div>
+  <div layout="column" layout-fill>
+    <md-toolbar md-theme="red" class="z-1">
+      <div class="md-toolbar-tools">
+        <span>Speedgun</span>
+        <span flex></span>
+        <md-button>
+        </md-button>
       </div>
-    </div>
-    <div class="pure-g">
-      <div class="pure-u-1-2 cell pageLoadTime">
-        <div class="header">Page Load Time</div>
-        <div class="desc">Total time to load page</div>
-        <stats data="speedgun" property="pageLoadTime" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell perceivedLoadTime">
-        <div class="header">Perceived Load Time</div>
-        <div class="desc">User perceived load time</div>
-        <stats data="speedgun" property="perceivedLoadTime" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell pageProcessTime">
-        <div class="header">Page Process Time</div>
-        <div class="desc">Total time spent processing page</div>
-        <stats data="speedgun" property="pageProcessTime" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell loadEventTime">
-        <div class="header">Load Event Time</div>
-        <div class="desc">Total time spent during load event</div>
-        <stats data="speedgun" property="loadEventTime" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell connectTime">
-        <div class="header">Connect Time</div>
-        <div class="desc">Time spent during connect</div>
-        <stats data="speedgun" property="connectTime" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell domContentTime">
-        <div class="header">Dom Content TIme</div>
-        <div class="desc">Total time spent during DomContentLoading event</div>
-        <stats data="speedgun" property="domContentTime" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell responseTime">
-        <div class="header">Response Time</div>
-        <div class="desc">Total time spent during response</div>
-        <stats data="speedgun" property="responseTime" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell domainLookupTime">
-        <div class="header">Domain Lookup Time</div>
-        <div class="desc">Total time spent in domain lookup</div>
-        <stats data="speedgun" property="domainLookupTime" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell redirectTime">
-        <div class="header">Redirect Time</div>
-        <div class="desc">Time spent during redirect</div>
-        <stats data="speedgun" property="redirectTime" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell domperfDOMContentLoaded">
-        <div class="header">DOMContentLoaded</div>
-        <div class="desc"></div>
-        <stats data="speedgun" property="domperfDOMContentLoaded" suffix="ms" class="pure-g"></stats>
-      </div>
-      <div class="pure-u-1-2 cell domperfLoad">
-        <div class="header">Dom Perf Load</div>
-        <div class="desc"></div>
-        <stats data="speedgun" property="domperfLoad" suffix="ms" class="pure-g"></stats>
-      </div>
-    </div>
+    </md-toolbar>
+    <div class="main" layout=column layout-align="center center">
+      <div class="masthead-container" layout=column layout-align="center center">
+        <md-content class="masthead" layout="column" layout-align="center center">
+          <form name="reportform" id="reportform" ng-submit="go(url)">
+            <section layout="row" layout-align="center center">
+              <p>ENTER A WEB ADDRESS</p>
+            </section>
+            <section layout="row" layout-align="center center" class="url-input-container">
+              <md-card class="url-input">
+                <input type="text" name="url" id="url" placeholder="http://www.whatever.com" ng-model="url" required autofocus/>
+              </md-card>
 
-    <div class="content">
-      <h2 class="content-head is-center">Excepteur sint occaecat cupidatat.</h2>
+              <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="go(url)" style="width: 54px; height: 54px;">
+                Go
+              </md-button>
+            </section>
+            <div class="masthead-marketing">
+              <section layout="row" layout-align="center center">
+                <p>USED BY</p>
+              </section>
+              <section layout="row" layout-align="center center">
+                <img src="images/marketing/desaturated/250w-cnn.png" class="logo">
+                <img src="images/marketing/desaturated/250w-intel.png" class="logo">
+              </section>
+            </div>
 
-      <div class="pure-g">
-        <div class="l-box pure-u-1 pure-u-md-1-2 pure-u-lg-1-4">
-
-          <h3 class="content-subhead">
-            <i class="fa fa-rocket"></i>
-            Get Started Quickly
-          </h3>
-
-          <p>
-            Phasellus eget enim eu lectus faucibus vestibulum. Suspendisse sodales pellentesque elementum.
-          </p>
-        </div>
-        <div class="l-box pure-u-1 pure-u-md-1-2 pure-u-lg-1-4">
-          <h3 class="content-subhead">
-            <i class="fa fa-mobile"></i>
-            Responsive Layouts
-          </h3>
-
-          <p>
-            Phasellus eget enim eu lectus faucibus vestibulum. Suspendisse sodales pellentesque elementum.
-          </p>
-        </div>
-        <div class="l-box pure-u-1 pure-u-md-1-2 pure-u-lg-1-4">
-          <h3 class="content-subhead">
-            <i class="fa fa-th-large"></i>
-            Modular
-          </h3>
-
-          <p>
-            Phasellus eget enim eu lectus faucibus vestibulum. Suspendisse sodales pellentesque elementum.
-          </p>
-        </div>
-        <div class="l-box pure-u-1 pure-u-md-1-2 pure-u-lg-1-4">
-          <h3 class="content-subhead">
-            <i class="fa fa-check-square-o"></i>
-            Plays Nice
-          </h3>
-
-          <p>
-            Phasellus eget enim eu lectus faucibus vestibulum. Suspendisse sodales pellentesque elementum.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="ribbon l-box-lrg pure-g">
-      <div class="pure-u-1 pure-u-md-1-2 pure-u-lg-3-5">
-
-        <h2 class="content-head content-head-ribbon">Laboris nisi ut aliquip.</h2>
-
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-          quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-          consequat. Duis aute irure dolor.
-        </p>
-      </div>
-    </div>
-
-    <div class="content">
-      <h2 class="content-head is-center">Dolore magna aliqua. Uis aute irure.</h2>
-
-      <div class="pure-g">
-        <div class="l-box-lrg pure-u-1 pure-u-md-2-5">
-          <form class="pure-form pure-form-stacked">
-            <fieldset>
-
-              <label for="name">Your Name</label>
-              <input id="name" type="text" placeholder="Your Name">
-
-
-              <label for="email">Your Email</label>
-              <input id="email" type="email" placeholder="Your Email">
-
-              <label for="password">Your Password</label>
-              <input id="password" type="password" placeholder="Your Password">
-
-              <button type="submit" class="pure-button">Sign Up</button>
-            </fieldset>
+            <!--<section layout="row" layout-sm="column" layout-align="center center">-->
+            <!--<md-checkbox ng-model="isChecked" aria-label="Finished?" name="cachedCheckbox" id="cachedCheckbox" value="true">Cached ?</md-checkbox>-->
+            <!--</section>-->
+            <!--<section layout="row" layout-sm="column" layout-align="center center">-->
+            <!--<md-text-float label="Your Email" class="long" ng-model="email" name="email" id="email"> </md-text-float>-->
+            <!--</section>-->
           </form>
-        </div>
+        </md-content>
 
-        <div class="l-box-lrg pure-u-1 pure-u-md-3-5">
-          <h4>Contact Us</h4>
-
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-            quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-            consequat.
-          </p>
-
-          <h4>More Information</h4>
-
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-            tempor incididunt ut labore et dolore magna aliqua.
-          </p>
-        </div>
       </div>
+    <md-content class="results" ng-class="{visible: speedgun.length}">
+      <md-card>
+        <h4 class="subheader">{{speedgun[0].url.value}}</h4>
+      </md-card>
 
+      <div layout-sm="column">
+        <card data="speedgun" property="pageLoadTime" suffix="ms"></card>
+        <card data="speedgun" property="perceivedLoadTime" suffix="ms"></card>
+        <card data="speedgun" property="pageProcessTime" suffix="ms"></card>
+        <card data="speedgun" property="loadEventTime" suffix="ms"></card>
+        <card data="speedgun" property="connectTime" suffix="ms"></card>
+        <card data="speedgun" property="domContentTime" suffix="ms"></card>
+        <card data="speedgun" property="responseTime" suffix="ms"></card>
+        <card data="speedgun" property="domainLookupTime" suffix="ms"></card>
+        <card data="speedgun" property="redirectTime" suffix="ms"></card>
+        <card data="speedgun" property="domperfDOMContentLoaded" suffix="ms"></card>
+        <card data="speedgun" property="domperfLoad" suffix="ms"></card>
+      </div>
+    </md-content>
+    <md-content class="marketing">
+      <section layout="row" layout-align="center center">
+        <img src="images/marketing/desaturated/200w-adobe.png" class="logo logo-1">
+        <img src="images/marketing/desaturated/200w-target.png" class="logo logo-1">
+        <img src="images/marketing/desaturated/200w-nfl.png" class="logo logo-1">
+        <img src="images/marketing/desaturated/200w-gsn.png" class="logo logo-1">
+      </section>
+      <section layout="row" layout-align="center center">
+        <img src="images/marketing/desaturated/300w-microsoft.png" class="logo logo-2">
+        <img src="images/marketing/desaturated/300w-huffington.png" class="logo logo-2">
+        <img src="images/marketing/desaturated/300w-thomsonreuters.png" class="logo logo-2">
+      </section>
+      <section layout="row" layout-align="center center">
+        <img src="images/marketing/desaturated/200w-groupon.png" class="logo logo-3">
+        <img src="images/marketing/desaturated/200w-sapient.png" class="logo logo-3">
+        <img src="images/marketing/desaturated/200w-salesforce.png" class="logo logo-3">
+        <img src="images/marketing/desaturated/200w-htc.png" class="logo logo-3">
+      </section>
+    </md-content>
     </div>
-
-    <div class="footer l-box is-center">
-      View the source of this layout to learn more. Made with love by the YUI Team.
-    </div>
-
   </div>
 
-
-  <script src="bootstrap/js/jquery.js"></script>
+  <script src="bower_components/hammerjs/hammer.min.js"></script>
+  <script src="bower_components/angular/angular.min.js"></script>
+  <script src="bower_components/angular-animate/angular-animate.min.js"></script>
+  <script src="bower_components/angular-aria/angular-aria.js"></script>
+  <script src="bower_components/angular-material/angular-material.js"></script>
 
   <script src="speedgun.js"></script>
 
-  <script type="text/javascript">
-    var $this = $('.bar');
-    $("#formProgress").ajaxStart(function () {
-      //$('#formInputs').fadeOut(200);
-      $('#report .progress-striped').fadeIn(200);
-    });
-
-  </script>
   <script type="text/javascript" src="js/app.js"></script>
 
   <!--<script type="text/javascript">-->
