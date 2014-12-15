@@ -126,7 +126,7 @@ public class BeaconService {
 
     Response response = target.request().post(Entity.entity(input, "application/json"));
 
-    //parse the response to email
+    //parse the response.. let the user know if port 8081 is blocked
 //    JsonObject askObject = readJSON(response.readEntity(String.class));
 
     response.close();
