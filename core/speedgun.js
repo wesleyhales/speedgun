@@ -142,13 +142,13 @@ var speedgun = {
 
         report.resources = {label: '', value: {}, index: 51};
 
-        report.resourceSingleSmallest = {label:'',value:'',index:52};
+        report.resourceSingleSmallest = {label:'Smallest resource on the page in bytes.',value:'',index:52};
 
-        report.resourceSingleLargest = {label:'',value:'',index:53};
+        report.resourceSingleLargest = {label:'Largest resource on the page in bytes.',value:'',index:53};
 
-        report.resourceSingleFastest = {label:'',value:'',index:54};
+        report.resourceSingleFastest = {label:'Fastest downloaded resource.',value:'',index:54};
 
-        report.resourceSingleSlowest = {label:'',value:'',index:55};
+        report.resourceSingleSlowest = {label:'Slowest downloaded resource.',value:'',index:55};
 
         report.navEvents = {label:'',value:[],index:56};
 
@@ -283,7 +283,7 @@ var speedgun = {
     },
 
     onLoadStarted: function (page, config) {
-      console.log('###### onLoadStarteda');
+      console.log('###### onLoadStarted');
     },
 
     onNavigationRequested: function(page, config, url, type, willNavigate, main) {
@@ -330,9 +330,7 @@ var speedgun = {
 
         var nowms = new Date().getTime();
 
-//        report.nowms.value = new Date().getTime();
         console.log(JSON.stringify({value: nowms, label: '', index: 2}));
-//        report.now.value = performance.now();
         console.log(JSON.stringify({value: performance.now(), label: '', index: 1}));
 
         //--------------- Begin ways of old DOM perf with event Listeners
@@ -606,14 +604,14 @@ var speedgun = {
 
     if (task.onLoadFinished) {
       page.onLoadFinished = function (status) {
+
         //need to timeout and wait for loadEventEnd
-        //todo - paramaterize
         setTimeout(function () {
           task.onLoadFinished.call(scope, page, config, status);
           speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
           page.viewportSize = { width: 1024, height: 768 };
           var reportLocation = '';
-          console.log(args.length,args[4],args[5],args);
+
           if(!args[5]){
             //if not running on the server, create a special folder and render screenshot
             reportLocation = speedgun.reportData.url.value.replace('://','_') + '/';
@@ -628,21 +626,6 @@ var speedgun = {
             delete speedgun.reportData.resources;
           }
           printReport(speedgun.reportData);
-
-
-          //log the entries
-//          for (var entry in speedgun.reportData) {
-//            if(speedgun.reportData[entry].value instanceof Array){
-//              for (var i = 0; i <  speedgun.reportData[entry].value.length;i++) {
-//                console.log('2--',entry,speedgun.reportData[entry].value[i])
-//              }
-//
-//            }else{
-//              console.log('1--',entry,speedgun.reportData[entry].value)
-//            }
-//
-//          }
-
           exit();
 
         }, 1);
