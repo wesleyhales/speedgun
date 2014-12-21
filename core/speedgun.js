@@ -613,7 +613,8 @@ var speedgun = {
           speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
           page.viewportSize = { width: 1024, height: 768 };
           var reportLocation = '';
-          if(!args[4]){
+          console.log(args.length,args[4],args[5],args);
+          if(!args[5]){
             //if not running on the server, create a special folder and render screenshot
             reportLocation = speedgun.reportData.url.value.replace('://','_') + '/';
             page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
@@ -624,7 +625,6 @@ var speedgun = {
 
           //simple filter for detailed reporting
           if(args.indexOf('detailed') <= 0){
-            console.log('delete')
             delete speedgun.reportData.resources;
           }
           printReport(speedgun.reportData);
@@ -656,7 +656,7 @@ var speedgun = {
     function printReport(report) {
 
       var reportLocation = '/speedgun';
-      if(!args[4]){
+      if(!args[5]){
         reportLocation = speedgun.reportData.url.value.replace('://','_') + '/speedgun';
       }
 
@@ -685,6 +685,7 @@ var speedgun = {
     }
 
     if (config.task == 'performancecache') {
+      console.log('----')
       pagetemp.open(config.url, function (status) {
         if (status === 'success') {
           pagetemp.release();
@@ -916,8 +917,8 @@ var speedgun = {
         }
       }
 
-    if (args[4] && args[4] != 'wipe') {
-      myfile = 'reports/' + filename + '-' + args[4] + '.' + extension;
+    if (args[5] && args.indexOf('wipe') < 0) {
+      myfile = 'reports/' + filename + '-' + args[5] + '.' + extension;
     } else {
       myfile = 'reports/' + filename + '.' + extension;
     }
