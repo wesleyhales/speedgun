@@ -611,14 +611,16 @@ var speedgun = {
           speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
           page.viewportSize = { width: 1024, height: 768 };
           var reportLocation = '';
-
-          if(!args[5]){
+           console.log(args[4]);
+          if(!args[4]){
             //if not running on the server, create a special folder and render screenshot
-            reportLocation = speedgun.reportData.url.value.replace('://','_') + '/';
+            //TODO - move this down to printReport
+            reportLocation = speedgun.reportData.url.value.replace('://','_').replace(":", "_") + '/';
+            console.log('Rendering Screenshot to','reports/' + reportLocation + speedgun.reportData.screenshot.value)
             page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
           }
 
-          //grand finally for the report. need a better final method that cleans up and
+          //grand finale for the report. need a better final method that cleans up and
           //decides which data to filter on.
 
           //simple filter for detailed reporting
@@ -639,10 +641,9 @@ var speedgun = {
     function printReport(report) {
 
       var reportLocation = '/speedgun';
-      if(!args[5]){
-        reportLocation = speedgun.reportData.url.value.replace('://','_') + '/speedgun';
+      if(!args[4]){
+        reportLocation = speedgun.reportData.url.value.replace('://','_').replace(":", "_") + '/speedgun';
       }
-
 
       if (args.indexOf('csv') >= 0) {
         speedgun.printToFile(report, reportLocation, 'csv', args.indexOf('wipe') >= 0);
@@ -668,7 +669,6 @@ var speedgun = {
     }
 
     if (config.task == 'performancecache') {
-      console.log('----')
       pagetemp.open(config.url, function (status) {
         if (status === 'success') {
           pagetemp.release();
@@ -686,6 +686,9 @@ var speedgun = {
 
       var error = false,
           incoming = msg;
+
+      //debug dump
+//      console.log(msg);
 
       if (msg.indexOf('error:') >= 0) {
         speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length, msg.length)));
@@ -900,15 +903,13 @@ var speedgun = {
         }
       }
 
-    if (args[5] && args.indexOf('wipe') < 0) {
-      myfile = 'reports/' + filename + '-' + args[5] + '.' + extension;
+    if (args[4] && args.indexOf('wipe') < 0) {
+      myfile = 'reports/' + filename + '-' + args[4] + '.' + extension;
     } else {
       myfile = 'reports/' + filename + '.' + extension;
     }
 
-    // Given localhost:8880/some
-    // Transforms to localhost_8880/some
-    myfile = myfile.replace(":", "_");
+    console.log('Writing report data to: ',myfile);
 
     if (!createNew && fs.exists(myfile)) {
       //file exists so append line

@@ -37,7 +37,7 @@ angular.module('app', [
         var request = $http.get(url, config);
 
         request.then(function(res){
-          if (res.data === '#fail') return;
+          if (res.data.status === 'pending') return;
           console.log(res.data);
             data = res.data instanceof Array ? res.data : [res.data];
             if (data.length >= numReports) return deferred.resolve(data);
@@ -56,7 +56,7 @@ angular.module('app', [
     };
   }])
   .controller('MainCtrl', ['$scope', 'api', function ($scope, api) {
-    $scope.url = 'http://yahoo.com';
+    $scope.url = 'localhost:8080';
 
     $scope.speedgun = [];
 
