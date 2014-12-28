@@ -14,6 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.logging.Logger;
 
 @Path("/performance")
 @RequestScoped
@@ -22,11 +23,15 @@ public class PerformanceService implements Serializable {
   @Inject
   PerfQueueManager perfQueueManager;
 
+  @Inject
+  private transient Logger log;
+
+
   private static String OS = System.getProperty("os.name").toLowerCase();
   String LOCATION = "/root/jboss-as-7.1.1.Final-fluxui/";
 
   {
-    if (OS.indexOf("mac") >= 0) {
+    if (OS.contains("mac")) {
       LOCATION = "/Users/wesleyhales/dev/speedgun/server/jboss-as-7.1.1.Final-fluxui/";
     }
   }
@@ -102,8 +107,8 @@ public class PerformanceService implements Serializable {
       BufferedReader in;
       File locatedFile = new File(LOCATION + "reports/speedgun-" + uuid + ".json");
 
-      System.out.println("-----------" + LOCATION + "reports/speedgun-" + uuid + ".json");
-      System.out.println("-----------" + locatedFile);
+      log.info("[Speedgun] Checking for file: " + LOCATION + "reports/speedgun-" + uuid + ".json");
+      log.info("[Speedgun] Located file? " + locatedFile.exists());
       if (locatedFile.exists()) {
         in = new BufferedReader(new FileReader(LOCATION + "reports/speedgun-" + uuid + ".json"));
       } else {

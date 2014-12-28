@@ -56,7 +56,7 @@ angular.module('app', [
     };
   }])
   .controller('MainCtrl', ['$scope', 'api', function ($scope, api) {
-    $scope.url = 'localhost:8080';
+//    $scope.url = 'localhost:8080';
 
     $scope.speedgun = [];
 
