@@ -142,23 +142,22 @@ public class PerfQueueManager {
       env.put(Context.SECURITY_PRINCIPAL, DEFAULT_USERNAME);
       env.put(Context.SECURITY_CREDENTIALS, DEFAULT_PASSWORD);
       context = new InitialContext(env);
-      //if(connectionFactory == null){
-      String connectionFactoryString = System.getProperty("connection.factory", DEFAULT_CONNECTION_FACTORY);
-      //connectionFactory = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
 
       final Map<String, Object> p = new HashMap<String, Object>();
       TransportConfiguration tc;
-
 
       p.put(TransportConstants.HOST_PROP_NAME, "localhost");
       tc = new TransportConfiguration(NettyConnectorFactory.class.getName(), p);
 
       connectionFactory = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.TOPIC_CF, tc);
       //}
+      connectionFactory.getServerLocator().setAckBatchSize(0);
       destination = (Destination) context.lookup("jms/queue/test");
       context.close();
       connection = connectionFactory.createConnection("quickstartUser", "quickstartPassword");
-      session = connection.createSession(false, Session.DUPS_OK_ACKNOWLEDGE);
+      //session = connection.createSession(true, 0);
+
+      session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
       messageProducer = session.createProducer(destination);
       consumer = session.createConsumer(destination);
       connection.start();
@@ -213,6 +212,7 @@ public class PerfQueueManager {
     try {
       setupJMS();
       message = (MapMessage) consumer.receive(0);
+
     } catch (NamingException e) {
       e.printStackTrace();
     } catch (JMSException e) {
@@ -224,11 +224,13 @@ public class PerfQueueManager {
     if (incomingMsgs == 0 && message == null) {
       try {
         if (context != null) {
+          log.info("[Speedgun] close context");
           context.close();
           context = null;
         }
         // closing the connection takes care of the session, producer, and consumer
         if (connection != null) {
+          log.info("[Speedgun] close connection");
           connection.close();
         }
       } catch (NamingException e) {
@@ -241,7 +243,7 @@ public class PerfQueueManager {
     }else if (message != null){
 
       try {
-
+        message.acknowledge();
         url = message.getString("url");
         taskName = message.getString("taskName");
         random = message.getString("uuid");
@@ -277,10 +279,8 @@ public class PerfQueueManager {
           in.close();
         }
 
-        if (email != null) {
-          if (!email.isEmpty()) {
-            sendMessage(email, random);
-          }
+        if (email != null && !email.isEmpty()) {
+          sendMessage(email, random);
         }
       } catch (IOException e1) {
         e1.printStackTrace();
@@ -289,7 +289,7 @@ public class PerfQueueManager {
         e2.printStackTrace();
       }
 
-      log.info("Done : " + random);
+      log.info("[Speedgun] Done : " + random);
       done = true;
 
     }
