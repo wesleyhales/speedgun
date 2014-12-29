@@ -18,51 +18,51 @@
 </head>
 <body ng-controller="MainCtrl">
 
-  <div layout="column" layout-fill>
-    <md-toolbar md-theme="red" class="z-1">
-      <div class="md-toolbar-tools">
-        <span>Speedgun</span>
-        <span flex></span>
-        <md-button>
-        </md-button>
-      </div>
-    </md-toolbar>
-    <div class="main" layout=column layout-align="center center">
-      <div class="masthead-container" layout=column layout-align="center center">
-        <md-content class="masthead" layout="column" layout-align="center center">
-          <form name="reportform" id="reportform" ng-submit="go(url)">
+<div layout="column" layout-fill>
+  <md-toolbar md-theme="red" class="z-1">
+    <div class="md-toolbar-tools">
+      <span>Speedgun</span>
+      <span flex></span>
+      <md-button>
+      </md-button>
+    </div>
+  </md-toolbar>
+  <div class="main" layout=column layout-align="center center">
+    <div class="masthead-container" layout=column layout-align="center center">
+      <md-content class="masthead" layout="column" layout-align="center center">
+        <form name="reportform" id="reportform" ng-submit="go(url)">
+          <section layout="row" layout-align="center center">
+            <p>ENTER A WEB ADDRESS</p>
+          </section>
+          <section layout="row" layout-align="center center" class="url-input-container">
+            <md-card class="url-input">
+              <input type="text" name="url" id="url" placeholder="http://www.whatever.com" ng-model="url" required autofocus/>
+            </md-card>
+
+            <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url)" style="width: 54px; height: 54px;">
+              Go
+            </md-button>
+          </section>
+          <div class="masthead-marketing">
             <section layout="row" layout-align="center center">
-              <p>ENTER A WEB ADDRESS</p>
+              <p>USED BY</p>
             </section>
-            <section layout="row" layout-align="center center" class="url-input-container">
-              <md-card class="url-input">
-                <input type="text" name="url" id="url" placeholder="http://www.whatever.com" ng-model="url" required autofocus/>
-              </md-card>
-
-              <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url)" style="width: 54px; height: 54px;">
-                Go
-              </md-button>
+            <section layout="row" layout-align="center center">
+              <img src="images/marketing/desaturated/250w-cnn.png" class="logo">
+              <img src="images/marketing/desaturated/250w-intel.png" class="logo">
             </section>
-            <div class="masthead-marketing">
-              <section layout="row" layout-align="center center">
-                <p>USED BY</p>
-              </section>
-              <section layout="row" layout-align="center center">
-                <img src="images/marketing/desaturated/250w-cnn.png" class="logo">
-                <img src="images/marketing/desaturated/250w-intel.png" class="logo">
-              </section>
-            </div>
+          </div>
 
-            <!--<section layout="row" layout-sm="column" layout-align="center center">-->
-            <!--<md-checkbox ng-model="isChecked" aria-label="Finished?" name="cachedCheckbox" id="cachedCheckbox" value="true">Cached ?</md-checkbox>-->
-            <!--</section>-->
-            <!--<section layout="row" layout-sm="column" layout-align="center center">-->
-            <!--<md-text-float label="Your Email" class="long" ng-model="email" name="email" id="email"> </md-text-float>-->
-            <!--</section>-->
-          </form>
-        </md-content>
+          <!--<section layout="row" layout-sm="column" layout-align="center center">-->
+          <!--<md-checkbox ng-model="isChecked" aria-label="Finished?" name="cachedCheckbox" id="cachedCheckbox" value="true">Cached ?</md-checkbox>-->
+          <!--</section>-->
+          <!--<section layout="row" layout-sm="column" layout-align="center center">-->
+          <!--<md-text-float label="Your Email" class="long" ng-model="email" name="email" id="email"> </md-text-float>-->
+          <!--</section>-->
+        </form>
+      </md-content>
 
-      </div>
+    </div>
     <md-content class="results" ng-class="{visible: speedgun.length}">
       <md-card>
         <h4 class="subheader">{{speedgun[0].url.value}}</h4>
@@ -78,8 +78,8 @@
         <card data="speedgun" property="responseTime" suffix="ms"></card>
         <card data="speedgun" property="domainLookupTime" suffix="ms"></card>
         <card data="speedgun" property="redirectTime" suffix="ms"></card>
-        <card data="speedgun" property="domperfDOMContentLoaded" suffix="ms"></card>
-        <card data="speedgun" property="domperfLoad" suffix="ms"></card>
+        <card data="speedgun" property="DOMContentLoaded" suffix="ms"></card>
+        <card data="speedgun" property="Load" suffix="ms"></card>
       </div>
     </md-content>
     <md-content class="marketing">
@@ -101,36 +101,36 @@
         <img src="images/marketing/desaturated/200w-htc.png" class="logo logo-3">
       </section>
     </md-content>
-    </div>
   </div>
+</div>
 
-  <script src="bower_components/hammerjs/hammer.min.js"></script>
-  <script src="bower_components/angular/angular.min.js"></script>
-  <script src="bower_components/angular-animate/angular-animate.min.js"></script>
-  <script src="bower_components/angular-aria/angular-aria.js"></script>
-  <script src="bower_components/angular-material/angular-material.js"></script>
+<script src="bower_components/hammerjs/hammer.min.js"></script>
+<script src="bower_components/angular/angular.min.js"></script>
+<script src="bower_components/angular-animate/angular-animate.min.js"></script>
+<script src="bower_components/angular-aria/angular-aria.js"></script>
+<script src="bower_components/angular-material/angular-material.js"></script>
 
-  <script src="speedgun.js"></script>
+<script src="speedgun.js"></script>
 
-  <script type="text/javascript" src="js/app.js"></script>
+<script type="text/javascript" src="js/app.js"></script>
 
-  <!--<script type="text/javascript">-->
+<!--<script type="text/javascript">-->
 
-    <!--var _gaq = _gaq || [];-->
-    <!--_gaq.push(['_setAccount', 'UA-1241000-11']);-->
-    <!--_gaq.push(['_setDomainName', 'wesleyhales.com']);-->
-    <!--_gaq.push(['_trackPageview']);-->
+<!--var _gaq = _gaq || [];-->
+<!--_gaq.push(['_setAccount', 'UA-1241000-11']);-->
+<!--_gaq.push(['_setDomainName', 'wesleyhales.com']);-->
+<!--_gaq.push(['_trackPageview']);-->
 
-    <!--(function () {-->
-      <!--var ga = document.createElement('script');-->
-      <!--ga.type = 'text/javascript';-->
-      <!--ga.async = true;-->
-      <!--ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';-->
-      <!--var s = document.getElementsByTagName('script')[0];-->
-      <!--s.parentNode.insertBefore(ga, s);-->
-    <!--})();-->
+<!--(function () {-->
+<!--var ga = document.createElement('script');-->
+<!--ga.type = 'text/javascript';-->
+<!--ga.async = true;-->
+<!--ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';-->
+<!--var s = document.getElementsByTagName('script')[0];-->
+<!--s.parentNode.insertBefore(ga, s);-->
+<!--})();-->
 
-  <!--</script>-->
+<!--</script>-->
 
 
 </body>

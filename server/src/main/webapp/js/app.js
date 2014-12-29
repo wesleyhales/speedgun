@@ -10,6 +10,7 @@ angular.module('app', [
       var numReports = 5, retryDelay = 1500;
       this.go = function(url, email, cached){
         //http://localhost:8081/rest/performance/go?url=http%3A%2F%2Fgoogle.com&cached=false&email=
+        console.log('go',url, email, cached)
         var config = {
           params : {
             url : url,
@@ -22,7 +23,7 @@ angular.module('app', [
       };
       this.get = function (uuid) {
         //http://localhost:8081/rest/performance/report?uuid=a31d2f1c-b6d2-426f-b48b-7df5d201bc9f
-        if (!uuid) return $q.when(speedgun);
+//        if (!uuid) return $q.when(speedgun);
         var url = host + '/rest/performance/report';
         var config = {
           params : {
@@ -37,15 +38,23 @@ angular.module('app', [
           var request = $http.get(url, config);
 
           request.then(function(res){
+
             if (res.data.status === 'pending') return;
-            console.log(res.data);
+
+            console.log('res.data',res.data);
+
             data = res.data instanceof Array ? res.data : [res.data];
+
             if (data.length >= numReports) return deferred.resolve(data);
+
             deferred.notify(data);
-          },function(err){console.log('err', err);});
+
+          },function(err){
+            console.log('err', err);
+          });
 
           request.finally(function(){
-            console.log(data.length);
+            console.log('finally',data.length);
             if (data.length < numReports) $timeout(loop, retryDelay);
           });
         };
@@ -69,17 +78,17 @@ angular.module('app', [
         },200);
       };
 
-      $scope.go = function() {
-        animate();
-        api.get().then(function(res){
-          $scope.speedgun = res;
-        });
-      };
+//      $scope.go = function() {
+//        animate();
+//        api.get().then(function(res){
+//          $scope.speedgun = res;
+//        });
+//      };
 
       $scope.xgo = function(url, email, cached){
         api.go(url, email, cached).then(function(initResponse){
           var uuid = initResponse.data.uuid;
-          console.log(uuid);
+          console.log('uuid',uuid);
           var done = function(data){
             $scope.speedgun = data;
           };
@@ -131,7 +140,7 @@ angular.module('app', [
         link: function ($scope, element) {
           var statNodes = element.children().children();
           $scope.$watch('data', function(){
-            console.log('data',$scope.data);
+            console.log('data length under diective',$scope.data.length);
             var stats = $scope.data.map(function(run, i){
               var itemFromRunArray = run[$scope.property];
               if(itemFromRunArray){
@@ -142,23 +151,34 @@ angular.module('app', [
 
             var best;
 
-            if (stats[0] !== undefined) {
-              best = stats[0].value;
-              // if less than half the values are "best" values, mark them, otherwise leave them naked.
-              if (stats.filter(function(stat){return stat.value === best}).length < (stats.length / 2)) {
-                stats.forEach(function(stat){
-                  if (stat.value === best) statNodes[stat.index].classList.add('best');
-                });
-              }
-            }
-
-            if (stats[4] !== undefined) {
-              var worst = stats[4].value;
-              if (best !== worst) {
-                if (stats.filter(function(stat){return stat.value === worst}).length < (stats.length / 2)) {
-                  stats.forEach(function (stat) {
-                    if (stat.value === worst) statNodes[stat.index].classList.add('worst');
+            if(stats.length > 1){
+              //best and worst are always at the min and max indices because of sort above.
+              if (stats[0] !== undefined) {
+                best = stats[0].value;
+                // if less than half the values are "best" values, mark them, otherwise leave them naked.
+                if (stats.filter(function(stat){return stat.value === best}).length < (stats.length / 2)) {
+                  stats.forEach(function(stat){
+                    if (stat.value === best){
+                      if($scope.currentBest) $scope.currentBest.classList.remove('best');
+                      $scope.currentBest = statNodes[stat.index];
+                      $scope.currentBest.classList.add('best');
+                    }
                   });
+                }
+              }
+//
+              if (stats[4] !== undefined) {
+                var worst = stats[4].value;
+                if (best !== worst) {
+                  if (stats.filter(function(stat){return stat.value === worst}).length < (stats.length / 2)) {
+                    stats.forEach(function (stat) {
+                      if (stat.value === worst){
+                        if($scope.currentWorst) $scope.currentWorst.classList.remove('worst');
+                        $scope.currentWorst = statNodes[stat.index];
+                        $scope.currentWorst.classList.add('worst');
+                      }
+                    });
+                  }
                 }
               }
             }
