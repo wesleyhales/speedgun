@@ -117,10 +117,11 @@ angular.module('app', [
           data: '=',
           property: '@',
           prefix: '@',
-          suffix: '@'
+          suffix: '@',
+          detail: '@'
         },
         template:
-            '<md-card class="cell {{property}} z-anim z-0">' +
+            '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
             '<div class="card ">' +
             '<div class="header">{{property | deCamelCase}}</div>' +
             '<div class="desc">{{data[0][property].label}}</div>' +
