@@ -2,25 +2,15 @@ package com.fluxui.service;
 
 
 import org.codehaus.jackson.map.ObjectMapper;
-import org.eclipse.jetty.websocket.api.Session;
-import org.hornetq.utils.json.JSONException;
-import org.hornetq.utils.json.JSONObject;
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolationException;
-import javax.validation.ValidationException;
 import javax.ws.rs.*;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -28,11 +18,9 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import java.io.*;
-import java.lang.management.OperatingSystemMXBean;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -48,7 +36,7 @@ public class BeaconService {
 
   @PostConstruct
   public void initialize() {
-    log.info("Start the beacon timer");
+    log.info("[Speedgun] Start the beacon timer");
     startBeaconTimer();
   }
 
@@ -57,13 +45,13 @@ public class BeaconService {
   private void startBeaconTimer(){
     if(timer == null) {
       timer = new Timer();
-      log.info("+++beacon timer is null");
+      log.info("[Speedgun] Beacon timer starting");
 
       timer.schedule(new TimerTask() {
         public void run() {
           // do stuff
           transmit();
-          log.info("+++beacon timer is running");
+          log.info("[Speedgun] Beacon is running");
 
         }
       }, 0, 60000);
@@ -75,7 +63,6 @@ public class BeaconService {
   }
 
   private JsonObject readJSON(String data) {
-    log.info("------data-" + data);
     JsonReader reader = Json.createReader(new StringReader(data));
     JsonObject myObject = reader.readObject();
     reader.close();
@@ -101,17 +88,6 @@ public class BeaconService {
       e.printStackTrace();
     }
 
-
-
-//    if(addr == null){
-//        try {
-//            addr = InetAddress.getLocalHost().getHostAddress();
-//        } catch (UnknownHostException e) {
-//            log.severe("can't get IP address, falling back to local");
-//            addr = "0.0.0.0";
-//        }
-//    }
-
     sgStatus.setIp("0.0.0.0");
 
     sgStatus.setTimestamp(new Date().getTime());
@@ -130,8 +106,6 @@ public class BeaconService {
 //    JsonObject askObject = readJSON(response.readEntity(String.class));
 
     response.close();
-
-
   }
 
 
@@ -166,8 +140,6 @@ public class BeaconService {
     }
   }
 
-
-
   private Map<String, SGStatus> sessionMap = new HashMap<String, SGStatus>();
 
   @POST
@@ -186,13 +158,11 @@ public class BeaconService {
     response = Response.ok("{\"status\":\"msg received from: " + req.getRemoteHost() + "\"}", MediaType.APPLICATION_JSON);
 
 
-    log.info("----Beacon received msg from: " + req.getRemoteHost() + " port: " + req.getRemotePort());
+    log.info("[Speedgun] Beacon received msg from: " + req.getRemoteHost() + " port: " + req.getRemotePort());
 
     sgstatus.setIp(req.getRemoteHost());
     sessionMap.put(req.getRemoteHost(), sgstatus);
     //need a timer... or check on page load and then call purge if not available
-
-    log.info("----sessionMap size: " + sessionMap.size());
 
     response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     response.header("Access-Control-Allow-Origin", "*");
