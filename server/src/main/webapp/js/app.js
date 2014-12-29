@@ -86,6 +86,7 @@ angular.module('app', [
 //      };
 
       $scope.xgo = function(url, email, cached){
+        animate();
         api.go(url, email, cached).then(function(initResponse){
           var uuid = initResponse.data.uuid;
           console.log('uuid',uuid);
@@ -166,7 +167,20 @@ angular.module('app', [
                   });
                 }
               }
-//
+
+              if (stats[2] !== undefined && stats.length === 5) {
+
+                var median = stats[2].value;
+                console.log('data',$scope.data, 'median', median);
+                stats.forEach(function (stat) {
+                  if (stat.value === median) {
+                    if ($scope.currentMedian) $scope.currentMedian.classList.remove('median');
+                    $scope.currentMedian = statNodes[stat.index];
+                    $scope.currentMedian.classList.add('median');
+                  }
+                })
+              }
+
               if (stats[4] !== undefined) {
                 var worst = stats[4].value;
                 if (best !== worst) {

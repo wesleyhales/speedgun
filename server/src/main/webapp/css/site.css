@@ -47,15 +47,20 @@ and (min-width : 600px) {
 }
 
 .stat.best {
-  background-color: #4CAF50;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4);
-  color:white;
+  color: #4CAF50;
 }
 
 .stat.worst {
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-  background-color: #9f0000;
-  color:white;
+  color:#9f0000;
+}
+
+.stat.median {
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  background-color: #ececec;
+  color:#000;
+  font-weight: bold;
 }
 
 .url-input {
