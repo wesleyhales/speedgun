@@ -90,6 +90,9 @@ angular.module('app', [
         api.go(url, email, cached).then(function(initResponse){
           var uuid = initResponse.data.uuid;
           console.log('uuid',uuid);
+
+          $scope.uuid = uuid;
+
           var done = function(data){
             $scope.speedgun = data;
           };

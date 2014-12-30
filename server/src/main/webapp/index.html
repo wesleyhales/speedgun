@@ -62,7 +62,7 @@
     </div>
     <md-content class="results" ng-class="{visible: speedgun.length}">
       <md-card>
-        <h4 class="subheader">{{speedgun[0].url.value}}</h4>
+        <h4 class="subheader">{{speedgun[0].url.value}} <a style="float:right" href="http://localhost:8080/rest/performance/report?uuid={{uuid}}">Full Report (JSON)</a></h4>
       </md-card>
 
       <div layout-sm="column">
@@ -102,7 +102,7 @@
     </md-content>
     <md-content class="marketing">
       <section layout="row" layout-align="center center">
-        <p>USED BY</p>
+        <p>SPEEDGUN IS USED BY</p>
       </section>
       <section layout="row" layout-align="center center">
         <img src="images/marketing/desaturated/speedgun-logos.png" class="">
