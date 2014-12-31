@@ -87,6 +87,7 @@ angular.module('app', [
       }
 
       function loadTheGun(uuid){
+        $scope.uuid = uuid;
         var done = function(data){
           $scope.speedgun = data;
         };
