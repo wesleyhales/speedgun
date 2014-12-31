@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en" ng-app="app">
 <head>
+  <script>
+    console.log(Date.now(), performance.timing.navigationStart, Date.now() - performance.timing.navigationStart)
+  </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A layout example that shows off a responsive product landing page.">
@@ -36,10 +39,12 @@
           </section>
           <section layout="row" layout-align="center center" class="url-input-container">
             <md-card class="url-input">
-              <input type="text" name="url" id="url" placeholder="http://www.whatever.com" ng-model="url" required autofocus/>
+              <input type="text" name="url" id="url" placeholder="http://www.whatever.com" ng-model="url" required
+                     autofocus/>
             </md-card>
 
-            <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url)" style="width: 54px; height: 54px;">
+            <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url)"
+                       style="width: 54px; height: 54px;">
               Go
             </md-button>
           </section>
@@ -62,7 +67,9 @@
     </div>
     <md-content class="results" ng-class="{visible: speedgun.length}">
       <md-card>
-        <h4 class="subheader">{{speedgun[0].url.value}} <a style="float:right" href="http://localhost:8080/rest/performance/report?uuid={{uuid}}">Full Report (JSON)</a></h4>
+        <h4 class="subheader">
+          {{speedgun[0].url.value}} <a style="float:right" href="http://localhost:8080/rest/performance/report?uuid={{uuid}}">
+          Full Report (JSON)</a></h4>
       </md-card>
 
       <div layout-sm="column">
@@ -77,27 +84,47 @@
         <card data="speedgun" property="redirectTime" suffix="ms"></card>
         <card data="speedgun" property="DOMContentLoaded" suffix="ms"></card>
         <card data="speedgun" property="Load" suffix="ms"></card>
-        <!--<card data="speedgun" property="connectEnd" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="connectStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="domComplete" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="domContentLoadedEventEnd" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="domContentLoadedEventStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="domInteractive" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="domLoading" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="domainLookupEnd" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="domainLookupStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="fetchStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="loadEventEnd" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="loadEventStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="navigationStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="redirectEnd" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="redirectStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="requestStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="responseEnd" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="responseStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="unloadEventEnd" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="unloadEventStart" suffix="ms" detail="secondary"></card>-->
-        <!--<card data="speedgun" property="secureConnectionStart" suffix="ms" detail="secondary"></card>-->
+        <card data="speedgun" property="domInteractive" suffix="ms" detail="secondary"></card>
+        <card data="speedgun" property="domLoading" suffix="ms" detail="secondary"></card>
+        <card data="speedgun" property="domComplete" suffix="ms" detail="secondary"></card>
+        <card data="speedgun" property="fetchStart" suffix="ms" detail="secondary"></card>
+        <card data="speedgun" property="requestStart" suffix="ms" detail="secondary"></card>
+        <card data="speedgun" property="secureConnectionStart" suffix="ms" detail="secondary"></card>
+
+        <div class="card-group">
+          <card data="speedgun" property="connectStart" suffix="ms" detail="secondary"></card>
+          <card data="speedgun" property="connectEnd" suffix="ms" detail="secondary"></card>
+        </div>
+
+        <div class="card-group">
+          <card data="speedgun" property="domContentLoadedEventStart" suffix="ms" detail="secondary"></card>
+          <card data="speedgun" property="domContentLoadedEventEnd" suffix="ms" detail="secondary"></card>
+        </div>
+
+        <div class="card-group">
+          <card data="speedgun" property="domainLookupStart" suffix="ms" detail="secondary"></card>
+          <card data="speedgun" property="domainLookupEnd" suffix="ms" detail="secondary"></card>
+        </div>
+
+        <div class="card-group">
+          <card data="speedgun" property="loadEventStart" suffix="ms" detail="secondary"></card>
+          <card data="speedgun" property="loadEventEnd" suffix="ms" detail="secondary"></card>
+        </div>
+        <div class="card-group">
+          <card data="speedgun" property="redirectStart" suffix="ms" detail="secondary"></card>
+          <card data="speedgun" property="redirectEnd" suffix="ms" detail="secondary"></card>
+        </div>
+
+        <div class="card-group">
+          <card data="speedgun" property="responseStart" suffix="ms" detail="secondary"></card>
+          <card data="speedgun" property="responseEnd" suffix="ms" detail="secondary"></card>
+        </div>
+
+        <div class="card-group">
+          <card data="speedgun" property="unloadEventStart" suffix="ms" detail="secondary"></card>
+          <card data="speedgun" property="unloadEventEnd" suffix="ms" detail="secondary"></card>
+        </div>
+
       </div>
     </md-content>
     <md-content class="marketing">

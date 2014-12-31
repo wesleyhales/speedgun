@@ -53,20 +53,18 @@ var speedgun = {
         //The now() method returns the time elapsed from when the navigationStart time in PerformanceTiming happened.
         report.now = {label: 'HRT now()', value: 0, index: 1};
 
-        report.nowms = {label: 'Date now()', value: 0, index: 2};
+        report.nowms = {label: 'Date.now()', value: 0, index: 2};
 
         //high level load times
-        report.pageLoadTime = {label: 'Total time to load page', value: 0, index: 3};
+        report.pageLoadTime = {label: 'Total time to load page. Measuring the time it took from the navigationStart to loadEventEnd events.', value: 0, index: 3};
 
-        report.perceivedLoadTime = {label: 'User-perceived page load time', value: 0, index: 4};
+        report.perceivedLoadTime = {label: 'User-perceived page load time. The amount of time it took the browser to load the page and execute JavaScript.', value: 0, index: 4};
 
-        //time spent making request to server and receiving the response - after network lookups and negotiations
-        report.requestResponseTime = {label: 'Time from request start to response end', value: 0, index: 5};
+        report.requestResponseTime = {label: 'Time spent making a request to the server and receiving the response - after network lookups and negotiations.', value: 0, index: 5};
 
-        //time spent in app cache, domain lookups, and making secure connection
-        report.fetchTime = {label: 'Fetch start to response end', value: 0, index: 7};
+        report.fetchTime = {label: 'Fetch start to response end. Total time spent in app cache, domain lookups, and making secure connection', value: 0, index: 7};
 
-        report.pageProcessTime = {label: 'Total time spent processing page', value: 0, index: 8};
+        report.pageProcessTime = {label: 'Total time spent processing the page.', value: 0, index: 8};
 
         report.domLoading = {value: 0, label: 'Return the time immediately before the user agent sets the current document readiness to \"loading\"', index: 30};
 
@@ -76,7 +74,7 @@ var speedgun = {
 
         report.loadEventEnd = {value: 0, label: 'Return the time when the load event of the current document is completed. It must return zero when the load event is not fired or is not completed.', index: 31};
 
-        report.loadEventTime = {label: 'Total time spent during load event', value: 0, index: 9};
+        report.loadEventTime = {label: 'Total time spent during the load event.', value: 0, index: 9};
 
         report.domInteractive = {value: 0, label: 'Return the time immediately before the user agent sets the current document readiness to \"interactive\".', index: 17};
 
@@ -84,7 +82,7 @@ var speedgun = {
 
         report.connectEnd = {value: 0, label: 'Return the time immediately after the user agent finishes establishing the connection to the server to retrieve the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the value of domainLookupEnd', index: 28};
 
-        report.connectTime = {label: 'Time spent during connect', value: 0, index: 28};
+        report.connectTime = {label: 'Time spent during connect.', value: 0, index: 28};
 
         report.navigationStart = {value: 0, label: '', index: 12};
 
@@ -215,44 +213,65 @@ var speedgun = {
 
         var report = JSON.parse(perfObj),
             timing = performance.timing,
-            nav = performance.navigation;
+            nav = performance.navigation,
+            navStart = timing.navigationStart;
 
 
         //--------------- Begin PhantomJS supported user timing and performance timing measurements
 
-        report.pageLoadTime.value = timing.loadEventEnd - timing.navigationStart;
-        report.perceivedLoadTime.value = report.nowms.value - performance.timing.navigationStart;
-        report.requestResponseTime.value = timing.responseEnd - timing.requestStart;
-        report.redirectTime.value = timing.redirectEnd - timing.redirectStart;
-        report.fetchTime.value = timing.connectEnd - timing.fetchStart;
-        report.pageProcessTime.value = timing.loadEventStart - timing.domLoading;
-        report.loadEventTime.value = timing.loadEventEnd - timing.loadEventStart;
-        report.domContentTime.value = timing.domContentLoadedEventEnd - timing.domContentLoadedEventStart;
-        report.connectStart.value = timing.connectStart;
-        report.navigationStart.value = timing.navigationStart;
-        report.secureConnectionStart.value = timing.secureConnectionStart;
-        report.fetchStart.value = timing.fetchStart;
-        report.domContentLoadedEventStart.value = timing.domContentLoadedEventStart;
-        report.responseStart.value = timing.responseStart;
-        report.responseTime.value = timing.responseEnd - timing.responseStart;
-        report.domInteractive.value = timing.domInteractive;
-        report.domainLookupEnd.value = timing.domainLookupEnd;
-        report.domainLookupTime.value = timing.domainLookupEnd - timing.domainLookupStart;
-        report.redirectStart.value = timing.redirectStart;
-        report.requestStart.value = timing.requestStart;
-        report.unloadEventEnd.value = timing.unloadEventEnd;
-        report.unloadEventStart.value = timing.unloadEventStart;
-        report.domComplete.value = timing.domComplete;
-        report.domainLookupStart.value = timing.domainLookupStart;
-        report.loadEventStart.value = timing.loadEventStart;
-        report.domContentLoadedEventEnd.value = timing.domContentLoadedEventEnd;
-        report.redirectEnd.value = timing.redirectEnd;
-        report.connectEnd.value = timing.connectEnd;
-        report.connectTime.value = timing.connectEnd - timing.connectStart;
-        report.responseEnd.value = timing.responseEnd;
-        report.domLoading.value = timing.domLoading;
-        report.loadEventEnd.value = timing.loadEventEnd;
+        //try to calculate understandable load numbers
+        report.pageLoadTime.value = validateTimes(timing.loadEventEnd);
+        report.perceivedLoadTime.value = validateTimes(report.nowms.value); //from https://developer.mozilla.org/en-US/docs/Navigation_timing
+        report.requestResponseTime.value = validateTimes(timing.responseEnd,timing.requestStart);
+        report.redirectTime.value = validateTimes(timing.redirectEnd,timing.redirectStart);
+        report.fetchTime.value = validateTimes(timing.connectEnd,timing.fetchStart);
+        report.pageProcessTime.value = validateTimes(timing.loadEventStart,timing.domLoading);
+        report.loadEventTime.value = validateTimes(timing.loadEventEnd,timing.loadEventStart);
+        report.domContentTime.value = validateTimes(timing.domContentLoadedEventEnd,timing.domContentLoadedEventStart);
+        report.responseTime.value = validateTimes(timing.responseEnd,timing.responseStart);
+        report.connectTime.value = validateTimes(timing.connectEnd,timing.connectStart);
+        report.domainLookupTime.value = validateTimes(timing.domainLookupEnd,timing.domainLookupStart);
 
+        //subtract the rest from navigationStart to see when the event was fired relative to browser load
+        //1 offs
+        report.navigationStart.value = validateTimes(timing.navigationStart);
+        report.secureConnectionStart.value = validateTimes(timing.secureConnectionStart);
+        report.domInteractive.value = validateTimes(timing.domInteractive);
+        report.fetchStart.value = validateTimes(timing.fetchStart);
+        report.requestStart.value = validateTimes(timing.requestStart);
+        report.domLoading.value = validateTimes(timing.domLoading);
+        report.domComplete.value = validateTimes(timing.domComplete);
+
+        //start and end
+        report.connectStart.value = validateTimes(timing.connectStart);
+        report.connectEnd.value = validateTimes(timing.connectEnd);
+
+        report.domContentLoadedEventStart.value = validateTimes(timing.domContentLoadedEventStart);
+        report.domContentLoadedEventEnd.value = validateTimes(timing.domContentLoadedEventEnd);
+
+        report.responseStart.value = validateTimes(timing.responseStart);
+        report.responseEnd.value = validateTimes(timing.responseEnd);
+
+        report.domainLookupStart.value = validateTimes(timing.domainLookupStart);
+        report.domainLookupEnd.value = validateTimes(timing.domainLookupEnd);
+
+        report.redirectStart.value = validateTimes(timing.redirectStart);
+        report.redirectEnd.value = validateTimes(timing.redirectEnd);
+
+        report.unloadEventStart.value = validateTimes(timing.unloadEventStart);
+        report.unloadEventEnd.value = validateTimes(timing.unloadEventEnd);
+
+        report.loadEventStart.value = validateTimes(timing.loadEventStart);
+        report.loadEventEnd.value = validateTimes(timing.loadEventEnd);
+
+        //sometimes, numbers are returned as negative when subtracting from navigationStart. This could possibly be a bug with PhantomJS
+        function validateTimes(end,start){
+          if(!start){
+            start = navStart;
+          }
+          var diffTime = end - start;
+          return diffTime > 0 ? diffTime : 'na';
+        }
 
         report.timing.value = nav.type;
 
@@ -328,23 +347,23 @@ var speedgun = {
 
       page.evaluate(function (perfObj) {
 
-        var nowms = new Date().getTime();
+        var nowms = Date.now();
 
         console.log(JSON.stringify({value: nowms, label: '', index: 2}));
         console.log(JSON.stringify({value: performance.now(), label: '', index: 1}));
 
         //--------------- Begin ways of old DOM perf with event Listeners
 
-        //The DOMContentLoaded event is fired when the document has been completely
-        //loaded and parsed, without waiting for stylesheets, images, and subframes
-        //to finish loading
+//        The DOMContentLoaded event is fired when the document has been completely
+//        loaded and parsed, without waiting for stylesheets, images, and subframes
+//        to finish loading
         document.addEventListener("DOMContentLoaded", function () {
-          console.log(JSON.stringify({value: (new Date().getTime() - nowms), label: '', index: 41}));
+          console.log(JSON.stringify({value: (Date.now() - nowms), label: 'This is the measured with document.addEventListener(\"DOMContentLoaded\"... The DOMContentLoaded event is fired when the document has been completely loaded and parsed, without waiting for stylesheets, images, and subframes to finish loading', index: 40}));
         }, false);
 
         //detect a fully-loaded page
         window.addEventListener("load", function () {
-          console.log(JSON.stringify({value: (new Date().getTime() - nowms), label: '', index: 40}));
+          console.log(JSON.stringify({value: (Date.now() - nowms), label: 'Measured with the old window.addEventListener(\"load\" method... Detects the time it took to load the page.', index: 41}));
         }, false);
 
         //check for JS errors
@@ -358,7 +377,7 @@ var speedgun = {
     },
 
     onResourceRequested: function (page, config, request) {
-      var now = new Date().getTime();
+      var now = Date.now();
       speedgun.reportData.resources.value[request.id] = {
         id: request.id,
         url: request.url,
@@ -372,7 +391,7 @@ var speedgun = {
 
     },
     onResourceReceived: function (page, config, response) {
-      var now = new Date().getTime(),
+      var now = Date.now(),
           resource = speedgun.reportData.resources.value[response.id];
 
       resource.responses[response.stage] = response;
@@ -412,11 +431,11 @@ var speedgun = {
     },
     onLoadStarted: function (page, config) {
       if (!this.performance_old.start) {
-        this.performance_old.start = new Date().getTime();
+        this.performance_old.start = Date.now();
       }
     },
     onResourceRequested: function (page, config, request) {
-      var now = new Date().getTime();
+      var now = Date.now();
       this.performance_old.resources[request.id] = {
         id: request.id,
         url: request.url,
@@ -433,7 +452,7 @@ var speedgun = {
 
     },
     onResourceReceived: function (page, config, response) {
-      var now = new Date().getTime(),
+      var now = Date.now(),
         resource = this.performance_old.resources[response.id];
       resource.responses[response.stage] = response;
       if (!resource.times[response.stage]) {
@@ -454,7 +473,7 @@ var speedgun = {
     },
     onLoadFinished: function (page, config, status) {
       var start = this.performance_old.start,
-        finish = new Date().getTime(),
+        finish = Date.now(),
         resources = this.performance_old.resources,
         slowest, fastest, totalDuration = 0,
         largest, smallest, totalSize = 0,
@@ -534,23 +553,23 @@ var speedgun = {
 
   filmstrip: {
     onInitialized: function (page, config) {
-      this.screenshot(new Date().getTime(), page);
+      this.screenshot(Date.now(), page);
     },
     onLoadStarted: function (page, config) {
       if (!this.performance_old.start) {
-        this.performance_old.start = new Date().getTime();
+        this.performance_old.start = Date.now();
       }
-      this.screenshot(new Date().getTime(), page);
+      this.screenshot(Date.now(), page);
     },
     onResourceRequested: function (page, config, request) {
-      this.screenshot(new Date().getTime(), page);
+      this.screenshot(Date.now(), page);
     },
     onResourceReceived: function (page, config, response) {
-      this.screenshot(new Date().getTime(), page);
+      this.screenshot(Date.now(), page);
     },
 
     onLoadFinished: function (page, config, status) {
-      this.screenshot(new Date().getTime(), page);
+      this.screenshot(Date.now(), page);
     }
   },
 
@@ -688,7 +707,7 @@ var speedgun = {
           incoming = msg;
 
       //debug dump
-//      console.log(msg);
+//      console.log('console',msg);
 
       if (msg.indexOf('error:') >= 0) {
         speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length, msg.length)));
@@ -811,11 +830,11 @@ var speedgun = {
   },
 
   timerStart: function () {
-    return (new Date()).getTime();
+    return Date.now();
   },
 
   timerEnd: function (start) {
-    return ((new Date()).getTime() - start);
+    return (Date.now() - start);
   },
 
   screenshot: function (now, page) {

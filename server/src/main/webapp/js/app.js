@@ -1,5 +1,6 @@
 //'use strict';
 
+
 var host = '';
 //host = 'http://localhost:8081';
 
@@ -123,6 +124,9 @@ angular.module('app', [
           suffix: '@',
           detail: '@'
         },
+        link: function ($scope) {
+
+        },
         template:
             '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
             '<div class="card ">' +
@@ -151,6 +155,7 @@ angular.module('app', [
               if(itemFromRunArray){
                 return {value : itemFromRunArray.value, index: i};
               }
+
             });
             stats.sort(function(a,b){return a.value > b.value ? 1 : a.value < b.value ? -1 : 0});
 
@@ -204,11 +209,11 @@ angular.module('app', [
         },
         template:
             '<div layout="row">' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[0][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[1][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[2][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[3][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[4][property].value}}<span class="suffix">{{suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[0][property].value}}<span class="suffix">{{data[0][property].value === "na" ? "" : suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[1][property].value}}<span class="suffix">{{data[1][property].value === "na" ? "" : suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[2][property].value}}<span class="suffix">{{data[2][property].value === "na" ? "" : suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[3][property].value}}<span class="suffix">{{data[3][property].value === "na" ? "" : suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[4][property].value}}<span class="suffix">{{data[4][property].value === "na" ? "" : suffix}}</span></div></div>' +
             '</div>'
       };
     }]);
