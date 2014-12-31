@@ -5,13 +5,25 @@ var host = '';
 //host = 'http://localhost:8081';
 
 angular.module('app', [
-  'ngMaterial'
+  'ngMaterial',
+  'ngRoute'
 ])
-    .service('api', ['$q', '$http', '$timeout', function ($q, $http, $timeout) {
+  /*.config([
+   '$routeProvider',
+   '$locationProvider', function ($routeProvider,
+   $locationProvider) {
+   $routeProvider
+   .when('/uuid/:uuid', {templateUrl: 'index2.html'})
+   .otherwise({redirectTo: '/'});
+
+   $locationProvider
+   .html5Mode(false);
+
+   }])*/.service('api', ['$q', '$http', '$timeout', function ($q, $http, $timeout) {
       var numReports = 5, retryDelay = 1500;
       this.go = function(url, email, cached){
         //http://localhost:8081/rest/performance/go?url=http%3A%2F%2Fgoogle.com&cached=false&email=
-        console.log('go',url, email, cached)
+        //console.log('go',url, email, cached)
         var config = {
           params : {
             url : url,
@@ -65,10 +77,31 @@ angular.module('app', [
         return deferred.promise;
       };
     }])
-    .controller('MainCtrl', ['$scope', 'api', function ($scope, api) {
+    .controller('MainCtrl', ['$scope', 'api', '$routeParams', '$location', function ($scope, api, $routeParams, $location) {
 //    $scope.url = 'localhost:8080';
 
-      $scope.speedgun = [];
+      if($location.search().uuid){
+        loadTheGun($location.search().uuid)
+      }else {
+        $scope.speedgun = [];
+      }
+
+      function loadTheGun(uuid){
+        var done = function(data){
+          $scope.speedgun = data;
+        };
+        var error = function(err){
+          console.log('error');
+          console.log(err);
+        };
+        var progress = function(data){
+          console.log('progress',data)
+          $scope.speedgun = data;
+        };
+        api.get(uuid).then(done, error, progress);
+      }
+
+
 
       var animate = function () {
         var cells = document.querySelectorAll('.cell');
@@ -79,34 +112,19 @@ angular.module('app', [
         },200);
       };
 
-//      $scope.go = function() {
-//        animate();
-//        api.get().then(function(res){
-//          $scope.speedgun = res;
-//        });
-//      };
 
       $scope.xgo = function(url, email, cached){
         animate();
         api.go(url, email, cached).then(function(initResponse){
           var uuid = initResponse.data.uuid;
-          console.log('initResponse',initResponse);
+          $location.search('uuid',uuid);
+
+//          console.log('initResponse',initResponse);
 
           $scope.uuid = uuid;
           $scope.position = initResponse.data.position;
 
-          var done = function(data){
-            $scope.speedgun = data;
-          };
-          var error = function(err){
-            console.log('error');
-            console.log(err);
-          };
-          var progress = function(data){
-            console.log('progress',data)
-            $scope.speedgun = data;
-          };
-          api.get(uuid).then(done, error, progress);
+          loadTheGun(uuid);
         })
       }
     }])
