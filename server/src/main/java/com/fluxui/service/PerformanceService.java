@@ -112,7 +112,7 @@ public class PerformanceService implements Serializable {
       if (locatedFile.exists()) {
         in = new BufferedReader(new FileReader(LOCATION + "reports/speedgun-" + uuid + ".json"));
       } else {
-        return "{\"status\":\"pending\"}";
+        return "{\"status\":\"pending\",\"position\":\"" + PerfQueueManager.incomingMsgs + "\"}";
       }
 
       String ln;

@@ -65,11 +65,21 @@
       </md-content>
 
     </div>
-    <md-content class="results" ng-class="{visible: speedgun.length}">
+    --{{speedgun.status}}
+    <md-content class="results" ng-class="{visible: speedgun[0].status}">
+      <md-card class="runCount{{speedgun.length}}">
+        You are number {{speedgun[0].position}} in line. Leave your email address to have the link sent to you when complete.
+      </md-card>
+    </md-content>
+
+    <md-content class="results" ng-class="{visible: speedgun.length > 1}">
       <md-card>
-        <h4 class="subheader">
-          {{speedgun[0].url.value}} <a style="float:right" href="http://localhost:8080/rest/performance/report?uuid={{uuid}}">
-          Full Report (JSON)</a></h4>
+        <h3 class="subheader">
+          {{speedgun[0].url.value}}
+          <a style="float:right" href="http://localhost:8080/rest/performance/report?uuid={{uuid}}">
+            Full Report (JSON)
+          </a>
+        </h3>
       </md-card>
 
       <div layout-sm="column">

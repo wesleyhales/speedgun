@@ -57,7 +57,7 @@ public class PerfQueueManager {
   MessageConsumer consumer;
   boolean done = true;
 
-  private int incomingMsgs = 0;
+  public static int incomingMsgs = 0;
 
   private Timer timer = null;
 

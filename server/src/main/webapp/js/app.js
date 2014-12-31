@@ -40,7 +40,7 @@ angular.module('app', [
 
           request.then(function(res){
 
-            if (res.data.status === 'pending') return;
+//            if (res.data.status === 'pending') return
 
             console.log('res.data',res.data);
 
@@ -90,9 +90,10 @@ angular.module('app', [
         animate();
         api.go(url, email, cached).then(function(initResponse){
           var uuid = initResponse.data.uuid;
-          console.log('uuid',uuid);
+          console.log('initResponse',initResponse);
 
           $scope.uuid = uuid;
+          $scope.position = initResponse.data.position;
 
           var done = function(data){
             $scope.speedgun = data;
@@ -102,6 +103,7 @@ angular.module('app', [
             console.log(err);
           };
           var progress = function(data){
+            console.log('progress',data)
             $scope.speedgun = data;
           };
           api.get(uuid).then(done, error, progress);
@@ -149,7 +151,7 @@ angular.module('app', [
         link: function ($scope, element) {
           var statNodes = element.children().children();
           $scope.$watch('data', function(){
-            console.log('data length under diective',$scope.data.length);
+
             var stats = $scope.data.map(function(run, i){
               var itemFromRunArray = run[$scope.property];
               if(itemFromRunArray){
@@ -157,6 +159,7 @@ angular.module('app', [
               }
 
             });
+
             stats.sort(function(a,b){return a.value > b.value ? 1 : a.value < b.value ? -1 : 0});
 
             var best;
