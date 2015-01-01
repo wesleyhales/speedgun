@@ -257,10 +257,6 @@ angular.module('app', [
         template:
             '<div layout="column">' +
             '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[0][property].value | decode}}</div></div>' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[1][property].value | decode}}</div></div>' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[2][property].value | decode}}</div></div>' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[3][property].value | decode}}</div></div>' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[4][property].value | decode}}</div></div>' +
             '</div>'
       };
     }])
@@ -273,11 +269,7 @@ angular.module('app', [
         },
         template:
             '<div layout="column">' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[0][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[1][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[2][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[3][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[4][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
+            '<div flex class="z-anim"  layout-align="left"><div layout="row" ng-repeat="key in data[0][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
             '</div>'
       };
     }])
@@ -290,7 +282,7 @@ angular.module('app', [
         },
         template:
             '<div layout="column">' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[0][property].value.url}}</div></div>' +
+            '<div flex class="z-anim" layout="row" layout-align="left"><div>{{data[0][property].value.url}}</div></div>' +
             '</div>'
       };
     }])
