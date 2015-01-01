@@ -1,7 +1,7 @@
 
 @media only screen
 and (min-width : 600px) {
-  .main .masthead, .main .results, .main .marketing {
+  .main .masthead, .main .results, .main .marketing, .documentation {
     width:100%;
     max-width:1200px;
   }
@@ -10,6 +10,10 @@ and (min-width : 600px) {
     width:50%;
     float:left;
   }
+}
+
+.documentation {
+  width: 50%;
 }
 
 .card-group {
@@ -69,13 +73,15 @@ and (min-width : 600px) {
   font-weight: bold;
 }
 
-.url-input {
+.url-input,
+.email-input {
   width:79%;
   max-width:800px;
   background-color: white;
 }
 
-.url-input-container {
+.url-input-container,
+.email-input-container{
   margin:20px 0 50px 0;
   opacity:.85;
 }
@@ -89,11 +95,18 @@ and (min-width : 600px) {
   letter-spacing: 1px;
 }
 
-.fixed {
-  position:fixed;
+.email-input {
+  width:40%;
+  max-width:300px;
+  background-color: white;
 }
 
-input#url {
+.email-label {
+  color: #fff
+}
+
+input#url,
+input#email{
   text-align:center;
   border: 0;
   padding: .2em;
@@ -105,9 +118,27 @@ input#url {
   float:left;
 }
 
-.results .subheader {
-  margin:0;
+
+.fixed {
+  position:fixed;
 }
+
+
+
+
+h3.subheader {
+  margin:0;
+  font-size: 2.17em;
+}
+
+h3.subheader a.report-link {
+  font-size: .6em;
+  color: #777;
+  text-decoration: none;
+  float: right;
+  margin: 8px;
+}
+
 
 .masthead p {
   margin:25px 0 0 0;
@@ -151,6 +182,11 @@ md-content.masthead {
 .results {
   height:0;
 }
+
+.results md-card.header {
+  box-shadow: none;
+}
+
 
 .results md-card {
   background-color:white;

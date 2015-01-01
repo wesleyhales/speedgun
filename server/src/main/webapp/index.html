@@ -12,7 +12,7 @@
 
 
   <link rel="stylesheet" href="bower_components/angular-material/angular-material.css">
-  <link rel="stylesheet" href="bower_components/angular-material/themes/red-theme.css">
+
   <link rel="stylesheet" href="bower_components/angular-material/themes/green-theme.css">
   <link rel="stylesheet" href="bower_components/angular-material/themes/light-blue-dark-theme.css">
   <link rel="stylesheet" href="bower_components/angular-material/themes/blue-theme.css">
@@ -39,14 +39,20 @@
           </section>
           <section layout="row" layout-align="center center" class="url-input-container">
             <md-card class="url-input">
-              <input type="text" name="url" id="url" placeholder="http://www.whatever.com" ng-model="url" required
-                     autofocus/>
+              <input type="text" name="url" id="url" placeholder="http://www.whatever.com" ng-model="url" required autofocus/>
             </md-card>
-
-            <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url)"
+            <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url,email)"
                        style="width: 54px; height: 54px;">
               Go
             </md-button>
+          </section>
+          <section layout="row" layout-align="center center" class="email-input-container">
+            <span class="email-label">Send me a link when done:</span>
+            <md-card class="email-input">
+              <input type="text" name="email" id="email" placeholder="you@domain.com" ng-model="email"/>
+            </md-card>
+
+
           </section>
           <div class="masthead-marketing">
 
@@ -54,29 +60,27 @@
 
             </section>
           </div>
-
-          <!--<section layout="row" layout-sm="column" layout-align="center center">-->
-          <!--<md-checkbox ng-model="isChecked" aria-label="Finished?" name="cachedCheckbox" id="cachedCheckbox" value="true">Cached ?</md-checkbox>-->
-          <!--</section>-->
-          <!--<section layout="row" layout-sm="column" layout-align="center center">-->
-          <!--<md-text-float label="Your Email" class="long" ng-model="email" name="email" id="email"> </md-text-float>-->
-          <!--</section>-->
         </form>
       </md-content>
 
     </div>
 
+
+
+
     <md-content class="results" ng-class="{visible: speedgun[0].status}">
-      <md-card class="runCount{{speedgun.length}}">
-        You are number {{speedgun[0].position}} in line. Leave your email address to have the link sent to you when complete.
+      <md-card class="runCount{{speedgun.length}} header">
+        <h3 class="subheader">
+          You are number {{speedgun[0].position}} in line.
+        </h3>
       </md-card>
     </md-content>
 
     <md-content class="results" ng-class="{visible: speedgun[0].url}">
-      <md-card>
+      <md-card class="header">
         <h3 class="subheader">
           {{speedgun[0].url.value}}
-          <a style="float:right" href="http://localhost:8080/rest/performance/report?uuid={{uuid}}">
+          <a class="report-link" href="/rest/performance/report?uuid={{uuid}}">
             Full Report (JSON)
           </a>
         </h3>
@@ -137,9 +141,39 @@
 
       </div>
     </md-content>
+
+    <md-content class="documentation">
+      <section layout="row" layout-align="center center">
+        <h3>WHAT IS THIS?</h3>
+
+      </section>
+      <section layout="row" layout-align="center center">
+        <p>Speedgun.js is a simple PhantomJS 2 based script that collects performance metrics from a single web page.
+          This site allows you to point Speedgun at any public facing website and gather performance numbers.</p>
+      </section>
+    </md-content>
+
+    <md-content class="documentation">
+      <section layout="row" layout-align="center center">
+        <h3>GETTING STARTED</h3>
+      </section>
+      <section layout="row" layout-align="center center">
+        <p>Speedgun.js was created to be simple to setup and use. It is one file and only requires you to have
+          PhantomJS 2 installed.</p>
+        <ul>
+          <li>Clone the repository</li>
+          <li>Run it</li>
+        </ul>
+
+        <p>You can also run the same server that you are using right now. It's all OSS, so feel free to stand up
+          your own instance. The more Speedgun servers running in the world, the better our performance reports will be.</p>
+      </section>
+    </md-content>
+
+
     <md-content class="marketing">
       <section layout="row" layout-align="center center">
-        <p>SPEEDGUN IS USED BY</p>
+        <h3>WHO USES IT?</h3>
       </section>
       <section layout="row" layout-align="center center">
         <img src="images/marketing/desaturated/speedgun-logos.png" class="">
