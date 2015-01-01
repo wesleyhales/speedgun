@@ -54,7 +54,7 @@ angular.module('app', [
 
 //            if (res.data.status === 'pending') return
 
-            console.log('res.data',res.data);
+//            console.log('res.data',res.data);
 
             data = res.data instanceof Array ? res.data : [res.data];
 
@@ -135,6 +135,11 @@ angular.module('app', [
             .replace(/([a-z])([A-Z])/g, function(m,$1,$2){ return $1 + ' ' + $2});
       };
     })
+    .filter('decode', function() {
+      return function(input) {
+        return decodeURIComponent(input);
+      };
+    })
     .directive('card',[function(){
       return {
         restrict: 'E',
@@ -148,14 +153,9 @@ angular.module('app', [
         link: function ($scope) {
 
         },
-        template:
-            '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
-            '<div class="card ">' +
-            '<div class="header">{{property | deCamelCase}}</div>' +
-            '<div class="desc">{{data[0][property].label}}</div>' +
-            '<stats data="data" property="{{property}}" suffix="{{suffix}}"></stats>' +
-            '</div>' +
-            '</md-card>'
+        //using a quick fix to conditionally apply templates
+        template:resolveCardTemplate
+
       };
     }])
     .directive('stats',[function(){
@@ -202,7 +202,7 @@ angular.module('app', [
               if (stats[2] !== undefined && stats.length === 5) {
 
                 var median = stats[2].value;
-                console.log('data',$scope.data, 'median', median);
+//                console.log('data',$scope.data, 'median', median);
                 stats.forEach(function (stat) {
                   if (stat.value === median) {
                     if ($scope.currentMedian) $scope.currentMedian.classList.remove('median');
@@ -238,6 +238,93 @@ angular.module('app', [
             '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[4][property].value}}<span class="suffix">{{data[4][property].value === "na" ? "" : suffix}}</span></div></div>' +
             '</div>'
       };
-    }]);
+    }])
+    .directive('errorstats',[function(){
+      return {
+        restrict: 'E',
+        scope: {
+          data: '=',
+          property: '@'
+        },
+        template:
+            '<div layout="column">' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[0][property].value | decode}}</div></div>' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[1][property].value | decode}}</div></div>' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[2][property].value | decode}}</div></div>' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[3][property].value | decode}}</div></div>' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[4][property].value | decode}}</div></div>' +
+            '</div>'
+      };
+    }])
+    .directive('basicstats',[function(){
+      return {
+        restrict: 'E',
+        scope: {
+          data: '=',
+          property: '@'
+        },
+        template:
+            '<div layout="column">' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[0][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[1][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[2][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[3][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div ng-repeat="key in data[4][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
+            '</div>'
+      };
+    }])
+    .directive('resourcestats',[function(){
+      return {
+        restrict: 'E',
+        scope: {
+          data: '=',
+          property: '@'
+        },
+        template:
+            '<div layout="column">' +
+            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[0][property].value.url}}</div></div>' +
+            '</div>'
+      };
+    }])
+
+function resolveCardTemplate(tElement, tAttrs) {
+  var template = '';
+  if(tAttrs.detail === 'errors') {
+    template = '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
+        '<div class="card ">' +
+        '<div class="header">{{detail}}</div>' +
+        '<div class="desc">{{data[0][property].label}}</div>' +
+        '<errorstats data="data" property="{{property}}"></errorstats>' +
+        '</div>' +
+        '</md-card>';
+  } else if(tAttrs.detail === 'navEvents'){
+    template = '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
+        '<div class="card ">' +
+        '<div class="header">{{detail}}</div>' +
+        '<div class="desc">{{data[0][property].label}}</div>' +
+        '<basicstats data="data" property="{{property}}"></basicstats>' +
+        '</div>' +
+        '</md-card>';
+
+  } else if(tAttrs.detail && tAttrs.detail.indexOf('resourceSingle') >= 0){
+    template = '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
+        '<div class="card ">' +
+        '<div class="header">{{detail}}</div>' +
+        '<div class="desc">{{data[0][property].label}}</div>' +
+        '<resourcestats data="data" property="{{property}}"></resourcestats>' +
+        '</div>' +
+        '</md-card>';
+
+  }else{
+    template = '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
+        '<div class="card ">' +
+        '<div class="header">{{property | deCamelCase}}</div>' +
+        '<div class="desc">{{data[0][property].label}}</div>' +
+        '<stats data="data" property="{{property}}" suffix="{{suffix}}"></stats>' +
+        '</div>' +
+        '</md-card>';
+  }
+  return template;
+}
 
 
