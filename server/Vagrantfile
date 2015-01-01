@@ -17,6 +17,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                                        sudo yum -y install docker-io"
 
   config.vm.provision "shell", inline:"sudo /etc/init.d/docker start"
+  config.vm.provision "shell", inline:"sudo chmod +s /usr/bin/docker"
 #  config.vm.synced_folder "./target/", "/vagrant/target"
   config.vm.network "forwarded_port", guest: 8080, host: 8081
 end

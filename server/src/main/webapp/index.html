@@ -158,15 +158,41 @@
         <h3>GETTING STARTED</h3>
       </section>
       <section layout="row" layout-align="center center">
-        <p>Speedgun.js was created to be simple to setup and use. It is one file and only requires you to have
+        <p>Speedgun.js is extremely simple to setup and use. It is one file and only requires you to have
           PhantomJS 2 installed.</p>
+      </section>
+      <section layout="row" layout-align="left center">
         <ul>
-          <li>Clone the repository</li>
+          <li>Clone the repository (or curl the file)</li>
           <li>Run it</li>
+          <li>View the report</li>
         </ul>
-
-        <p>You can also run the same server that you are using right now. It's all OSS, so feel free to stand up
-          your own instance. The more Speedgun servers running in the world, the better our performance reports will be.</p>
+      </section>
+      <section layout="row" layout-align="center center">
+        <p>You can also run this same server via Docker. It's all OSS, so feel free to stand up
+          your own instance. The more Speedgun servers running in the world, the better our web performance will be.</p>
+      </section>
+      <h4>Mac or Windows Only</h4>
+      <section layout="row" layout-align="left center">
+        <ul>
+          <li>Clone the repository (git clone ...speedgun)</li>
+          <li>Install vagrant</li>
+          <li>cd speedgun/server</li>
+          <li>Start vagrant and ssh into it (vagrant up && vagrant ssh)</li>
+          <li>Build the container (cd speedgun && docker build .)</li>
+          <li>Run the container (docker run -ti -p 8080 --net=host [latest image ID] /bin/bash (get the image ID from 'sudo docker ps -a')</li>
+          <li>Open browser go to http://localhost:8081</li>
+        </ul>
+      </section>
+      <h4>Linux</h4>
+      <section layout="row" layout-align="left center">
+        <ul>
+          <li>Clone the repository (git clone ...speedgun)</li>
+          <li>Install Docker (i.e. debian/centos: sudo yum -y install docker-io)</li>
+          <li>Build the container (cd speedgun && docker build .)</li>
+          <li>Run the container (docker run -ti -p 8080 --net=host [latest image ID] /bin/bash (get the image ID from 'sudo docker ps -a')</li>
+          <li>Open browser go to http://localhost:8080</li>
+        </ul>
       </section>
     </md-content>
 

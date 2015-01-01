@@ -75,7 +75,7 @@ and (min-width : 600px) {
 
 .url-input,
 .email-input {
-  width:79%;
+  width:55%;
   max-width:800px;
   background-color: white;
 }

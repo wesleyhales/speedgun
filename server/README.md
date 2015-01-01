@@ -1,11 +1,9 @@
 ##Running server locally
 
-1. vagrant up
-2. vagrant ssh
-3. sudo chmod +s /usr/bin/docker
-4. cd /vagrant && docker build .
-5. docker run -ti -p 8080 --net=host [latest image ID] /bin/bash (get the image ID from ```sudo docker ps -a```)
-6. Open browser go to http://localhost:8081
+1. vagrant up && vagrant ssh
+2. cd /vagrant && docker build .
+3. docker run -ti -p 8080 --net=host [latest image ID] /bin/bash (get the image ID from ```sudo docker ps -a```)
+4. Open browser go to http://localhost:8081
 
 
 ##Everything from hereon is notes that need formatting
