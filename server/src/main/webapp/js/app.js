@@ -171,58 +171,66 @@ angular.module('app', [
           var statNodes = element.children().children();
           $scope.$watch('data', function(){
 
-            var stats = $scope.data.map(function(run, i){
-              var itemFromRunArray = run[$scope.property];
-              if(itemFromRunArray){
-                return {value : itemFromRunArray.value, index: i};
-              }
-
-            });
-
-            stats.sort(function(a,b){return a.value > b.value ? 1 : a.value < b.value ? -1 : 0});
-
-            var best;
-
-            if(stats.length > 1){
-              //best and worst are always at the min and max indices because of sort above.
-              if (stats[0] !== undefined) {
-                best = stats[0].value;
-                // if less than half the values are "best" values, mark them, otherwise leave them naked.
-                if (stats.filter(function(stat){return stat.value === best}).length < (stats.length / 2)) {
-                  stats.forEach(function(stat){
-                    if (stat.value === best){
-                      if($scope.currentBest) $scope.currentBest.classList.remove('best');
-                      $scope.currentBest = statNodes[stat.index];
-                      $scope.currentBest.classList.add('best');
-                    }
-                  });
+            if($scope.data) {
+              var stats = $scope.data.map(function (run, i) {
+                var itemFromRunArray = run[$scope.property];
+                if (itemFromRunArray) {
+                  return {value: itemFromRunArray.value, index: i};
                 }
-              }
 
-              if (stats[2] !== undefined && stats.length === 5) {
+              });
 
-                var median = stats[2].value;
-//                console.log('data',$scope.data, 'median', median);
-                stats.forEach(function (stat) {
-                  if (stat.value === median) {
-                    if ($scope.currentMedian) $scope.currentMedian.classList.remove('median');
-                    $scope.currentMedian = statNodes[stat.index];
-                    $scope.currentMedian.classList.add('median');
-                  }
-                })
-              }
+              stats.sort(function (a, b) {
+                return a.value > b.value ? 1 : a.value < b.value ? -1 : 0
+              });
 
-              if (stats[4] !== undefined) {
-                var worst = stats[4].value;
-                if (best !== worst) {
-                  if (stats.filter(function(stat){return stat.value === worst}).length < (stats.length / 2)) {
+              var best;
+
+              if (stats.length > 1) {
+                //best and worst are always at the min and max indices because of sort above.
+                if (stats[0] !== undefined) {
+                  best = stats[0].value;
+                  // if less than half the values are "best" values, mark them, otherwise leave them naked.
+                  if (stats.filter(function (stat) {
+                    return stat.value === best
+                  }).length < (stats.length / 2)) {
                     stats.forEach(function (stat) {
-                      if (stat.value === worst){
-                        if($scope.currentWorst) $scope.currentWorst.classList.remove('worst');
-                        $scope.currentWorst = statNodes[stat.index];
-                        $scope.currentWorst.classList.add('worst');
+                      if (stat.value === best) {
+                        if ($scope.currentBest) $scope.currentBest.classList.remove('best');
+                        $scope.currentBest = statNodes[stat.index];
+                        $scope.currentBest.classList.add('best');
                       }
                     });
+                  }
+                }
+
+                if (stats[2] !== undefined && stats.length === 5) {
+
+                  var median = stats[2].value;
+//                console.log('data',$scope.data, 'median', median);
+                  stats.forEach(function (stat) {
+                    if (stat.value === median) {
+                      if ($scope.currentMedian) $scope.currentMedian.classList.remove('median');
+                      $scope.currentMedian = statNodes[stat.index];
+                      $scope.currentMedian.classList.add('median');
+                    }
+                  })
+                }
+
+                if (stats[4] !== undefined) {
+                  var worst = stats[4].value;
+                  if (best !== worst) {
+                    if (stats.filter(function (stat) {
+                      return stat.value === worst
+                    }).length < (stats.length / 2)) {
+                      stats.forEach(function (stat) {
+                        if (stat.value === worst) {
+                          if ($scope.currentWorst) $scope.currentWorst.classList.remove('worst');
+                          $scope.currentWorst = statNodes[stat.index];
+                          $scope.currentWorst.classList.add('worst');
+                        }
+                      });
+                    }
                   }
                 }
               }
