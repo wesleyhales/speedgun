@@ -209,3 +209,17 @@ md-content.masthead {
   border-radius:2px !important;
 
 }
+
+ul.navEventList {
+  list-style: none;
+  padding: 0;
+}
+
+ul.navEventList li {
+  width: 100%;
+  display: block;
+}
+
+.word-break {
+  overflow-wrap: break-word;
+}

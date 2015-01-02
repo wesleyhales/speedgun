@@ -79,7 +79,7 @@
   <md-content class="results" ng-class="{visible: speedgun[0].url}">
     <md-card class="header">
       <h3 class="subheader">
-        {{speedgun[0].url.value}} [share this]
+        {{speedgun[0].url.value}}
         <a class="report-link" href="/rest/performance/report?uuid={{uuid}}">
           Full Report (JSON)
         </a>
@@ -101,9 +101,10 @@
       <card data="speedgun" property="domInteractive" suffix="ms" detail="secondary"></card>
       <card data="speedgun" property="domLoading" suffix="ms" detail="secondary"></card>
       <card data="speedgun" property="domComplete" suffix="ms" detail="secondary"></card>
+      <card data="speedgun" property="secureConnectionStart" suffix="ms" detail="secondary"></card>
       <card data="speedgun" property="fetchStart" suffix="ms" detail="secondary"></card>
       <card data="speedgun" property="requestStart" suffix="ms" detail="secondary"></card>
-      <card data="speedgun" property="secureConnectionStart" suffix="ms" detail="secondary"></card>
+
 
       <div class="card-group">
         <card data="speedgun" property="connectStart" suffix="ms" detail="secondary"></card>

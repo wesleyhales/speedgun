@@ -256,7 +256,7 @@ angular.module('app', [
         },
         template:
             '<div layout="column">' +
-            '<div flex class="z-anim" layout="row" layout-align="left center"><div>{{data[0][property].value | decode}}</div></div>' +
+            '<div flex class="z-anim word-break" layout="row" layout-align="left center"><div>{{data[0][property].value | decode}}</div></div>' +
             '</div>'
       };
     }])
@@ -269,7 +269,7 @@ angular.module('app', [
         },
         template:
             '<div layout="column">' +
-            '<div flex class="z-anim"  layout-align="left"><div layout="row" ng-repeat="key in data[0][property].value">URL: {{key.url}} <br/> Cause: {{key.cause}} <br/> Source is Main Frame? {{key.mainFrame}} <br/> Will Navigate? {{key.willNavigate}} <br/></div></div>' +
+            '<div flex class="z-anim"  layout-align="left"><ul layout="column" ng-repeat="key in data[0][property].value" class="navEventList"><li class="word-break">URL: {{key.url}}</li><li>Cause: {{key.cause}}</li><li>Source is Main Frame? {{key.mainFrame}}</li><li>Will Navigate? {{key.willNavigate}}</li></ul></div>' +
             '</div>'
       };
     }])
@@ -282,7 +282,11 @@ angular.module('app', [
         },
         template:
             '<div layout="column">' +
-            '<div flex class="z-anim" layout="row" layout-align="left"><div>{{data[0][property].value.url}}</div></div>' +
+            '<div flex class="z-anim word-break" layout="row" layout-align="left"><div>{{data[0][property].value.url}}</div></div>' +
+            '<ul class="navEventList">' +
+            '<li class="word-break">{{data[0][property].value.size}} bytes</li>' +
+            '<li class="word-break">Time: {{data[0][property].value.times.end - data[0][property].value.times.request > 0 ? data[0][property].value.times.end - data[0][property].value.times.request : 0}}ms</li>' +
+            '</ul>' +
             '</div>'
       };
     }])
@@ -293,7 +297,7 @@ function resolveCardTemplate(tElement, tAttrs) {
     template = '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
         '<div class="card ">' +
         '<div class="header">{{detail}}</div>' +
-        '<div class="desc">{{data[0][property].label}}</div>' +
+        '<div class="desc">Errors that occured in the browser during page load.</div>' +
         '<errorstats data="data" property="{{property}}"></errorstats>' +
         '</div>' +
         '</md-card>';
@@ -301,7 +305,7 @@ function resolveCardTemplate(tElement, tAttrs) {
     template = '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
         '<div class="card ">' +
         '<div class="header">{{detail}}</div>' +
-        '<div class="desc">{{data[0][property].label}}</div>' +
+        '<div class="desc">TODO... Resource that caused a navigation event</div>' +
         '<basicstats data="data" property="{{property}}"></basicstats>' +
         '</div>' +
         '</md-card>';
