@@ -86,8 +86,18 @@ angular.module('app', [
         $scope.speedgun = [];
       }
 
+      function animate() {
+        var cells = document.querySelectorAll('.cell');
+        Array.prototype.forEach.call(cells, function(cell){cell.childNodes[0].classList.remove('transparent')});
+        Array.prototype.forEach.call(cells, function(cell){cell.classList.remove('z-0')});
+        setTimeout(function(){
+          Array.prototype.forEach.call(cells, function(cell){cell.childNodes[0].classList.remove('transparent')});
+        },1500);
+      };
+
       function loadTheGun(uuid){
         $scope.uuid = uuid;
+        animate();
         var done = function(data){
           $scope.speedgun = data;
         };
@@ -104,18 +114,11 @@ angular.module('app', [
 
 
 
-      var animate = function () {
-        var cells = document.querySelectorAll('.cell');
-        Array.prototype.forEach.call(cells, function(cell){cell.childNodes[0].classList.remove('transparent')});
-        Array.prototype.forEach.call(cells, function(cell){cell.classList.remove('z-0')});
-        setTimeout(function(){
-          Array.prototype.forEach.call(cells, function(cell){cell.childNodes[0].classList.remove('transparent')});
-        },200);
-      };
+
 
 
       $scope.xgo = function(url, email, cached){
-        animate();
+
         api.go(url, email, cached).then(function(initResponse){
           var uuid = initResponse.data.uuid;
           $location.search('uuid',uuid);

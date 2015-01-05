@@ -22,17 +22,10 @@
 <body ng-controller="MainCtrl">
 
 <div layout="column" layout-fill>
-<md-toolbar md-theme="red" class="z-1">
-  <div class="md-toolbar-tools">
-    <span>Speedgun</span>
-    <span flex></span>
-    <md-button>
-    </md-button>
-  </div>
-</md-toolbar>
 <div class="main" layout=column layout-align="center center">
   <div class="masthead-container" layout=column layout-align="center center">
     <md-content class="masthead" layout="column" layout-align="center center">
+      <img src="images/sg-logo.png"/>
       <form name="reportform" id="reportform" ng-submit="go(url)">
         <section layout="row" layout-align="center center">
           <p>ENTER A WEB ADDRESS</p>
