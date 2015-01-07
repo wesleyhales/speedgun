@@ -87,7 +87,7 @@ and (min-width : 600px) {
 
 .url-input-container,
 .email-input-container{
-  margin:20px 0 50px 0;
+  /*margin:20px 0 50px 0;*/
   opacity:.85;
 }
 
@@ -222,4 +222,9 @@ ul.navEventList li {
 
 .word-break {
   overflow-wrap: break-word;
+}
+
+.clear-link {
+  font-size: 17px;
+  color: grey;
 }

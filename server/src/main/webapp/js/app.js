@@ -20,7 +20,7 @@ angular.module('app', [
    .html5Mode(false);
 
    }])*/.service('api', ['$q', '$http', '$timeout', function ($q, $http, $timeout) {
-      var numReports = 5, retryDelay = 1500;
+      var numReports = 5, retryDelay = 2500;
       this.go = function(url, email, cached){
         //http://localhost:8081/rest/performance/go?url=http%3A%2F%2Fgoogle.com&cached=false&email=
         //console.log('go',url, email, cached)
@@ -49,27 +49,28 @@ angular.module('app', [
 
         var loop = function (){
           var request = $http.get(url, config);
-
+          var retryLoop = $timeout(loop, retryDelay);
           request.then(function(res){
-
-//            if (res.data.status === 'pending') return
-
-//            console.log('res.data',res.data);
 
             data = res.data instanceof Array ? res.data : [res.data];
 
-            if (data.length >= numReports) return deferred.resolve(data);
+            if (data.length >= numReports){
+              $timeout.cancel(retryLoop);
+              return deferred.resolve(data);
+            }
 
             deferred.notify(data);
 
           },function(err){
             console.log('err', err);
+            $timeout.cancel(retryLoop);
+            return;
           });
 
-          request.finally(function(){
-            console.log('finally',data.length);
-            if (data.length < numReports) $timeout(loop, retryDelay);
-          });
+//          request.finally(function(){
+//            console.log('finally',data.length);
+//
+//          });
         };
 
         loop();
@@ -97,7 +98,7 @@ angular.module('app', [
 
       function loadTheGun(uuid){
         $scope.uuid = uuid;
-        animate();
+
         var done = function(data){
           $scope.speedgun = data;
         };
@@ -110,10 +111,14 @@ angular.module('app', [
           $scope.speedgun = data;
         };
         api.get(uuid).then(done, error, progress);
+        animate();
       }
 
 
-
+      $scope.clear = function(){
+        $location.search('uuid','');
+        $scope.speedgun = [];
+      };
 
 
 

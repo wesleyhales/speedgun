@@ -59,6 +59,12 @@ public class PerfQueueManager {
 
   public static int incomingMsgs = 0;
 
+  private Map<String,Boolean> inMemoryReports;
+
+  {
+    inMemoryReports = new HashMap<String,Boolean>();
+  }
+
   private Timer timer = null;
 
 
@@ -326,5 +332,13 @@ public class PerfQueueManager {
       }
     }
     return count;
+  }
+
+  public Map<String, Boolean> getInMemoryReports() {
+    return inMemoryReports;
+  }
+
+  public void setInMemoryReports(Map<String, Boolean> inMemoryReports) {
+    this.inMemoryReports = inMemoryReports;
   }
 }

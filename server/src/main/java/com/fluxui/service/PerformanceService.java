@@ -2,13 +2,21 @@ package com.fluxui.service;
 
 
 import com.fluxui.jms.PerfQueueManager;
+import org.jboss.resteasy.annotations.GZIP;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.ws.rs.*;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.ValidationException;
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -25,6 +33,9 @@ public class PerformanceService implements Serializable {
 
   @Inject
   private transient Logger log;
+
+  @Inject
+  private Validator validator;
 
 
   private static String OS = System.getProperty("os.name").toLowerCase();
@@ -93,40 +104,71 @@ public class PerformanceService implements Serializable {
 
   }
 
-
+  @GZIP
   @GET
   @Path("/report")
   @Produces(MediaType.APPLICATION_JSON)
-  public String report(@QueryParam("uuid") String uuid) {
+//  @NotNull(message="uuid cannot be null") @Pattern(regexp = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",message="uuid must be in proper format")
+  public Response report(@QueryParam("uuid") String uuid) {
     //todo - check to see what this uuid position is and multiply timeout
     Response.ResponseBuilder builder = null;
+    Map<String, String> responseObj = new HashMap<String, String>();
     //the following location string is dependent on where you start the server (from the actual directory the command is ran from).
-    builder = Response.ok();
+//    builder = Response.ok();
     String all = "";
+
+    if(uuid == null || uuid == "null"){
+      responseObj.put("error", "uuid cannot be null");
+      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+      return builder.build();
+    }
+
     try {
+
+
       BufferedReader in;
       File locatedFile = new File(LOCATION + "reports/speedgun-" + uuid + ".json");
 
       log.info("[Speedgun] Checking for file: " + LOCATION + "reports/speedgun-" + uuid + ".json");
       log.info("[Speedgun] Located file? " + locatedFile.exists());
-      if (locatedFile.exists()) {
-        in = new BufferedReader(new FileReader(LOCATION + "reports/speedgun-" + uuid + ".json"));
-      } else {
-        return "{\"status\":\"pending\",\"position\":\"" + PerfQueueManager.incomingMsgs + "\"}";
-      }
 
-      String ln;
+//      if(perfQueueManager.getInMemoryReports().get(uuid)){
+//
+//
+//
+//      }else{
 
-      while ((ln = in.readLine()) != null)
-        all += ln;
-      in.close();
+
+
+        if (locatedFile.exists()) {
+          in = new BufferedReader(new FileReader(LOCATION + "reports/speedgun-" + uuid + ".json"));
+          String ln;
+
+          while ((ln = in.readLine()) != null)
+            all += ln;
+          in.close();
+
+          builder = Response.status(Response.Status.OK).entity(all);
+
+        } else {
+          responseObj.put("status","pending");
+          responseObj.put("position",PerfQueueManager.incomingMsgs + "");
+          builder = Response.status(Response.Status.OK).entity(responseObj);
+  //        return "{\"status\":\"pending\",\"position\":\"" + PerfQueueManager.incomingMsgs + "\"}";
+        }
+
+//      }
       //System.out.println(all);
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (ConstraintViolationException ce) {
+      //Handle bean validation issues
+      builder = createViolationResponse(ce.getConstraintViolations());
+    } catch (Exception e) {
+      // Handle generic exceptions
+      responseObj = new HashMap<String, String>();
+      responseObj.put("error", e.getMessage());
+      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
     }
-    return all;
+    return builder.build();
   }
 
   @GET
@@ -192,6 +234,18 @@ public class PerformanceService implements Serializable {
       e.printStackTrace();
     }
     return ln.toString();
+  }
+
+  private Response.ResponseBuilder createViolationResponse(Set<ConstraintViolation<?>> violations) {
+    log.fine("Validation completed. violations found: " + violations.size());
+
+    Map<String, String> responseObj = new HashMap<String, String>();
+
+    for (ConstraintViolation<?> violation : violations) {
+      responseObj.put(violation.getPropertyPath().toString(), violation.getMessage());
+    }
+
+    return Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
   }
 
 
