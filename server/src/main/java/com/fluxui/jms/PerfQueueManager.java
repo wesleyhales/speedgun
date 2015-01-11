@@ -1,5 +1,6 @@
 package com.fluxui.jms;
 
+import com.fluxui.util.CassandraService;
 import org.hornetq.api.core.HornetQException;
 import org.hornetq.api.core.TransportConfiguration;
 import org.hornetq.api.core.client.*;
@@ -24,6 +25,7 @@ import javax.naming.NamingException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -42,6 +44,9 @@ public class PerfQueueManager {
 
   @Inject
   private transient Logger log;
+
+
+  CassandraService cassandraService = new CassandraService();
 
   private static final String DEFAULT_USERNAME = "quickstartUser";
   private static final String DEFAULT_PASSWORD = "quickstartPassword";
@@ -268,6 +273,11 @@ public class PerfQueueManager {
       }
 
       try {
+		  try {
+			  System.out.println("-----" + cassandraService.useCassandraDS().getSchema());
+		  } catch (SQLException e) {
+			  e.printStackTrace();
+		  }
 
         for (int i = 0; i <= 5; i++) {
           log.info("[Speedgun] run phantomjs: phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " json " + random);

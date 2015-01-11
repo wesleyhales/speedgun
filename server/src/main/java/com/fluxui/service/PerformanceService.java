@@ -21,6 +21,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.*;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -52,7 +53,42 @@ public class PerformanceService implements Serializable {
   @Path("/go")
   @Produces("text/html")
   public String go(@QueryParam("url") String url, @QueryParam("cached") String cached, @QueryParam("email") String email) {
-    String retVal = "";
+
+
+//	  try
+//	  {
+//		  Class.forName("org.apache.cassandra.cql.jdbc.CassandraDriver");
+//		  Connection conn = DriverManager.getConnection("jdbc:cassandra://localhost:9160/system?version=3.0.0");
+//
+//		  if (conn != null)
+//		  {
+//			  System.out.println("Connected");
+//		  }
+//
+//		  //String sql = "INSERT INTO employee (eid,eadd,ename,esal,sex) VALUES (2499,'bangalore','amit',10000,'male')";
+//		  Statement stmt = conn.createStatement();
+//
+//		  //stmt.execute(sql);
+//		  System.out.println("ABC");
+//		  String sql="select * from employee";
+//		  ResultSet rs=stmt.executeQuery(sql);
+//		  //System.out.println(rs);
+//		  //System.out.println("value inserted");
+//		  while(rs.next())
+//		  {
+//
+//			  System.out.println("id="+rs.getString(1));
+//
+//			  System.out.println();
+//
+//		  }
+//	  } catch (ClassNotFoundException e) {
+//		  e.printStackTrace();
+//	  } catch (SQLException e) {
+//		  e.printStackTrace();
+//	  }
+
+	  String retVal = "";
     String response = "{}";
     String taskName = "performance";
     int position = 0;
@@ -171,6 +207,8 @@ public class PerformanceService implements Serializable {
     return builder.build();
   }
 
+
+
   @GET
   @Path("/speedreport")
   @Produces(MediaType.TEXT_HTML)
@@ -224,7 +262,8 @@ public class PerformanceService implements Serializable {
       }
 
 
-      String tempString;
+
+		String tempString;
       while ((tempString = in.readLine()) != null)
         ln.append(tempString);
       in.close();

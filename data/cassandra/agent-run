@@ -1,0 +1,19 @@
+#!/bin/bash
+if [[ -z $OPS_IP ]]; then
+	echo "No OPS_IP provided, agent won't start"
+	tail -f /dev/null
+else
+	echo "OpsCenter IP is: $OPS_IP"
+	if [ ! -f /root/.agentconfig ]; then
+		echo "Filling in the blanks inside address.yaml"
+		cd /opt/agent/conf
+		echo "stomp_interface: $OPS_IP" >> ./conf/address.yaml
+		touch /root/.agentconfig
+	fi
+
+	# Wait 2 mins and start agent
+    echo "Sleeping 2min before starting agent"
+    sleep 30
+	cd /opt/agent
+	bin/datastax-agent -f
+fi

@@ -2,7 +2,7 @@
 
 0. Install VirtualBox and Vagrant
 1. Run: ```vagrant up && vagrant ssh -c 'cd /vagrant && docker build . && docker run -ti -p 8080 --net=host $(docker images -q | head -1) /bin/bash && echo \"Server is ready at http://localhost:8081\"'```
-2. If vagrant bombs out with this error: "Failed to mount folders in Linux guest. This is usually because the "vboxsf" file system is not available...." then run ```vagrant ssh -c 'sudo yum -y update kernel* && vagrant provision && vagrant reload && echo "Vagrant is ready."'``` 
+2. If vagrant bombs out with this error: "Failed to mount folders in Linux guest. This is usually because the "vboxsf" file system is not available...." then run ```vagrant ssh -c 'sudo yum -y update kernel*' && vagrant provision && vagrant reload && echo "Vagrant is ready."'``` 
 3. Open browser go to http://localhost:8081
 
 
