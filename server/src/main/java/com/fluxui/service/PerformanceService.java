@@ -2,10 +2,16 @@ package com.fluxui.service;
 
 
 import com.fluxui.jms.PerfQueueManager;
+import com.fluxui.util.CassandraService;
+
 import org.jboss.resteasy.annotations.GZIP;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
@@ -13,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.ws.rs.*;
 
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.ValidationException;
@@ -48,6 +55,29 @@ public class PerformanceService implements Serializable {
     }
   }
 
+  private JsonObject readJSON(String data){
+    JsonReader reader = Json.createReader(new StringReader(data));
+    JsonObject myObject = reader.readObject();
+    reader.close();
+    return myObject;
+  }
+
+  @POST
+  @Path("/reportData")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response reportData(String report) {
+    System.out.println("-----------report: " + report);
+    JsonObject object = readJSON(report);
+    System.out.println("----------JSON-report: " + object.size());
+    Response.ResponseBuilder builder = null;
+
+    builder = Response.ok();
+
+    return builder.build();
+  }
+
+
 
   @GET
   @Path("/go")
@@ -55,46 +85,13 @@ public class PerformanceService implements Serializable {
   public String go(@QueryParam("url") String url, @QueryParam("cached") String cached, @QueryParam("email") String email) {
 
 
-//	  try
-//	  {
-//		  Class.forName("org.apache.cassandra.cql.jdbc.CassandraDriver");
-//		  Connection conn = DriverManager.getConnection("jdbc:cassandra://localhost:9160/system?version=3.0.0");
-//
-//		  if (conn != null)
-//		  {
-//			  System.out.println("Connected");
-//		  }
-//
-//		  //String sql = "INSERT INTO employee (eid,eadd,ename,esal,sex) VALUES (2499,'bangalore','amit',10000,'male')";
-//		  Statement stmt = conn.createStatement();
-//
-//		  //stmt.execute(sql);
-//		  System.out.println("ABC");
-//		  String sql="select * from employee";
-//		  ResultSet rs=stmt.executeQuery(sql);
-//		  //System.out.println(rs);
-//		  //System.out.println("value inserted");
-//		  while(rs.next())
-//		  {
-//
-//			  System.out.println("id="+rs.getString(1));
-//
-//			  System.out.println();
-//
-//		  }
-//	  } catch (ClassNotFoundException e) {
-//		  e.printStackTrace();
-//	  } catch (SQLException e) {
-//		  e.printStackTrace();
-//	  }
-
-	  String retVal = "";
+		String retVal = "";
     String response = "{}";
     String taskName = "performance";
     int position = 0;
     UUID random = UUID.randomUUID();
 
-    //if(incomingMsgs > 0){
+
     boolean keepgoing = false;
     try {
       URL urltemp = new URL(url);
@@ -168,14 +165,6 @@ public class PerformanceService implements Serializable {
       log.info("[Speedgun] Checking for file: " + LOCATION + "reports/speedgun-" + uuid + ".json");
       log.info("[Speedgun] Located file? " + locatedFile.exists());
 
-//      if(perfQueueManager.getInMemoryReports().get(uuid)){
-//
-//
-//
-//      }else{
-
-
-
         if (locatedFile.exists()) {
           in = new BufferedReader(new FileReader(LOCATION + "reports/speedgun-" + uuid + ".json"));
           String ln;
@@ -208,72 +197,6 @@ public class PerformanceService implements Serializable {
   }
 
 
-
-  @GET
-  @Path("/speedreport")
-  @Produces(MediaType.TEXT_HTML)
-  public String speedreport(@QueryParam("uuid") String uuid) {
-    //todo - check to see what this uuid position is and multiply timeout
-    Response.ResponseBuilder builder = null;
-    //the following location string is dependent on where you start the server (from the actual directory the command is ran from).
-    builder = Response.ok();
-    String all = "";
-
-    try {
-      BufferedReader in;
-      File locatedFile = new File(LOCATION + "speedreports/" + uuid + ".html");
-      if (locatedFile.exists()) {
-        in = new BufferedReader(new FileReader(LOCATION + "speedreports/" + uuid + ".html"));
-      } else {
-        return "{\"status\":\"pending\"}";
-      }
-
-      String ln;
-
-      while ((ln = in.readLine()) != null)
-        all += ln + "\n";
-      in.close();
-      //System.out.println(all);
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return all;
-  }
-
-  @GET
-  @Path("/js")
-  @Produces(MediaType.TEXT_HTML)
-  public String speedreportjs(@QueryParam("uuid") String uuid) {
-    //todo - check to see what this uuid position is and multiply timeout
-    Response.ResponseBuilder builder = null;
-    //the following location string is dependent on where you start the server (from the actual directory the command is ran from).
-    builder = Response.ok();
-    String all = "";
-    StringBuilder ln = new StringBuilder();
-    try {
-      BufferedReader in;
-      File locatedFile = new File(LOCATION + "speedreports/" + uuid + ".js");
-      if (locatedFile.exists()) {
-        in = new BufferedReader(new FileReader(LOCATION + "speedreports/" + uuid + ".js"));
-      } else {
-        return "{\"status\":\"failed\"}";
-      }
-
-
-
-		String tempString;
-      while ((tempString = in.readLine()) != null)
-        ln.append(tempString);
-      in.close();
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return ln.toString();
-  }
 
   private Response.ResponseBuilder createViolationResponse(Set<ConstraintViolation<?>> violations) {
     log.fine("Validation completed. violations found: " + violations.size());

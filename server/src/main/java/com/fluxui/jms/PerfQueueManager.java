@@ -14,6 +14,7 @@ import org.hornetq.jms.client.HornetQConnectionFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.jms.*;
+import javax.jms.Connection;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
@@ -25,7 +26,7 @@ import javax.naming.NamingException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -45,8 +46,10 @@ public class PerfQueueManager {
   @Inject
   private transient Logger log;
 
+  @Inject
+  CassandraService cassandraService;
 
-  CassandraService cassandraService = new CassandraService();
+//  CassandraService cassandraService = new CassandraService();
 
   private static final String DEFAULT_USERNAME = "quickstartUser";
   private static final String DEFAULT_PASSWORD = "quickstartPassword";
@@ -64,14 +67,13 @@ public class PerfQueueManager {
 
   public static int incomingMsgs = 0;
 
-  private Map<String,Boolean> inMemoryReports;
+  private Map<String, Boolean> inMemoryReports;
 
   {
-    inMemoryReports = new HashMap<String,Boolean>();
+    inMemoryReports = new HashMap<String, Boolean>();
   }
 
   private Timer timer = null;
-
 
   private void startTimer() {
     if (timer == null) {
@@ -106,7 +108,7 @@ public class PerfQueueManager {
     props.put("mail.smtp.port", "587");
     props.put("mail.smtp.auth", "true");
 
-    String[] to = {email}; // added this line
+    String[] to = { email }; // added this line
     String bcc = "wesleyhales@gmail.com";
     javax.mail.Authenticator authenticator = new javax.mail.Authenticator() {
       protected javax.mail.PasswordAuthentication getPasswordAuthentication() {
@@ -132,7 +134,8 @@ public class PerfQueueManager {
         message.addRecipient(Message.RecipientType.BCC, bccAddress);
       }
       message.setSubject("Your loadreport is done!");
-      message.setText("Check it out. Here's your report: http://loadreport.wesleyhales.com/rest/performance/speedreport?uuid=" + uuid);
+      message
+          .setText("Check it out. Here's your report: http://loadreport.wesleyhales.com/rest/performance/speedreport?uuid=" + uuid);
       Transport transport = session.getTransport("smtps");
       transport.connect(host, from, pass);
       log.info("-------send mail");
@@ -203,20 +206,9 @@ public class PerfQueueManager {
   public String runTest() {
     done = false;
 
-//    try {
-//      log.info("[Speedgun] queue size: " + size());
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
 
-    String url = "";
-//    String cached = "false";
     String random = "";
-    String email = "";
-
-    String taskName = "performance";
     MapMessage message = null;
-
 
     //go ahead and try to use messages from the queue on every run (bypasses simple, local incomingMsgs counter)
     //btw, getting a count on the JMS queue is expensive, so keeping up with it manually
@@ -251,59 +243,9 @@ public class PerfQueueManager {
       }
       done = true;
 
-    }else if (message != null){
+    } else if (message != null) {
 
-      try {
-        message.acknowledge();
-        url = message.getString("url");
-        taskName = message.getString("taskName");
-        random = message.getString("uuid");
-        email = message.getString("email");
-        log.info("[Speedgun] JMS message received for uuid: " + random + " url: " + url + " msg number: " + incomingMsgs);
-
-        if (incomingMsgs > 0) {
-          incomingMsgs--;
-        }
-
-      } catch (JMSException e) {
-        e.printStackTrace();
-      } catch (Exception e) {
-        e.printStackTrace();
-        timer = null;
-      }
-
-      try {
-		  try {
-			  System.out.println("-----" + cassandraService.useCassandraDS().getSchema());
-		  } catch (SQLException e) {
-			  e.printStackTrace();
-		  }
-
-        for (int i = 0; i <= 5; i++) {
-          log.info("[Speedgun] run phantomjs: phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " json " + random);
-          Process p = Runtime.getRuntime().exec("phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " json " + random);
-
-          String line;
-          BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-          while ((line = in.readLine()) != null) {
-            log.info("[Speedgun] phantomjs console output: " + line);
-          }
-
-          p.waitFor();
-
-          Thread.sleep(3000);
-          in.close();
-        }
-
-        if (email != null && !email.isEmpty()) {
-          sendMessage(email, random);
-        }
-      } catch (IOException e1) {
-        e1.printStackTrace();
-        return "#fail";
-      } catch (InterruptedException e2) {
-        e2.printStackTrace();
-      }
+      random = runPhantom(message);
 
       log.info("[Speedgun] Done : " + random);
       done = true;
@@ -312,37 +254,81 @@ public class PerfQueueManager {
     return random;
   }
 
-  private synchronized int size() {
-    ClientSession coreSession = null;
-    int count = 0;
+  private String runPhantom(MapMessage message){
+    String url = "";
+    //String cached = "false";
+    String random = "";
+    String email = "";
+
+    String taskName = "performance";
+
     try {
-      HashMap<String, Object> map = new HashMap<String, Object>();
-      map.put("host", "localhost");
-      map.put("port", 4447);
-      ServerLocator serverLocator = HornetQClient.createServerLocatorWithoutHA(new TransportConfiguration(NettyConnectorFactory.class.getName(), map));
-      ClientSessionFactory sf = serverLocator.createSessionFactory();
-      ClientSession session = sf.createSession(false, false, false);
-      ClientRequestor requestor = new ClientRequestor(session, "hornetq.management");
-      ClientMessage m = session.createMessage(false);
-      ManagementHelper.putAttribute(m, "core.queue.test", "messageCount");
-      ClientMessage reply = requestor.request(m);
-      count = (Integer) ManagementHelper.getResult(reply);
-      return count;
-    } catch (HornetQException e) {
+      message.acknowledge();
+      url = message.getString("url");
+      taskName = message.getString("taskName");
+      random = message.getString("uuid");
+      email = message.getString("email");
+      log.info("[Speedgun] JMS message received for uuid: " + random + " url: " + url + " msg number: " + incomingMsgs);
+
+      if (incomingMsgs > 0) {
+        incomingMsgs--;
+      }
+
+    } catch (JMSException e) {
       e.printStackTrace();
     } catch (Exception e) {
       e.printStackTrace();
-    } finally {
-      if (coreSession != null) {
-        try {
-          coreSession.close();
-        } catch (HornetQException e) {
-          e.printStackTrace();
-        }
-      }
+      timer = null;
     }
-    return count;
+
+    try {
+
+      for (int i = 0; i <= 5; i++) {
+        log.info(
+            "[Speedgun] run phantomjs: phantomjs2 --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " post " + random);
+        Process p = Runtime.getRuntime().exec("phantomjs2 --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " post " + random);
+
+        String line;
+        BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        while ((line = in.readLine()) != null) {
+          log.info("[Speedgun] phantomjs console output: " + line);
+        }
+
+        p.waitFor();
+
+        Thread.sleep(3000);
+        in.close();
+      }
+
+      if (email != null && !email.isEmpty()) {
+        sendMessage(email, random);
+      }
+    } catch (IOException e1) {
+      e1.printStackTrace();
+    } catch (InterruptedException e2) {
+      e2.printStackTrace();
+    }
+
+    try {
+      System.out.println("--go---");
+      java.sql.Connection con = cassandraService.useCassandraDS();
+//			  String query = "UPDATE Test SET a=?, b=? WHERE KEY=?";
+      String query = "select * from demo.users";
+      PreparedStatement statement = con.prepareStatement(query);
+
+//			  statement.setLong(1, 100);
+//			  statement.setLong(2, 1000);
+
+      statement.executeUpdate();
+
+      statement.close();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+
+    return random;
   }
+
 
   public Map<String, Boolean> getInMemoryReports() {
     return inMemoryReports;

@@ -646,8 +646,10 @@ var speedgun = {
           if(args.indexOf('detailed') <= 0){
             delete speedgun.reportData.resources;
           }
+
+          //let printReport handle the exit due to post option
           printReport(speedgun.reportData);
-          exit();
+
 
         }, 1);
       };
@@ -666,15 +668,24 @@ var speedgun = {
 
       if (args.indexOf('csv') >= 0) {
         speedgun.printToFile(report, reportLocation, 'csv', args.indexOf('wipe') >= 0);
+        exit();
       }
 
       if (args.indexOf('json') >= 0) {
         speedgun.printToFile(report, reportLocation, 'json', args.indexOf('wipe') >= 0);
+        exit();
       }
 
       if (args.indexOf('junit') >= 0) {
         speedgun.printToFile(report, reportLocation, 'xml', args.indexOf('wipe') >= 0);
+        exit();
       }
+
+      if (args.indexOf('post') >= 0) {
+        speedgun.postJSON(report, 'http://localhost:8082/rest/performance/reportData');
+        setTimeout('phantom.exit(0)',1000);
+      }
+
     }
 
     function exit() {
@@ -890,6 +901,42 @@ var speedgun = {
     junit.push('</testsuites>');
 
     return junit.join('\n');
+  },
+
+  postJSON: function(report,endpoint){
+    console.log('postJSON----')
+    var reportEndpoint = WebPage.create();
+    var settings = {
+      operation: "POST",
+      encoding: "utf8",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      data: JSON.stringify(report)
+    };
+
+    reportEndpoint.open(endpoint, settings, function(status) {
+      console.log('open----')
+      if (status !== 'success') {
+        console.log('Unable to post!');
+      } else {
+        console.log(page.plainText);
+      }
+      phantom.exit();
+
+    });
+
+    reportEndpoint.onLoadFinished = function (status) {
+
+      setTimeout(function () {
+        console.log('**********onLoadFinished: ' + status);
+
+      }, 1);
+    };
+
+    reportEndpoint.onConsoleMessage = function(msg, lineNum, sourceId) {
+      console.log('CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")');
+    };
   },
 
   printToFile: function (report, filename, extension, createNew) {
