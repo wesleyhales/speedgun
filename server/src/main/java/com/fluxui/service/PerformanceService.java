@@ -2,7 +2,6 @@ package com.fluxui.service;
 
 
 import com.fluxui.jms.PerfQueueManager;
-import com.fluxui.util.CassandraService;
 
 import org.jboss.resteasy.annotations.GZIP;
 
@@ -11,24 +10,18 @@ import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.ws.rs.*;
 
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.ValidationException;
 
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.*;
 import java.util.*;
 import java.util.logging.Logger;
 

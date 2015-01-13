@@ -1,10 +1,7 @@
 package com.fluxui.jms;
 
-import com.fluxui.util.CassandraService;
-import org.hornetq.api.core.HornetQException;
+import com.fluxui.service.CassandraService;
 import org.hornetq.api.core.TransportConfiguration;
-import org.hornetq.api.core.client.*;
-import org.hornetq.api.core.management.ManagementHelper;
 import org.hornetq.api.jms.HornetQJMSClient;
 import org.hornetq.api.jms.JMSFactoryType;
 import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
