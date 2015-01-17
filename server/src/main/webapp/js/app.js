@@ -148,7 +148,7 @@ angular.module('app', [
         return decodeURIComponent(input);
       };
     })
-    .directive('card',[function(){
+    .directive('card',['$location',function($location){
       return {
         restrict: 'E',
         scope: {
@@ -166,7 +166,7 @@ angular.module('app', [
 
       };
     }])
-    .directive('stats',[function(){
+    .directive('stats',['$location',function($location){
       return {
         restrict: 'E',
         scope: {
@@ -178,10 +178,11 @@ angular.module('app', [
         link: function ($scope, element) {
           var statNodes = element.children().children();
           $scope.$watch('data', function(){
-
+            $scope.uuid = $location.search().uuid;
             if($scope.data) {
               var stats = $scope.data.map(function (run, i) {
-                var itemFromRunArray = run[$scope.property];
+                var itemFromRunArray = run[$scope.uuid][$scope.property];
+
                 if (itemFromRunArray) {
                   return {value: itemFromRunArray.value, index: i};
                 }
@@ -247,53 +248,62 @@ angular.module('app', [
         },
         template:
             '<div layout="row">' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[0][property].value}}<span class="suffix">{{data[0][property].value === "na" ? "" : suffix}}</span></div></div>' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[1][property].value}}<span class="suffix">{{data[1][property].value === "na" ? "" : suffix}}</span></div></div>' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[2][property].value}}<span class="suffix">{{data[2][property].value === "na" ? "" : suffix}}</span></div></div>' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[3][property].value}}<span class="suffix">{{data[3][property].value === "na" ? "" : suffix}}</span></div></div>' +
-            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[4][property].value}}<span class="suffix">{{data[4][property].value === "na" ? "" : suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[0][uuid][property].value}}<span class="suffix">{{data[0][uuid][property].value === "na" ? "" : suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[1][uuid][property].value}}<span class="suffix">{{data[1][uuid][property].value === "na" ? "" : suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[2][uuid][property].value}}<span class="suffix">{{data[2][uuid][property].value === "na" ? "" : suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[3][uuid][property].value}}<span class="suffix">{{data[3][uuid][property].value === "na" ? "" : suffix}}</span></div></div>' +
+            '<div flex class="stat z-anim" layout=column layout-align="center center"><div><span class="prefix">{{prefix}}</span>{{data[4][uuid][property].value}}<span class="suffix">{{data[4][uuid][property].value === "na" ? "" : suffix}}</span></div></div>' +
             '</div>'
       };
     }])
-    .directive('errorstats',[function(){
+    .directive('errorstats',['$location',function($location){
       return {
         restrict: 'E',
         scope: {
           data: '=',
           property: '@'
         },
+        link : function($scope,element){
+          $scope.uuid = $location.search().uuid;
+        },
         template:
             '<div layout="column">' +
-            '<div flex class="z-anim word-break" layout="row" layout-align="left center"><div>{{data[0][property].value | decode}}</div></div>' +
+            '<div flex class="z-anim word-break" layout="row" layout-align="left center"><div>{{data[0][uuid][property].value | decode}}</div></div>' +
             '</div>'
       };
     }])
-    .directive('basicstats',[function(){
+    .directive('basicstats',['$location',function($location){
       return {
         restrict: 'E',
         scope: {
           data: '=',
           property: '@'
         },
+        link : function($scope,element){
+          $scope.uuid = $location.search().uuid;
+        },
         template:
             '<div layout="column">' +
-            '<div flex class="z-anim"  layout-align="left"><ul layout="column" ng-repeat="key in data[0][property].value" class="navEventList"><li class="word-break">URL: {{key.url}}</li><li>Cause: {{key.cause}}</li><li>Source is Main Frame? {{key.mainFrame}}</li><li>Will Navigate? {{key.willNavigate}}</li></ul></div>' +
+            '<div flex class="z-anim"  layout-align="left"><ul layout="column" ng-repeat="key in data[0][uuid][property].value" class="navEventList"><li class="word-break">URL: {{key.url}}</li><li>Cause: {{key.cause}}</li><li>Source is Main Frame? {{key.mainFrame}}</li><li>Will Navigate? {{key.willNavigate}}</li></ul></div>' +
             '</div>'
       };
     }])
-    .directive('resourcestats',[function(){
+    .directive('resourcestats',['$location',function($location){
       return {
         restrict: 'E',
         scope: {
           data: '=',
           property: '@'
         },
+        link : function($scope,element){
+          $scope.uuid = $location.search().uuid;
+        },
         template:
             '<div layout="column">' +
-            '<div flex class="z-anim word-break" layout="row" layout-align="left"><div>{{data[0][property].value.url}}</div></div>' +
+            '<div flex class="z-anim word-break" layout="row" layout-align="left"><div>{{data[0][uuid][property].value.url}}</div></div>' +
             '<ul class="navEventList">' +
-            '<li class="word-break">{{data[0][property].value.size}} bytes</li>' +
-            '<li class="word-break">Time: {{data[0][property].value.times.end - data[0][property].value.times.request > 0 ? data[0][property].value.times.end - data[0][property].value.times.request : 0}}ms</li>' +
+            '<li class="word-break">{{data[0][uuid][property].value.size}} bytes</li>' +
+            '<li class="word-break">Time: {{data[0][uuid][property].value.times.end - data[0][uuid][property].value.times.request > 0 ? data[0][uuid][property].value.times.end - data[0][uuid][property].value.times.request : 0}}ms</li>' +
             '</ul>' +
             '</div>'
       };
@@ -322,7 +332,7 @@ function resolveCardTemplate(tElement, tAttrs) {
     template = '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
         '<div class="card ">' +
         '<div class="header">{{detail}}</div>' +
-        '<div class="desc">{{data[0][property].label}}</div>' +
+        '<div class="desc">{{data[0][uuid][property].label}}</div>' +
         '<resourcestats data="data" property="{{property}}"></resourcestats>' +
         '</div>' +
         '</md-card>';
@@ -331,7 +341,7 @@ function resolveCardTemplate(tElement, tAttrs) {
     template = '<md-card class="cell {{property}} {{detail}} z-anim z-0">' +
         '<div class="card ">' +
         '<div class="header">{{property | deCamelCase}}</div>' +
-        '<div class="desc">{{data[0][property].label}}</div>' +
+        '<div class="desc">{{data[0][uuid][property].label}}</div>' +
         '<stats data="data" property="{{property}}" suffix="{{suffix}}"></stats>' +
         '</div>' +
         '</md-card>';

@@ -1,6 +1,6 @@
 package com.fluxui.jms;
 
-import com.fluxui.service.CassandraService;
+
 import org.hornetq.api.core.TransportConfiguration;
 import org.hornetq.api.jms.HornetQJMSClient;
 import org.hornetq.api.jms.JMSFactoryType;
@@ -43,10 +43,10 @@ public class PerfQueueManager {
   @Inject
   private transient Logger log;
 
-  @Inject
-  CassandraService cassandraService;
+//  @Inject
+//  DBService cassandraService;
 
-//  CassandraService cassandraService = new CassandraService();
+//  DBService cassandraService = new DBService();
 
   private static final String DEFAULT_USERNAME = "quickstartUser";
   private static final String DEFAULT_PASSWORD = "quickstartPassword";
@@ -306,22 +306,22 @@ public class PerfQueueManager {
       e2.printStackTrace();
     }
 
-    try {
-      System.out.println("--go---");
-      java.sql.Connection con = cassandraService.useCassandraDS();
-//			  String query = "UPDATE Test SET a=?, b=? WHERE KEY=?";
-      String query = "select * from demo.users";
-      PreparedStatement statement = con.prepareStatement(query);
-
-//			  statement.setLong(1, 100);
-//			  statement.setLong(2, 1000);
-
-      statement.executeUpdate();
-
-      statement.close();
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
+//    try {
+//      System.out.println("--go---");
+//      java.sql.Connection con = cassandraService.useCassandraDS();
+////			  String query = "UPDATE Test SET a=?, b=? WHERE KEY=?";
+//      String query = "select * from demo.users";
+//      PreparedStatement statement = con.prepareStatement(query);
+//
+////			  statement.setLong(1, 100);
+////			  statement.setLong(2, 1000);
+//
+//      statement.executeUpdate();
+//
+//      statement.close();
+//    } catch (SQLException e) {
+//      e.printStackTrace();
+//    }
 
     return random;
   }

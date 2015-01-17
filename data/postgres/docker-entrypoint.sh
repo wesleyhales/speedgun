@@ -5,7 +5,6 @@ if [ "$1" = 'postgres' ]; then
 	chown -R postgres "$PGDATA"
 	
 	if [ -z "$(ls -A "$PGDATA")" ]; then
-	echo "Starting script...."
 		gosu postgres initdb
 		
 		sed -ri "s/^#(listen_addresses\s*=\s*)\S+/\1'*'/" "$PGDATA"/postgresql.conf
@@ -13,7 +12,6 @@ if [ "$1" = 'postgres' ]; then
 		# check password first so we can ouptut the warning before postgres
 		# messes it up
 		if [ "$POSTGRES_PASSWORD" ]; then
-		echo "Set password $POSTGRES_PASSWORD"
 			pass="PASSWORD '$POSTGRES_PASSWORD'"
 			authMethod=md5
 		else
@@ -46,7 +44,7 @@ if [ "$1" = 'postgres' ]; then
 		EOSQL
 		echo
 		
-		{ echo "host all \"$POSTGRES_USER\" 0.0.0.0/0 $authMethod"; } >> "$PGDATA"/pg_hba.conf
+		{ echo; echo "host all \"$POSTGRES_USER\" 0.0.0.0/0 $authMethod"; } >> "$PGDATA"/pg_hba.conf
 		
 		if [ -d /docker-entrypoint-initdb.d ]; then
 			for f in /docker-entrypoint-initdb.d/*.sh; do

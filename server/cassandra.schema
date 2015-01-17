@@ -1,0 +1,14 @@
+CREATE TYPE demo2.perfMeasurement (
+  indexy int,
+  label text,
+  value text
+);
+
+CREATE TABLE speedgun (
+  id uuid PRIMARY KEY,
+  name text,
+  perfMeasurements map<text,frozen<perfMeasurement>>
+);
+
+
+UPDATE mykeyspace.users SET addresses = addresses + {"home": { street: "191 Rue St. Charles", city: "Paris", zip_code: 75015, phones: {"33 6 78 90 12 34"}}} WHERE id=62c36092-82a1-3a00-93d1-46196ee77204;

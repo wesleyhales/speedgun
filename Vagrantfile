@@ -19,7 +19,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline:"sudo /etc/init.d/docker start"
   config.vm.provision "shell", inline:"sudo chmod +s /usr/bin/docker"
   #config.vm.synced_folder "./target/", "/vagrant/target"
-  config.vm.network "forwarded_port", guest: 7199, host: 7199
-  config.vm.network "forwarded_port", guest: 9160, host: 9160
-  config.vm.network "forwarded_port", guest: 9042, host: 9042
+  #config.vm.network "forwarded_port", guest: 7199, host: 7199
+  #config.vm.network "forwarded_port", guest: 9160, host: 9160
+  #config.vm.network "forwarded_port", guest: 9042, host: 9042
+  config.vm.network "forwarded_port", guest: 5432, host: 5432
 end

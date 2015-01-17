@@ -73,10 +73,10 @@
   </md-card>
 </md-content>
 
-<md-content class="results" ng-class="{visible: speedgun[0].url}">
+<md-content class="results" ng-class="{visible: speedgun[0][uuid].url}">
   <md-card class="header">
     <h3 class="subheader">
-      {{speedgun[0].url.value}} <a class="clear-link" ng-click="clear()">[clear]</a>
+      {{speedgun[0][uuid].url.value}} <a class="clear-link" ng-click="clear()">[clear]</a>
       <a class="report-link" href="/rest/performance/report?uuid={{uuid}}">
         Full Report (JSON)
       </a>

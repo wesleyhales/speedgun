@@ -904,7 +904,7 @@ var speedgun = {
   },
 
   postJSON: function(report,endpoint){
-    console.log('postJSON----')
+    console.log('postJSON----');
     var reportEndpoint = WebPage.create();
     var settings = {
       operation: "POST",
@@ -912,8 +912,12 @@ var speedgun = {
       headers: {
         "Content-Type": "application/json"
       },
-      data: JSON.stringify(report)
+      data: {}
     };
+
+    settings.data[args[4]] = report;
+
+    settings.data = JSON.stringify(settings.data);
 
     reportEndpoint.open(endpoint, settings, function(status) {
       console.log('open----')
