@@ -10,11 +10,10 @@ angular.module('app', [
 ])
   /*.config([
    '$routeProvider',
-   '$locationProvider', function ($routeProvider,
-   $locationProvider) {
+   '$locationProvider', function ($routeProvider, $locationProvider) {
    $routeProvider
-   .when('/uuid/:uuid', {templateUrl: 'index2.html'})
-   .otherwise({redirectTo: '/'});
+     .when('/uuid/:uuid', {templateUrl: 'index2.html'})
+     .otherwise({redirectTo: '/'});
 
    $locationProvider
    .html5Mode(false);
@@ -35,7 +34,6 @@ angular.module('app', [
         //return $q.when(mockinit);
       };
       this.get = function (uuid) {
-        //http://localhost:8081/rest/performance/report?uuid=a31d2f1c-b6d2-426f-b48b-7df5d201bc9f
 //        if (!uuid) return $q.when(speedgun);
         var url = host + '/rest/performance/report';
         var config = {

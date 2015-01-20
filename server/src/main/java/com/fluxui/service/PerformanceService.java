@@ -67,31 +67,42 @@ public class PerformanceService implements Serializable {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response reportData(String report) {
-    System.out.println("-----------report: " + report);
-    JsonObject object = readJSON(report);
+    System.out.println("----------receive-report from phantomjs:");
+    Response.ResponseBuilder builder = null;
+    Map<String, String> responseObj = new HashMap<String, String>();
+
+    if(report == null || report.isEmpty() ){
+      responseObj.put("error", "empty report");
+      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+      return builder.build();
+    }
+
+    JsonObject object = null;
+    try {
+      object = readJSON(report);
+    } catch (Exception e) {
+      e.printStackTrace();
+      responseObj.put("error", "failure parsing JSON");
+      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+      return builder.build();
+    }
+
     try {
       System.out.println("--go---");
       java.sql.Connection con = postgresService.usePostgresDS();
-//			  String query = "UPDATE Test SET a=?, b=? WHERE KEY=?";
       String query = "INSERT INTO jsontest (data) VALUES (?::jsonb);";
       PreparedStatement statement = con.prepareStatement(query);
-
-			  statement.setString(1, object.toString());
-//			  statement.setLong(2, 1000);
-
+      statement.setString(1, object.toString());
       statement.executeUpdate();
-
       statement.close();
+
     } catch (SQLException e) {
       e.printStackTrace();
     }
 
-
     System.out.println("----------JSON-report: " + object.size());
-    Response.ResponseBuilder builder = null;
 
     builder = Response.ok();
-
     return builder.build();
   }
 
@@ -160,13 +171,13 @@ public class PerformanceService implements Serializable {
   @Path("/report")
   @Produces(MediaType.APPLICATION_JSON)
 //  @NotNull(message="uuid cannot be null") @Pattern(regexp = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",message="uuid must be in proper format")
+//  http://localhost:8082/rest/performance/report?uuid=82a2c4ad-e346-4b83-9add-7c5f20057c22
   public Response report(@QueryParam("uuid") String uuid) {
     //todo - check to see what this uuid position is and multiply timeout
     Response.ResponseBuilder builder = null;
     Map<String, String> responseObj = new HashMap<String, String>();
-    //the following location string is dependent on where you start the server (from the actual directory the command is ran from).
-//    builder = Response.ok();
-    String all = "[";
+    System.out.println("---------uuid--" + uuid);
+    String all = "";
 
     if(uuid == null || uuid == "null"){
       responseObj.put("error", "uuid cannot be null");
@@ -179,71 +190,48 @@ public class PerformanceService implements Serializable {
     try {
       java.sql.Connection con = postgresService.usePostgresDS();
       String query = "SELECT * FROM jsontest WHERE data -> ? > '1'";
-      PreparedStatement statement = con.prepareStatement(query);
 
-      statement.setString(1, uuid);
-//      statement.setString(2, uuid);
+      if(con != null){
+        PreparedStatement statement = con.prepareStatement(query);
+        statement.setString(1, uuid);
+        rs = statement.executeQuery();
+        try {
 
-      rs = statement.executeQuery();
+          all += "[";
 
-      try {
-
-        while(rs.next()){
-          all += rs.getString("data");
-          if(!rs.isLast()){
-            all += ",";
+          while(rs.next()){
+            all += rs.getString("data");
+            if(!rs.isLast()){
+              all += ",";
+            }
           }
+
+          all += "]";
+
+        } catch (SQLException e) {
+          e.printStackTrace();
         }
 
-        all += "]";
-
-      } catch (SQLException e) {
-        e.printStackTrace();
+        statement.close();
+        builder = Response.status(Response.Status.OK).entity(all);
+      }else{
+        responseObj.put("error", "bad connection to DB");
+        builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
       }
 
-      statement.close();
+
+
     } catch (SQLException e) {
       e.printStackTrace();
+      responseObj.put("error", e.getMessage());
+      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
     }
 
-    builder = Response.status(Response.Status.OK).entity(all);
-//    try {
-//
-//
-//      BufferedReader in;
-//      File locatedFile = new File(LOCATION + "reports/speedgun-" + uuid + ".json");
-//
-//      log.info("[Speedgun] Checking for file: " + LOCATION + "reports/speedgun-" + uuid + ".json");
-//      log.info("[Speedgun] Located file? " + locatedFile.exists());
-//
-//        if (locatedFile.exists()) {
-//          in = new BufferedReader(new FileReader(LOCATION + "reports/speedgun-" + uuid + ".json"));
-//          String ln;
-//
-//          while ((ln = in.readLine()) != null)
-//            all += ln;
-//          in.close();
-//
-//          builder = Response.status(Response.Status.OK).entity(all);
-//
-//        } else {
-//          responseObj.put("status","pending");
-//          responseObj.put("position",PerfQueueManager.incomingMsgs + "");
-//          builder = Response.status(Response.Status.OK).entity(responseObj);
-//  //        return "{\"status\":\"pending\",\"position\":\"" + PerfQueueManager.incomingMsgs + "\"}";
-//        }
-//
-////      }
-//      //System.out.println(all);
-//    } catch (ConstraintViolationException ce) {
-//      //Handle bean validation issues
-//      builder = createViolationResponse(ce.getConstraintViolations());
-//    } catch (Exception e) {
-//      // Handle generic exceptions
-//      responseObj = new HashMap<String, String>();
-//      responseObj.put("error", e.getMessage());
-//      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
-//    }
+
+
+//        return "{\"status\":\"pending\",\"position\":\"" + PerfQueueManager.incomingMsgs + "\"}";
+
+
     return builder.build();
   }
 

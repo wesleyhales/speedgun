@@ -181,12 +181,7 @@ public class BeaconService {
   @Produces(MediaType.TEXT_HTML)
   public Response getList() {
 
-//    serve list for ui
     Response.ResponseBuilder response = null;
-
-    //Create an "ok" response
-
-//    JSONObject json = new JSONObject();
 
     ObjectMapper mapper = new ObjectMapper();
     String responseString = null;
@@ -195,16 +190,6 @@ public class BeaconService {
     } catch (IOException e) {
       e.printStackTrace();
     }
-
-
-//    try {
-//      json.put( "sessionMap", sessionMap );
-//      System.out.printf("JSON: %s", json.toString());
-//      responseString = json.toString(2);
-//    } catch (JSONException e) {
-//      e.printStackTrace();
-//    }
-
 
     response = Response.ok(responseString, MediaType.APPLICATION_JSON);
     response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
