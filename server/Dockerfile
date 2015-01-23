@@ -51,7 +51,7 @@ RUN ln -s /root/phantomjs /usr/bin/phantomjs
 
 #ADD data tmp2
 
-EXPOSE 3306 8080 8443
+
 
 RUN git clone git://github.com/wesleyhales/speedgun.git
 
@@ -61,35 +61,14 @@ RUN git clone git://github.com/wesleyhales/speedgun.git
 
 RUN cd speedgun/core && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes speedgun.js http://www.google.com performance csv
 
-#Install MYSQL
-RUN \
-  sudo apt-get update && \
-  DEBIAN_FRONTEND=noninteractive \
-  apt-get install -y mysql-server-5.6 && \
-  rm -rf /var/lib/apt/lists/* && \
-  sed -i 's/^\(bind-address\s.*\)/# \1/' /etc/mysql/my.cnf && \
-  sed -i 's/^\(log_error\s.*\)/# \1/' /etc/mysql/my.cnf && \
-  echo "mysqld_safe &" > /tmp/config && \
-  echo "mysqladmin --silent --wait=30 ping || exit 1" >> /tmp/config && \
-  echo "mysql -e 'GRANT ALL PRIVILEGES ON *.* TO \"root\"@\"%\" WITH GRANT OPTION;'" >> /tmp/config && \
-  echo "mysql -e 'CREATE database fluxui;'" >> /tmp/config && \
-  echo "mysql -e 'CREATE USER \"fluxui\"@\"localhost\" IDENTIFIED BY \"fluxui123\";'" >> /tmp/config && \
-  echo "mysql -e 'GRANT ALL PRIVILEGES ON fluxui.* TO \"fluxui\"@\"localhost\" WITH GRANT OPTION;'" >> /tmp/config && \
-  bash /tmp/config && \
-  rm -f /tmp/config
-
-#this is an alternative http://txt.fliglio.com/2013/11/creating-a-mysql-docker-container/
-#CMD ["/bin/bash", "/opt/mysql.sh"]
-
-# Define default command.
-CMD ["mysqld_safe"]
+RUN echo "yo"
 
 #ADD server.tar /root/server.tar
 RUN cd /root && wget https://dl.dropboxusercontent.com/u/12278845/server.tar
 
-RUN cd /root && tar -xzvf server.tar
+RUN cd /root && tar -xvf server.tar
 
-RUN echo "sudo /etc/init.d/mysql start && \n cd /root/jboss-as-7.1.1.Final-fluxui/ && sudo ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
+#RUN echo "cd /root/jboss-as-7.1.1.Final-fluxui/ && ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
 
 # install maven
 RUN sudo apt-get update && apt-get install -y maven
@@ -112,30 +91,17 @@ RUN mkdir /root/jboss-as-7.1.1.Final-fluxui/speedgun
 RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/speedgun.js
 RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/config.json
 
-# Define mountable directories.
-#VOLUME ["/etc/mysql", "/var/lib/mysql"]
-
-# Define working directory.
-#WORKDIR /data
-
-# Define default command.
-#CMD ["mysqld_safe"]
-
-# Expose ports.
-#EXPOSE 3306
-
-# install maven
-#RUN apt-get install -y maven
-
 #add server name to etc/hosts
 #RUN sudo echo "127.0.0.1         speedgun" >> /etc/hosts
 
-# run terminal
-CMD ["/bin/bash"]
+COPY server-entrypoint.sh /
 
-#RUN yum -y install wget
-#RUN wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/7u65-b17/jre-7u65-linux-x64.rpm
-#RUN echo "cca8862e49cf2e6c6e28e1987c59a2f7  jre-7u65-linux-x64.rpm" >> MD5SUM
-#RUN md5sum -c MD5SUM
-#RUN rpm -Uvh jre-7u65-linux-x64.rpm
-#RUN rm -f jre-7u65-linux-x64.rpm MD5SUM
+ENTRYPOINT ["/server-entrypoint.sh"]
+
+RUN apt-get install -y postgresql-client
+
+COPY speedgun.sql /
+
+EXPOSE 3306 8080 8443
+
+#CMD ["postgres"]
