@@ -13,7 +13,7 @@ popd > /dev/null
 pushd ./server > /dev/null
     docker rm -f sg-server-name
     docker build -t sg-server .
-    docker run -ti -p 8081:8080 --name sg-server-name --link sg-postgres-name:spn sg-server /bin/bash
+    docker run -d -P -p 8081:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
 popd > /dev/null
 
 #docker run --net=host --rm -P --name sg-server-name sg-server
