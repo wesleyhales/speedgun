@@ -61,7 +61,7 @@ RUN git clone git://github.com/wesleyhales/speedgun.git
 
 RUN cd speedgun/core && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes speedgun.js http://www.google.com performance csv
 
-RUN echo "yo"
+
 
 #ADD server.tar /root/server.tar
 RUN cd /root && wget https://dl.dropboxusercontent.com/u/12278845/server.tar
