@@ -682,7 +682,7 @@ var speedgun = {
       }
 
       if (args.indexOf('post') >= 0) {
-        speedgun.postJSON(report, 'http://localhost:8080/rest/performance/reportData');
+        speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData');
         setTimeout('phantom.exit(0)',1000);
       }
 

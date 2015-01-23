@@ -4,7 +4,7 @@ pushd ./data/postgres > /dev/null
     docker rm -f sg-postgres-name
     docker build -t sg-postgres .
     #docker run --net=host --rm -P --name sg-postgres-name sg-postgres
-    docker run -d -P --name sg-postgres-name sg-postgres sh -c "./docker-entrypoint.sh postgres"
+    docker run -d -P -p 5432:5432 --name sg-postgres-name sg-postgres sh -c "./docker-entrypoint.sh postgres"
 popd > /dev/null
 
 
@@ -13,7 +13,7 @@ popd > /dev/null
 pushd ./server > /dev/null
     docker rm -f sg-server-name
     docker build -t sg-server .
-    docker run -d -P -p 8081:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
+    docker run -d -P -p 80:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
 popd > /dev/null
 
 #docker run --net=host --rm -P --name sg-server-name sg-server
