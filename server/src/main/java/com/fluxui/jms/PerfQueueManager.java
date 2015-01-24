@@ -282,8 +282,7 @@ public class PerfQueueManager {
 
       for (int i = 0; i <= 4; i++) {
         log.info("run number: " + i);
-        log.info(
-            "[Speedgun] run phantomjs: phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " post " + random);
+        log.info("[Speedgun] run phantomjs: phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " post " + random);
         Process p = Runtime.getRuntime().exec("phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " post " + random);
 
         String line;
@@ -306,24 +305,6 @@ public class PerfQueueManager {
     } catch (InterruptedException e2) {
       e2.printStackTrace();
     }
-
-//    try {
-//      System.out.println("--go---");
-//      java.sql.Connection con = cassandraService.useCassandraDS();
-////			  String query = "UPDATE Test SET a=?, b=? WHERE KEY=?";
-//      String query = "select * from demo.users";
-//      PreparedStatement statement = con.prepareStatement(query);
-//
-////			  statement.setLong(1, 100);
-////			  statement.setLong(2, 1000);
-//
-//      statement.executeUpdate();
-//
-//      statement.close();
-//    } catch (SQLException e) {
-//      e.printStackTrace();
-//    }
-
     return random;
   }
 
