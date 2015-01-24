@@ -92,15 +92,19 @@ angular.module('app', [
 
     function loadTheGun(uuid){
       $scope.uuid = uuid;
+      $scope.running = true;
 //      animate();
       var done = function(data){
+        $scope.running = false;
         $scope.speedgun = data;
       };
       var error = function(err){
+        $scope.running = false;
         console.log('error');
         console.log(err);
       };
       var progress = function(data){
+        $scope.running = true;
         console.log('progress',data);
         $scope.speedgun = data;
       };
@@ -111,6 +115,7 @@ angular.module('app', [
 
     $scope.clear = function(){
       $location.search('uuid','');
+      $scope.running = false;
       $scope.speedgun = [];
     };
 

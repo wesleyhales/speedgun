@@ -62,13 +62,13 @@
 
 </div>
 
-<md-content class="results" ng-class="{visible: speedgun.length < 2}">
+<md-content class="results" ng-class="{visible: running }">
     <md-card class="runCount{{speedgun.length}} header">
         <h3 class="subheader">
 
             You are {{position === 0 ? 'first in line!!' : ' number ' + position + ' in line.'}}
             <md-progress-linear md-mode="indeterminate"></md-progress-linear>
-            <md-progress-linear class="md-warn" md-mode="buffer" value="{{determinateValue}}" md-buffer-value="{{determinateValue2}}">
+            <md-progress-linear class="md-warn" md-mode="buffer" value="{{speedgun.length * .20 * 100}}" md-buffer-value="{{determinateValue2}}">
             </md-progress-linear>
         </h3>
     </md-card>
