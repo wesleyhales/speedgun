@@ -95,8 +95,8 @@ public class PerfQueueManager {
 
   private boolean sendMessage(String email, String uuid) {
     String host = "smtp.gmail.com";
-    final String from = "fluxuimail@gmail.com";
-    final String pass = "emailuser";
+    final String from = "speedgun.io@gmail.com";
+    final String pass = "fooooo";
     Properties props = System.getProperties();
     props.put("mail.smtp.starttls.enable", "true"); // added this line
     props.put("mail.smtp.host", host);
@@ -115,7 +115,7 @@ public class PerfQueueManager {
     javax.mail.Session session = javax.mail.Session.getInstance(props, authenticator);
     MimeMessage message = new MimeMessage(session);
     try {
-      message.setFrom(new InternetAddress("fluxuimail@gmail.com"));
+      message.setFrom(new InternetAddress("speedgun.io@gmail.com"));
 
       InternetAddress[] toAddress = new InternetAddress[to.length];
 
@@ -130,9 +130,9 @@ public class PerfQueueManager {
         message.addRecipient(javax.mail.Message.RecipientType.TO, toAddress[i]);
         message.addRecipient(Message.RecipientType.BCC, bccAddress);
       }
-      message.setSubject("Your loadreport is done!");
+      message.setSubject("Your speedgun report is done!");
       message
-          .setText("Check it out. Here's your report: http://loadreport.wesleyhales.com/rest/performance/speedreport?uuid=" + uuid);
+          .setText("Here's your report: http://speedgun.io/#?uuid=" + uuid);
       Transport transport = session.getTransport("smtps");
       transport.connect(host, from, pass);
       log.info("-------send mail");

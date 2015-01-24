@@ -36,17 +36,17 @@
             </section>
             <section layout="row" layout-align="center center" class="url-input-container">
                 <md-card class="url-input">
-                    <input type="text" name="url" id="url" placeholder="http://www.whatever.com" ng-model="url" required autofocus/>
+                    <input type="text" name="url" id="url" ng-disabled="running" placeholder="http://www.whatever.com" ng-model="url" required autofocus/>
                 </md-card>
-                <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url,email)"
+                <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url,email)" ng-disabled="running"
                            style="width: 54px; height: 54px;">
                     Go
                 </md-button>
             </section>
             <section layout="row" layout-align="center center" class="email-input-container">
-                <span class="email-label">Send me a link when done:</span>
+                <span class="email-label">Send me a link when done: {{running}}</span>
                 <md-card class="email-input">
-                    <input type="text" name="email" id="email" placeholder="you@domain.com" ng-model="email"/>
+                    <input type="text" name="email" ng-disabled="running" id="email" placeholder="you@domain.com" ng-model="email"/>
                 </md-card>
 
 
