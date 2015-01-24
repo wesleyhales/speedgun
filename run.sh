@@ -6,17 +6,18 @@ pushd ./data/postgres > /dev/null
     #docker run --net=host --rm -P --name sg-postgres-name sg-postgres
     docker run -d -P -p 5432:5432 --name sg-postgres-name sg-postgres sh -c "./docker-entrypoint.sh postgres"
 popd > /dev/null
-
-
-
+#
+#pushd ./server > /dev/null
+#    docker rm -f sg-server-name
+#    docker build -t sg-server .
+#    docker run -d -P -p 80:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
+#popd > /dev/null
 
 pushd ./server > /dev/null
     docker rm -f sg-server-name
     docker build -t sg-server .
-    docker run -d -P -p 80:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
+    docker run -d -P -p 80:8080  -v /vagrant/bin:/root/phantomjs/bin --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
 popd > /dev/null
-
-#docker run --net=host --rm -P --name sg-server-name sg-server
 
 #TIMEOUT=10m
 #echo "Running the container and triggering the tests (with ${TIMEOUT} timeout)..."

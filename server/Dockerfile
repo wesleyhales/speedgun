@@ -27,31 +27,28 @@ RUN \
   rm -rf /var/lib/apt/lists/* \
   echo "done"
 
+#build latest phantom
+#+++++ only do this in dev when needed
+
 # Install Phantom2 build requirements    (Won't build on systems < 2GB ram)
 RUN \
   sudo apt-get update && apt-get -y install g++ flex bison gperf ruby perl \
   libsqlite3-dev libfontconfig1-dev libicu-dev libfreetype6 libssl-dev libjpeg-dev libqt5webkit5-dev
 
-#build latest phantom
-#+++++ only do this in dev when needed
-#RUN rm -rf phantomjs
+RUN rm -rf phantomjs
 
-#RUN git clone git://github.com/ariya/phantomjs.git
+RUN git clone git://github.com/ariya/phantomjs.git
 
-#RUN cd /root/phantomjs/ && ./build.sh --confirm
+RUN cd /root/phantomjs/ && ./build.sh --confirm
 
-#RUN ln -s /root/phantomjs/bin/phantomjs /usr/bin/phantomjs
+RUN ln -s /root/phantomjs/bin/phantomjs /usr/bin/phantomjs
 #+++++ END only do this in dev when needed
 
 #+++++ comment out when building new version of phantomjs
-ADD phantomjs /root/phantomjs
+#ADD phantomjs /root/phantomjs
 
-RUN ln -s /root/phantomjs /usr/bin/phantomjs
+#RUN ln -s /root/phantomjs /usr/bin/phantomjs
 #+++++ END comment out when building new version of phantomjs
-
-#ADD data tmp2
-
-
 
 RUN git clone git://github.com/wesleyhales/speedgun.git
 
@@ -61,9 +58,6 @@ RUN git clone git://github.com/wesleyhales/speedgun.git
 
 RUN cd speedgun/core && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes speedgun.js http://www.google.com performance csv
 
-RUN echo "hello"
-
-#ADD server.tar /root/server.tar
 RUN cd /root && wget https://dl.dropboxusercontent.com/u/12278845/server.tar
 
 RUN cd /root && tar -xvf server.tar
@@ -75,7 +69,6 @@ RUN sudo apt-get update && apt-get install -y maven
 
 ADD src /root/src
 ADD pom.xml /root/pom.xml
-
 RUN mvn clean install
 
 #RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
@@ -90,9 +83,6 @@ RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/jboss-as-7.1.
 RUN mkdir /root/jboss-as-7.1.1.Final-fluxui/speedgun
 RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/speedgun.js
 RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/config.json
-
-#add server name to etc/hosts
-#RUN sudo echo "127.0.0.1         speedgun" >> /etc/hosts
 
 COPY server-entrypoint.sh /
 

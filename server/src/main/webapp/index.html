@@ -44,7 +44,7 @@
                 </md-button>
             </section>
             <section layout="row" layout-align="center center" class="email-input-container">
-                <span class="email-label">Send me a link when done: {{running}}</span>
+                <span class="email-label">Send me a link when done:</span>
                 <md-card class="email-input">
                     <input type="text" name="email" ng-disabled="running" id="email" placeholder="you@domain.com" ng-model="email"/>
                 </md-card>
@@ -169,7 +169,7 @@
         <h3>GETTING STARTED</h3>
     </section>
     <section layout="row" layout-align="center center">
-        <p><a href="http://github.com/wesleyhales/speedgun">Speedgun.js</a> is extremely simple to use. It is one file and only requires you to <a href="">have
+        <p><a href="http://github.com/wesleyhales/speedgun">Speedgun.js</a> is extremely simple to use. It's one file and only requires you to <a href="">have
             PhantomJS 2 installed</a>.</p>
     </section>
     <section layout="row" layout-align="left center">
@@ -181,19 +181,20 @@
         </ul>
     </section>
     <section layout="row" layout-align="center center">
-        <p>You can also run the speedgun.io server via Docker. It's all OSS, so feel free to stand up
-            your own instance. The more Speedgun servers running in the world, the better off web performance will be.</p>
+        <h3>RUN THIS SERVER</h3>
+    </section>
+    <section layout="row" layout-align="center center">
+        <p>You can also run the speedgun.io server via Docker.</p>
     </section>
     <h4>Mac or Windows</h4>
     <section layout="row" layout-align="left center">
         <ul>
             <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
-            <li>Install <a href="http://www.vagrantup.com">Vagrant</a></li>
+            <li>Install <a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a> and <a href="http://www.vagrantup.com">Vagrant</a></li>
             <li><code>cd speedgun/server</code></li>
-            <li>Start vagrant and ssh into it: <code>vagrant up && vagrant ssh</code></li>
-            <li>Build the container:  <code>cd /vagrant && docker build .</code></li>
-            <li>Run the container:  <code>docker run -ti -p 8080 --net=host [latest image ID] /bin/bash</code> (get the image ID from <code>sudo docker ps -a</code>)</li>
-            <li>Open browser go to <a href="http://localhost:8081">http://localhost:8081</a></li>
+            <li>Run: <code>./server.sh</code></li>
+            <li>Done: Open browser and go to <a href="http://localhost:8081">http://localhost:8081</a></li>
+            <li><a href="https://github.com/wesleyhales/speedgun/blob/master/server/README.md">Troubleshooting info here...</a></li>
         </ul>
     </section>
     <h4>Linux</h4>
@@ -201,9 +202,8 @@
         <ul>
             <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
             <li>Install Docker (i.e. for centos: <code>sudo yum -y install docker-io)</code></li>
-            <li>Build the container:  <code>cd /vagrant && docker build .</code></li>
-            <li>Run the container:  <code>docker run -ti -p 8080 --net=host [latest image ID] /bin/bash</code> (get the image ID from <code>sudo docker ps -a</code>)</li>
-            <li>Open browser go to <a href="http://localhost:8080">http://localhost:8080</a></li>
+            <li>Run: <code>./run.sh</code></li>
+            <li>Open browser go to <a href="http://localhost">http://localhost</a></li>
         </ul>
     </section>
 </md-content>
@@ -224,6 +224,13 @@
     </section>
     <section layout="row" layout-align="center center">
         <a href="http://twitter.com/wesleyhales">Wesley Hales</a>
+    </section>
+    <section layout="row" layout-align="center center">
+        <h3>MUCHO HELP FROM:</h3>
+    </section>
+    <section layout="row" layout-align="center center">
+        <a href="http://twitter.com/wesleyhales">Jarrod Overson</a>
+        <a href="http://twitter.com/wesleyhales">Andrew Lin</a>
     </section>
 </md-content>
 <br/><br/>
