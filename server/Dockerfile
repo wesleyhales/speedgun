@@ -86,6 +86,8 @@ RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubu
 
 COPY server-entrypoint.sh /
 
+VOLUME /root/jboss-as-7.1.1.Final-fluxui/standalone/log
+
 ENTRYPOINT ["/server-entrypoint.sh"]
 
 RUN apt-get install -y postgresql-client
