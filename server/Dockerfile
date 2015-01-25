@@ -27,28 +27,28 @@ RUN \
   rm -rf /var/lib/apt/lists/* \
   echo "done"
 
-#build latest phantom
-#+++++ only do this in dev when needed
+#####################################build latest phantom
+######################################+++++ only do this in dev when needed
 
 # Install Phantom2 build requirements    (Won't build on systems < 2GB ram)
-RUN \
+#RUN \
   sudo apt-get update && apt-get -y install g++ flex bison gperf ruby perl \
   libsqlite3-dev libfontconfig1-dev libicu-dev libfreetype6 libssl-dev libjpeg-dev libqt5webkit5-dev
 
-RUN rm -rf phantomjs
+#RUN rm -rf phantomjs
 
-RUN git clone git://github.com/ariya/phantomjs.git
+#RUN git clone git://github.com/ariya/phantomjs.git
 
-RUN cd /root/phantomjs/ && ./build.sh --confirm
+#RUN cd /root/phantomjs/ && ./build.sh --confirm
 
-RUN ln -s /root/phantomjs/bin/phantomjs /usr/bin/phantomjs
-#+++++ END only do this in dev when needed
+#RUN ln -s /root/phantomjs/bin/phantomjs /usr/bin/phantomjs
+######################################+++++ END only do this in dev when needed
 
-#+++++ comment out when building new version of phantomjs
-#ADD phantomjs /root/phantomjs
+######################################+++++ comment out when building new version of phantomjs
+ADD phantomjs /root/phantomjs
 
-#RUN ln -s /root/phantomjs /usr/bin/phantomjs
-#+++++ END comment out when building new version of phantomjs
+RUN ln -s /root/phantomjs /usr/bin/phantomjs
+######################################+++++ END comment out when building new version of phantomjs
 
 RUN git clone git://github.com/wesleyhales/speedgun.git
 
