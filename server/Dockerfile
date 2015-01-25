@@ -27,13 +27,13 @@ RUN \
   rm -rf /var/lib/apt/lists/* \
   echo "done"
 
-#####################################build latest phantom
-######################################+++++ only do this in dev when needed
-
 # Install Phantom2 build requirements    (Won't build on systems < 2GB ram)
-#RUN \
+RUN \
   sudo apt-get update && apt-get -y install g++ flex bison gperf ruby perl \
   libsqlite3-dev libfontconfig1-dev libicu-dev libfreetype6 libssl-dev libjpeg-dev libqt5webkit5-dev
+
+#####################################build latest phantom
+######################################+++++ only do this in dev when needed
 
 #RUN rm -rf phantomjs
 
