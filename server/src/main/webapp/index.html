@@ -164,11 +164,12 @@
     </p>
     <p>There are already a lot of great, open source services for web performance automation.
         The goal for this project is simplicity in running and automating web performance.
-        There are two parts:
+        There are three parts:
     <ul class="main-part-list">
-        <li>A <a href="https://github.com/wesleyhales/speedgun/blob/master/core/speedgun.js">single JavaScript file</a> that uses PhantomJS2 to measure
-            web perf timing through the W3C Navigation Timing API specification. This can run standalone</li>
+        <li>A standalone <a href="https://github.com/wesleyhales/speedgun/blob/master/core/speedgun.js">JavaScript file</a> that uses PhantomJS2 to measure
+            web perf timing through the W3C Navigation Timing API specification.</li>
         <li>A repeatable Docker setup that allows anyone to run this server.</li>
+        <li>Use the Speedgun Docker containers as RUM nodes.</li>
     </ul>
     </p>
 </md-content>
@@ -202,6 +203,7 @@
         <li><code>cd speedgun/server</code></li>
         <li>Run: <code>./server.sh</code> (this will take a while)</li>
         <li>Done: Open browser and go to <a href="http://localhost:8081">http://localhost:8081</a></li>
+        <li>Don't forget: Opt in to allowing others to run reports from your instance by visiting <a href="http://localhost:8081/rest/beacon/init">this link</a></li>
         <li><a href="https://github.com/wesleyhales/speedgun/blob/master/server/README.md">If you run into VirtualBox errors see this...</a></li>
     </ul>
 
@@ -216,7 +218,8 @@
         <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
         <li>Install Docker (i.e. for centos: <code>sudo yum -y install docker-io)</code></li>
         <li>Run: <code>./run.sh</code></li>
-        <li>Open browser go to <a href="http://localhost">http://localhost</a></li>
+        <li>Done: Open browser go to <a href="http://localhost">http://localhost</a></li>
+        <li>Don't forget: Opt in to allowing others to run reports from your instance by visiting <a href="http://localhost/rest/beacon/init">this link</a></li>
     </ul>
 
 </md-content>
