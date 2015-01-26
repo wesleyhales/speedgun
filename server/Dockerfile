@@ -81,8 +81,8 @@ RUN touch /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war.
 RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/jboss-as-7.1.1.Final-fluxui/standalone/data/*
 
 RUN mkdir /root/jboss-as-7.1.1.Final-fluxui/speedgun
-RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/47a44be05a645dac076849b63b9d929b44b02356/core/speedgun.js
-RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/config.json
+RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/speedgun.js #v1
+RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/config.json #v1
 
 COPY server-entrypoint.sh /
 

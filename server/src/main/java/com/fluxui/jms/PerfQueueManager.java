@@ -293,7 +293,7 @@ public class PerfQueueManager {
 
         p.waitFor();
 
-        Thread.sleep(3000);
+        Thread.sleep(8000);
         in.close();
       }
 
