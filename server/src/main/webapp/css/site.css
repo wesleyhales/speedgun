@@ -1,31 +1,47 @@
 
 @media only screen
 and (min-width : 600px) {
-  .main .masthead, .main .results, .main .marketing, .documentation {
-    width:100%;
-    max-width:1200px;
-  }
+    .main .masthead, .main .results, .main .marketing, .documentation {
+        width:100%;
+        max-width:1200px;
+    }
 
-  card {
-    width:50%;
-    float:left;
-  }
+    card {
+        width:50%;
+        float:left;
+    }
 
-  .card-errors {
-    width:100%;
-    float:left;
-  }
+    .card-errors {
+        width:100%;
+        float:left;
+    }
+
+
+}
+
+@media only screen and (min-width : 1000px) {
+    .part-list {
+        clear:both;
+        width: 50%;
+        margin: 0 auto;
+    }
 }
 
 .documentation {
-  width: 50%;
+    width: 80%;
 }
 
 .card-group {
-  width: 100%;
-  display: block;
-  float: left;
+    width: 100%;
+    display: block;
+    float: left;
 }
+
+.subheaderdemoBasicUsage .face {
+    border-radius: 30px;
+    border: 1px solid #ddd;
+    width: 48px;
+    margin: 16px; }
 
 .z-anim { transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
 .z-0 { box-shadow: 0 0px 0px 0 rgba(0, 0, 0, 0); }
@@ -33,199 +49,227 @@ and (min-width : 600px) {
 .z-2 { box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4); }
 
 .card {
-  transition: opacity .5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity .5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .transparent {
-  opacity:0;
+    opacity:0;
 }
 
 .cell {
-  min-height: 150px;
+    min-height: 150px;
 }
 
 .cell .header {
-  font-size:30px;
-  margin-bottom:10px;
+    font-size:30px;
+    margin-bottom:10px;
 }
 
 .cell .desc {
-  margin-bottom:10px;
-  min-height:1em;
+    margin-bottom:10px;
+    min-height:1em;
 }
 
 .cell .stat {
-  text-align: center;
-  height: 60px;
-  margin:10px;
-  border-radius:1px;
+    text-align: center;
+    height: 60px;
+    margin:10px;
+    border-radius:1px;
 }
 
 .stat.best {
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4);
-  color: #4CAF50;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4);
+    color: #4CAF50;
 }
 
 .stat.worst {
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-  color:#9f0000;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    color:#9f0000;
 }
 
 .stat.median {
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-  background-color: #ececec;
-  color:#000;
-  font-weight: bold;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    background-color: #ececec;
+    color:#000;
+    font-weight: bold;
 }
 
 .url-input,
 .email-input {
-  width:55%;
-  max-width:800px;
-  background-color: white;
+    width:55%;
+    max-width:800px;
+    background-color: white;
 }
 
 .url-input-container,
 .email-input-container{
-  /*margin:20px 0 50px 0;*/
-  opacity:.85;
+    /*margin:20px 0 50px 0;*/
+    opacity:.85;
 }
 
 .btn-go {
-  opacity:.95;
-  text-transform:none;
-  color:black !important;
-  font-family: RobotoDraft, Roboto, 'Helvetica Neue', sans-serif;
-  font-weight:500;
-  letter-spacing: 1px;
+    opacity:.95;
+    text-transform:none;
+    color:black !important;
+    font-family: RobotoDraft, Roboto, 'Helvetica Neue', sans-serif;
+    font-weight:500;
+    letter-spacing: 1px;
 }
 
 .email-input {
-  width:40%;
-  max-width:300px;
-  background-color: white;
+    width:40%;
+    max-width:300px;
+    background-color: white;
 }
 
 .email-label {
-  color: #fff
+    color: #fff
 }
 
 input#url,
 input#email{
-  text-align:center;
-  border: 0;
-  padding: .2em;
-  font-weight: 100;
-  line-height: 1em;
-  font-size: 1.5em;
-  width:100%;
-  background-color: transparent;
-  float:left;
+    text-align:center;
+    border: 0;
+    padding: .2em;
+    font-weight: 100;
+    line-height: 1em;
+    font-size: 1.5em;
+    width:100%;
+    background-color: transparent;
+    float:left;
 }
 
 
 .fixed {
-  position:fixed;
+    position:fixed;
 }
 
 
 
 
 h3.subheader {
-  margin:0;
-  font-size: 2.17em;
+    margin:0;
+    font-size: 2.17em;
 }
 
 h3.subheader a.report-link {
-  font-size: .6em;
-  color: #777;
-  text-decoration: none;
-  float: right;
-  margin: 8px;
+    font-size: .6em;
+    color: #777;
+    text-decoration: none;
+    float: right;
+    margin: 8px;
 }
 
 
 .masthead p {
-  margin:25px 0 0 0;
-  font-size:1.2em;
-  color: #fff;
+    margin:25px 0 0 0;
+    font-size:1.2em;
+    color: #fff;
 }
 
 .masthead-container {
-  width:100%;
-  background-image: url('../images/road2.jpg');
-  background-position: 0px -20px;
-  background-size: cover;
-  background-color:#D7CCC8;
+    width:100%;
+    background-image: url('../images/road2.jpg');
+    background-position: 0px -20px;
+    background-size: cover;
+    background-color:#D7CCC8;
 }
 
 md-content.masthead {
-  height:360px;
-  background-color: transparent;
-  /*background-color:#D7CCC8;*/
+    height:360px;
+    background-color: transparent;
+    /*background-color:#D7CCC8;*/
 }
 
 .logo {
 }
 
 .masthead .logo {
-  width:125px;
-  margin:20px;
+    width:125px;
+    margin:20px;
 }
 
 .marketing .logo {
-  margin:20px 30px;
+    margin:20px 30px;
 }
 
 .marketing .logo-1, .marketing .logo-3 {
-  width:100px;
+    width:100px;
 }
 
 .marketing .logo-2 {
-  width:150px;
+    width:150px;
 }
 
 .results {
-  height:0;
+    height:0;
 }
 
 .results md-card.header {
-  box-shadow: none;
+    box-shadow: none;
 }
 
 
 .results md-card {
-  background-color:white;
+    background-color:white;
 }
 
 .results.visible {
-  height:auto;
+    height:auto;
 }
 
 #reportform {
-  width:100%;
+    width:100%;
 }
 
 .md-fab {
-  border-radius:2px !important;
+    border-radius:2px !important;
 
 }
 
 ul.navEventList {
-  list-style: none;
-  padding: 0;
+    list-style: none;
+    padding: 0;
 }
 
 ul.navEventList li {
-  width: 100%;
-  display: block;
+    width: 100%;
+    display: block;
 }
 
 .word-break {
-  overflow-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .clear-link {
-  font-size: 17px;
-  color: grey;
+    font-size: 17px;
+    color: grey;
+}
+
+/*############custom*/
+
+html p, body p {
+    line-height: 1.746;
+}
+
+.center {
+    text-align: center;
+}
+
+.sg-times {
+    float: left;
+    margin: 14px;
+    width: 40%;
+}
+
+.part-list li, .main-part-list li {
+    padding: 3px;
+}
+
+.part-list, .main-part-list {
+    clear:both;
+}
+
+p, .part-list, .main-part-list{
+    font-size: 1.1em;
 }

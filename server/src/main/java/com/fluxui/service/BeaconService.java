@@ -34,6 +34,15 @@ public class BeaconService {
   @Inject
   private transient Logger log;
 
+  @GET
+  @Path("/init")
+  @Produces(MediaType.TEXT_HTML)
+  public Response init() {
+    Response.ResponseBuilder response = null;
+    response = Response.ok("Centralized Ping Started", MediaType.TEXT_HTML);
+    return response.build();
+  }
+
   @PostConstruct
   public void initialize() {
     log.info("[Speedgun] Start the beacon timer");
@@ -77,7 +86,7 @@ public class BeaconService {
 
 
     Client client = ClientBuilder.newBuilder().build();
-    WebTarget target = client.target("http://107.170.209.199/rest/beacon/receive");
+    WebTarget target = client.target("http://speedgun.io/rest/beacon/receive");
 
     //post the data
     //time,cpu,etc...

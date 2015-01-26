@@ -154,58 +154,74 @@
 </md-content>
 
 <md-content class="documentation">
-    <section layout="row" layout-align="center center">
-        <h3>WHAT IS THIS?</h3>
 
-    </section>
-    <section layout="row" layout-align="center center">
-        <p><a href="http://github.com/wesleyhales/speedgun">Speedgun.js</a> is a simple PhantomJS 2 based script that collects performance metrics from a single web page.
-            This site allows you to point Speedgun at any public facing website to gather important web performance data.</p>
-    </section>
+    <h3 class="center">WHAT IS THIS?</h3>
+    <p >This site allows you to point <a href="http://github.com/wesleyhales/speedgun">Speedgun.js</a> at any public facing
+        website to gather important web performance data.
+        <img src="images/speedgun-times.png" class="sg-times" />
+        It runs five times providing the <a href="https://twitter.com/souders/status/268807147456978944">best possible data</a>
+        to understand how your page is loaded.
+    </p>
+    <p>There are already a lot of great, open source services for web performance automation.
+        The goal for this project is simplicity in running and automating web performance.
+        There are two parts:
+    <ul class="main-part-list">
+        <li>A <a href="https://github.com/wesleyhales/speedgun/blob/master/core/speedgun.js">single JavaScript file</a> that uses PhantomJS2 to measure
+            web perf timing through the W3C Navigation Timing API specification. This can run standalone</li>
+        <li>A repeatable Docker setup that allows anyone to run this server.</li>
+    </ul>
+    There is a third, very important, part that isn't complete yet. All running speedgun.io instances ping this server periodically.
+    As long as port 8081 allows incoming traffic on the connection where the server is running, reports could be run from many different
+    connection types and locations.
+    </p>
 </md-content>
 
 <md-content class="documentation">
-    <section layout="row" layout-align="center center">
-        <h3>GETTING STARTED</h3>
-    </section>
-    <section layout="row" layout-align="center center">
-        <p><a href="http://github.com/wesleyhales/speedgun">Speedgun.js</a> is extremely simple to use. It's one file and only requires you to <a href="">have
-            PhantomJS 2 installed</a>.</p>
-    </section>
-    <section layout="row" layout-align="left center">
-        <ul>
-            <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
-            <li>Run it: <code>cd speedgun && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes core/speedgun.js http://www.wesleyhales.com performance csv</code></li>
-            <li>View the report in <code>speedgun/core/reports</code></li>
-            <li>View the <a href="https://github.com/wesleyhales/speedgun/blob/master/README.md">Readme</a> for more options.</li>
-        </ul>
-    </section>
-    <section layout="row" layout-align="center center">
-        <h3>RUN THIS SERVER</h3>
-    </section>
-    <section layout="row" layout-align="center center">
-        <p>You can also run the speedgun.io server via Docker.</p>
-    </section>
-    <h4>Mac or Windows</h4>
-    <section layout="row" layout-align="left center">
-        <ul>
-            <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
-            <li>Install <a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a> and <a href="http://www.vagrantup.com">Vagrant</a></li>
-            <li><code>cd speedgun/server</code></li>
-            <li>Run: <code>./server.sh</code></li>
-            <li>Done: Open browser and go to <a href="http://localhost:8081">http://localhost:8081</a></li>
-            <li><a href="https://github.com/wesleyhales/speedgun/blob/master/server/README.md">Troubleshooting info here...</a></li>
-        </ul>
-    </section>
-    <h4>Linux</h4>
-    <section layout="row" layout-align="left center">
-        <ul>
-            <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
-            <li>Install Docker (i.e. for centos: <code>sudo yum -y install docker-io)</code></li>
-            <li>Run: <code>./run.sh</code></li>
-            <li>Open browser go to <a href="http://localhost">http://localhost</a></li>
-        </ul>
-    </section>
+
+    <h3 class="center">GETTING STARTED WITH SPEEDGUN.JS</h3>
+
+    <p class="part-list" ><a href="">Install PhantomJS 2</a> to run this (Don't run it against old 1.x versions).</p>
+
+    <ul class="part-list">
+        <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
+        <li>Run it: <code>cd speedgun && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes core/speedgun.js http://www.wesleyhales.com performance csv</code></li>
+        <li>View the report in <code>speedgun/core/reports</code></li>
+        <li>View the <a href="https://github.com/wesleyhales/speedgun/blob/master/README.md">Readme</a> for more options.</li>
+    </ul>
+
+</md-content>
+
+
+<md-content class="marketing" style="margin: 10px 0 0 0">
+
+    <h3 class="center">GETTING STARTED WITH SPEEDGUN.IO</h3>
+
+    <p class="part-list" >If you'd like to run this server, follow these steps:</p>
+    <h4 class="part-list" style="margin: 10px auto 0 auto">Mac</h4>
+
+    <ul class="part-list">
+        <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
+        <li>Install <a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a> and <a href="http://www.vagrantup.com">Vagrant</a></li>
+        <li><code>cd speedgun/server</code></li>
+        <li>Run: <code>./server.sh</code> (this will take a while)</li>
+        <li>Done: Open browser and go to <a href="http://localhost:8081">http://localhost:8081</a></li>
+        <li><a href="https://github.com/wesleyhales/speedgun/blob/master/server/README.md">If you run into VirtualBox errors see this...</a></li>
+    </ul>
+
+</md-content>
+
+
+<md-content class="marketing">
+
+    <h4 class="part-list" style="margin: 10px auto 0 auto">Linux</h4>
+
+    <ul class="part-list">
+        <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
+        <li>Install Docker (i.e. for centos: <code>sudo yum -y install docker-io)</code></li>
+        <li>Run: <code>./run.sh</code></li>
+        <li>Open browser go to <a href="http://localhost">http://localhost</a></li>
+    </ul>
+
 </md-content>
 
 
@@ -226,11 +242,10 @@
         <a href="http://twitter.com/wesleyhales">Wesley Hales</a>
     </section>
     <section layout="row" layout-align="center center">
-        <h3>MUCHO HELP FROM:</h3>
+        <h3>MUCHO THANKS</h3>
     </section>
     <section layout="row" layout-align="center center">
-        <a href="http://twitter.com/wesleyhales">Jarrod Overson</a>
-        <a href="http://twitter.com/wesleyhales">Andrew Lin</a>
+        <a href="https://github.com/wesleyhales/speedgun/graphs/contributors">Jarrod Overson, Andrew Lin and contributors</a>
     </section>
 </md-content>
 <br/><br/>
@@ -248,23 +263,16 @@
 
 <script type="text/javascript" src="js/app.js"></script>
 
-<!--<script type="text/javascript">-->
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-<!--var _gaq = _gaq || [];-->
-<!--_gaq.push(['_setAccount', 'UA-1241000-11']);-->
-<!--_gaq.push(['_setDomainName', 'wesleyhales.com']);-->
-<!--_gaq.push(['_trackPageview']);-->
+    ga('create', 'UA-58941838-1', 'auto');
+    ga('send', 'pageview');
 
-<!--(function () {-->
-<!--var ga = document.createElement('script');-->
-<!--ga.type = 'text/javascript';-->
-<!--ga.async = true;-->
-<!--ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';-->
-<!--var s = document.getElementsByTagName('script')[0];-->
-<!--s.parentNode.insertBefore(ga, s);-->
-<!--})();-->
-
-<!--</script>-->
+</script>
 
 
 </body>
