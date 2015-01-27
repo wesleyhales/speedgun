@@ -651,7 +651,7 @@ var speedgun = {
           printReport(speedgun.reportData);
 
 
-        }, 1);
+        }, 100);
       };
     } else {
       page.onLoadFinished = function (status) {
