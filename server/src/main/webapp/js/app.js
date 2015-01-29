@@ -35,7 +35,9 @@ angular.module('app', [
     };
     this.get = function (uuid) {
 //        if (!uuid) return $q.when(speedgun);
+//      http://127.0.0.1:8080/rest/performance/checkimage?uuid=586930c7-5cc3-46a5-9802-fbd36ff05c1a
       var url = host + '/rest/performance/report';
+
       var config = {
         params : {
           uuid : uuid
@@ -48,6 +50,7 @@ angular.module('app', [
       var loop = function (){
         var request = $http.get(url, config);
         var retryLoop = $timeout(loop, retryDelay);
+
         request.then(function(res){
 
           data = res.data instanceof Array ? res.data : [res.data];
@@ -107,7 +110,27 @@ angular.module('app', [
         $scope.running = true;
         console.log('progress',data);
         $scope.speedgun = data;
+        if(data.length > 0){
+          var base64url = host + '/rest/performance/checkimage';
+          var config = {
+            params : {
+              uuid : $scope.uuid
+            }
+          };
+          var request = $http.get(base64url, config);
+
+          request.then(function(res){
+
+            console.log('base64',res);
+
+          },function(err){
+            console.log('err', err);
+
+          });
+
+        }
       };
+
       api.get(uuid).then(done, error, progress);
 
     }

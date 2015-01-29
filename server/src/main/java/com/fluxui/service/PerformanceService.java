@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonString;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
@@ -62,20 +63,65 @@ public class PerformanceService implements Serializable {
     return myObject;
   }
 
+
+  @POST
+  @Path("/imageData")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response imageData(String base64) {
+    Response.ResponseBuilder builder = null;
+    Map<String, String> responseObj = new HashMap<String, String>();
+
+    JsonObject jsonReport = readJSON(base64);
+
+    if(jsonReport.containsKey("base64")){
+      log.info("---base64 yo");
+    }
+
+    JsonObject object = null;
+    try {
+      object = readJSON(base64);
+    } catch (Exception e) {
+      e.printStackTrace();
+      responseObj.put("error", "failure parsing JSON");
+      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+      return builder.build();
+    }
+
+    try {
+      java.sql.Connection con = postgresService.usePostgresDS();
+
+      String query = "UPDATE imagetest set data = (?::jsonb) WHERE id = ?";
+      PreparedStatement statement = con.prepareStatement(query);
+      statement.setString(1, object.toString());
+      log.info("perfQueueManager.runNumber " + perfQueueManager.runNumber);
+      statement.setInt(2, perfQueueManager.runNumber);
+
+      statement.executeUpdate();
+      statement.close();
+
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+
+    builder = Response.ok();
+    return builder.build();
+  }
+
   @POST
   @Path("/reportData")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response reportData(String report) {
-    System.out.println("----------receive-report from phantomjs:");
     Response.ResponseBuilder builder = null;
     Map<String, String> responseObj = new HashMap<String, String>();
 
-    if(report == null || report.isEmpty() ){
-      responseObj.put("error", "empty report");
-      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
-      return builder.build();
-    }
+//    if(report == null || report.isEmpty() ){
+//      responseObj.put("error", "empty report");
+//      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+//      return builder.build();
+//    }
+    JsonObject jsonReport = readJSON(report);
 
     JsonObject object = null;
     try {
@@ -88,19 +134,17 @@ public class PerformanceService implements Serializable {
     }
 
     try {
-      System.out.println("--go---");
       java.sql.Connection con = postgresService.usePostgresDS();
       String query = "INSERT INTO jsontest (data) VALUES (?::jsonb);";
       PreparedStatement statement = con.prepareStatement(query);
       statement.setString(1, object.toString());
+
       statement.executeUpdate();
       statement.close();
 
     } catch (SQLException e) {
       e.printStackTrace();
     }
-
-    System.out.println("----------JSON-report: " + object.size());
 
     builder = Response.ok();
     return builder.build();
@@ -168,10 +212,69 @@ public class PerformanceService implements Serializable {
 
   @GZIP
   @GET
+  @Path("/checkimage")
+  @Produces(MediaType.TEXT_HTML)
+  public Response checkimage(@QueryParam("uuid") String uuid) {
+
+    Response.ResponseBuilder builder = null;
+    Map<String, String> responseObj = new HashMap<String, String>();
+    System.out.println("---------uuid base64--" + uuid);
+    String all = "";
+
+    if(uuid == null || uuid == "null"){
+      responseObj.put("error", "uuid cannot be null");
+      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+      return builder.build();
+    }
+
+    ResultSet rs = null;
+
+    try {
+      java.sql.Connection con = postgresService.usePostgresDS();
+      String query = "SELECT * FROM imagetest WHERE data -> ? > '1'";
+
+      if(con != null){
+        PreparedStatement statement = con.prepareStatement(query);
+        statement.setString(1, uuid);
+        rs = statement.executeQuery();
+        try {
+
+          all += "[";
+
+          while(rs.next()){
+            all += rs.getString("data");
+            if(!rs.isLast()){
+              all += ",";
+            }
+          }
+
+          all += "]";
+          System.out.println("JSON base 64 all::::::::" + all);
+        } catch (SQLException e) {
+          e.printStackTrace();
+        }
+
+        statement.close();
+        builder = Response.status(Response.Status.OK).entity(all);
+      }else{
+        responseObj.put("error", "bad connection to DB");
+        builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+      }
+
+    } catch (SQLException e) {
+      e.printStackTrace();
+      responseObj.put("error", e.getMessage());
+      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+    }
+
+    return builder.build();
+  }
+
+  @GZIP
+  @GET
   @Path("/report")
   @Produces(MediaType.APPLICATION_JSON)
 //  @NotNull(message="uuid cannot be null") @Pattern(regexp = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",message="uuid must be in proper format")
-//  http://localhost:8082/rest/performance/report?uuid=82a2c4ad-e346-4b83-9add-7c5f20057c22
   public Response report(@QueryParam("uuid") String uuid) {
     //todo - check to see what this uuid position is and multiply timeout
     Response.ResponseBuilder builder = null;
@@ -207,7 +310,7 @@ public class PerformanceService implements Serializable {
           }
 
           all += "]";
-
+          System.out.println("JSON all::::::::" + all);
         } catch (SQLException e) {
           e.printStackTrace();
         }

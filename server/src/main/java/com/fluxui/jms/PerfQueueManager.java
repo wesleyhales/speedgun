@@ -63,6 +63,9 @@ public class PerfQueueManager {
   boolean done = true;
 
   public static int incomingMsgs = 0;
+  public static int runNumber = 1;
+
+  public static Map<String,String> screenshots = new HashMap<String,String>();
 
   private Map<String, Boolean> inMemoryReports;
 
@@ -247,6 +250,7 @@ public class PerfQueueManager {
       log.info("[Speedgun] Done : " + random);
       done = true;
 
+
     }
     return random;
   }
@@ -281,6 +285,7 @@ public class PerfQueueManager {
     try {
 
       for (int i = 0; i <= 4; i++) {
+        runNumber = i;
         log.info("run number: " + i);
         log.info("[Speedgun] run phantomjs: phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " post " + random);
         Process p = Runtime.getRuntime().exec("phantomjs --disk-cache=no --ssl-protocol=any --ignore-ssl-errors=yes speedgun/speedgun.js " + url + " " + taskName + " post " + random);

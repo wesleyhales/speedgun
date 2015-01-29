@@ -162,8 +162,7 @@ var speedgun = {
 
     onLoadFinished: function (page, config) {
 
-
-      var size = 0, key, resources = speedgun.reportData.resources.value,slowest, fastest, totalDuration = 0,
+      var size = 0, key, resources = speedgun.reportData.resources.value, slowest, fastest, totalDuration = 0,
           largest, smallest, totalSize = 0,
           missingList = [],
           missingSize = false;
@@ -623,15 +622,19 @@ var speedgun = {
 
     if (task.onLoadFinished) {
       page.onLoadFinished = function (status) {
-
+      var base64 = null;
         //need to timeout and wait for loadEventEnd
         setTimeout(function () {
           task.onLoadFinished.call(scope, page, config, status);
           speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
           page.viewportSize = { width: 1024, height: 768 };
           var reportLocation = '';
-           console.log(args[4]);
-          if(!args[4]){
+
+          if(args[4]){
+            //write it once
+            console.log('Rendering Screenshot to base64');
+            base64 = page.renderBase64('PNG');
+          }else{
             //if not running on the server, create a special folder and render screenshot
             //TODO - move this down to printReport
             reportLocation = speedgun.reportData.url.value.replace('://','_').replace(":", "_") + '/';
@@ -648,10 +651,10 @@ var speedgun = {
           }
 
           //let printReport handle the exit due to post option
-          printReport(speedgun.reportData);
+          printReport(speedgun.reportData,base64);
 
 
-        }, 100);
+        }, 10);
       };
     } else {
       page.onLoadFinished = function (status) {
@@ -659,7 +662,7 @@ var speedgun = {
       };
     }
 
-    function printReport(report) {
+    function printReport(report,base64) {
 
       var reportLocation = '/speedgun';
       if(!args[4]){
@@ -683,6 +686,7 @@ var speedgun = {
 
       if (args.indexOf('post') >= 0) {
         speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData');
+        speedgun.postIMAGE(base64, 'http://127.0.0.1:8080/rest/performance/imageData');
         setTimeout('phantom.exit(0)',1000);
       }
 
@@ -903,9 +907,10 @@ var speedgun = {
     return junit.join('\n');
   },
 
-  postJSON: function(report,endpoint){
-    console.log('postJSON----');
+  postJSON: function(report, endpoint){
+
     var reportEndpoint = WebPage.create();
+
     var settings = {
       operation: "POST",
       encoding: "utf8",
@@ -915,12 +920,36 @@ var speedgun = {
       data: {}
     };
 
+
     settings.data[args[4]] = report;
+    speedgun.postData(reportEndpoint,settings,endpoint);
+
+  },
+  postIMAGE: function(base64, endpoint){
+
+
+    var imageEndpoint = WebPage.create();
+
+    var settings = {
+      operation: "POST",
+      encoding: "utf8",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      data: {}
+    };
+
+    settings.data[args[4]] = base64;
+    speedgun.postData(imageEndpoint,settings,endpoint);
+
+  },
+
+  postData: function(pageInstance, settings, endpoint){
 
     settings.data = JSON.stringify(settings.data);
 
-    reportEndpoint.open(endpoint, settings, function(status) {
-      console.log('open----')
+    pageInstance.open(endpoint, settings, function(status) {
+      console.log('open----',endpoint);
       if (status !== 'success') {
         console.log('Unable to post!');
       } else {
@@ -930,15 +959,13 @@ var speedgun = {
 
     });
 
-    reportEndpoint.onLoadFinished = function (status) {
-
+    pageInstance.onLoadFinished = function (status) {
       setTimeout(function () {
-        console.log('**********onLoadFinished: ' + status);
-
+        console.log('**********onLoadFinished: ', pageInstance, status);
       }, 1);
     };
 
-    reportEndpoint.onConsoleMessage = function(msg, lineNum, sourceId) {
+    pageInstance.onConsoleMessage = function(msg, lineNum, sourceId) {
       console.log('CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")');
     };
   },

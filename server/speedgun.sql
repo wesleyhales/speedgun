@@ -6,3 +6,10 @@ CREATE TABLE jsontest (
   id serial primary key,
   data jsonb
 );
+
+CREATE TABLE imagetest (
+  id serial primary key,
+  data jsonb
+);
+
+insert into imagetest (data) VALUES ('1'),('2'),('3'),('4'),('5');

@@ -20,3 +20,7 @@
 
 ###Docker no sudo
 sudo chmod +s /usr/bin/docker
+
+###psql
+docker exec -ti sg-server-name /bin/bash
+psql -h ${SPN_PORT_5432_TCP_ADDR} -p 5432 -U postgres

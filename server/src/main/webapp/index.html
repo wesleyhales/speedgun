@@ -84,6 +84,18 @@
         </h3>
     </md-card>
 
+
+    <md-card class="header">
+        <h3 class="subheader">
+            Screenshots
+            <ul>
+                <li ng-repeat="shot in screenshots">
+                    {{shot}}
+                </li>
+            </ul>
+        </h3>
+    </md-card>
+
     <div layout-sm="column">
         <card data="speedgun" property="pageLoadTime" suffix="ms"></card>
         <card data="speedgun" property="perceivedLoadTime" suffix="ms"></card>
