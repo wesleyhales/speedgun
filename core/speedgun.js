@@ -633,7 +633,7 @@ var speedgun = {
           if(args[4]){
             //write it once
             console.log('Rendering Screenshot to base64');
-            base64 = page.renderBase64('PNG');
+            base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
           }else{
             //if not running on the server, create a special folder and render screenshot
             //TODO - move this down to printReport

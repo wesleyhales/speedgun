@@ -111,7 +111,6 @@ angular.module('app', [
         $scope.speedgun = data;
 
         api.imageData(uuid).then(function(initResponse){
-          console.log('base64: ',initResponse);
           $scope.screenshots = initResponse;
         });
       };
