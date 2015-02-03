@@ -7,74 +7,72 @@ var host = '';
 angular.module('app', [
   'ngMaterial',
   'ngRoute'
-])
-  /*.config([
-   '$routeProvider',
-   '$locationProvider', function ($routeProvider, $locationProvider) {
-   $routeProvider
-   .when('/uuid/:uuid', {templateUrl: 'index2.html'})
-   .otherwise({redirectTo: '/'});
-
-   $locationProvider
-   .html5Mode(false);
-
-   }])*/.service('api', ['$q', '$http', '$timeout', function ($q, $http, $timeout) {
-    var numReports = 5, retryDelay = 2500;
-    this.go = function(url, email, cached){
-      //http://localhost:8081/rest/performance/go?url=http%3A%2F%2Fgoogle.com&cached=false&email=
-      //console.log('go',url, email, cached)
-      var config = {
-        params : {
-          url : url,
-          cached : !!cached,
-          email : email || ''
-        }
-      };
-      return $http.get(host + '/rest/performance/go', config);
-      //return $q.when(mockinit);
+]).service('api', ['$q', '$http', '$timeout', function ($q, $http, $timeout) {
+  var numReports = 5, retryDelay = 2500;
+  this.go = function(url, email, cached){
+    //http://localhost:8081/rest/performance/go?url=http%3A%2F%2Fgoogle.com&cached=false&email=
+    //console.log('go',url, email, cached)
+    var config = {
+      params : {
+        url : url,
+        cached : !!cached,
+        email : email || ''
+      }
     };
-    this.get = function (uuid) {
+    return $http.get(host + '/rest/performance/go', config);
+    //return $q.when(mockinit);
+  };
+  this.imageData = function(uuid){
+    var base64url = host + '/rest/performance/checkimage';
+    var config = {
+      params : {
+        uuid : uuid
+      }
+    };
+    return $http.get(base64url, config);
+  };
+  this.get = function (uuid) {
 //        if (!uuid) return $q.when(speedgun);
 //      http://127.0.0.1:8080/rest/performance/checkimage?uuid=586930c7-5cc3-46a5-9802-fbd36ff05c1a
-      var url = host + '/rest/performance/report';
+    var url = host + '/rest/performance/report';
 
-      var config = {
-        params : {
-          uuid : uuid
-        }
-      };
-
-      var deferred = $q.defer();
-      var data = [];
-
-      var loop = function (){
-        var request = $http.get(url, config);
-        var retryLoop = $timeout(loop, retryDelay);
-
-        request.then(function(res){
-
-          data = res.data instanceof Array ? res.data : [res.data];
-
-          if (data.length >= numReports){
-            $timeout.cancel(retryLoop);
-            return deferred.resolve(data);
-          }
-
-          deferred.notify(data);
-
-        },function(err){
-          console.log('err', err);
-          $timeout.cancel(retryLoop);
-          return;
-        });
-
-      };
-
-      loop();
-
-      return deferred.promise;
+    var config = {
+      params : {
+        uuid : uuid
+      }
     };
-  }])
+
+    var deferred = $q.defer();
+    var data = [];
+
+    var loop = function (){
+      var request = $http.get(url, config);
+      var retryLoop = $timeout(loop, retryDelay);
+
+      request.then(function(res){
+
+        data = res.data instanceof Array ? res.data : [res.data];
+
+        if (data.length >= numReports){
+          $timeout.cancel(retryLoop);
+          return deferred.resolve(data);
+        }
+
+        deferred.notify(data);
+
+      },function(err){
+        console.log('err', err);
+        $timeout.cancel(retryLoop);
+        return;
+      });
+
+    };
+
+    loop();
+
+    return deferred.promise;
+  };
+}])
   .controller('MainCtrl', ['$scope', 'api', '$routeParams', '$location', function ($scope, api, $routeParams, $location) {
 //    $scope.url = 'localhost:8080';
 
@@ -96,6 +94,7 @@ angular.module('app', [
     function loadTheGun(uuid){
       $scope.uuid = uuid;
       $scope.running = true;
+      $scope.screenshots = [{'2':'1'}];
 //      animate();
       var done = function(data){
         $scope.running = false;
@@ -110,25 +109,11 @@ angular.module('app', [
         $scope.running = true;
         console.log('progress',data);
         $scope.speedgun = data;
-        if(data.length > 0){
-          var base64url = host + '/rest/performance/checkimage';
-          var config = {
-            params : {
-              uuid : $scope.uuid
-            }
-          };
-          var request = $http.get(base64url, config);
 
-          request.then(function(res){
-
-            console.log('base64',res);
-
-          },function(err){
-            console.log('err', err);
-
-          });
-
-        }
+        api.imageData(uuid).then(function(initResponse){
+          console.log('base64: ',initResponse);
+          $scope.screenshots = initResponse;
+        });
       };
 
       api.get(uuid).then(done, error, progress);

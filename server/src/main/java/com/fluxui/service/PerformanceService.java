@@ -74,10 +74,6 @@ public class PerformanceService implements Serializable {
 
     JsonObject jsonReport = readJSON(base64);
 
-    if(jsonReport.containsKey("base64")){
-      log.info("---base64 yo");
-    }
-
     JsonObject object = null;
     try {
       object = readJSON(base64);
@@ -231,7 +227,7 @@ public class PerformanceService implements Serializable {
 
     try {
       java.sql.Connection con = postgresService.usePostgresDS();
-      String query = "SELECT * FROM imagetest WHERE data -> ? > '1'";
+      String query = "SELECT * FROM imagetest WHERE data ->> ? > '1'";
 
       if(con != null){
         PreparedStatement statement = con.prepareStatement(query);
@@ -249,7 +245,7 @@ public class PerformanceService implements Serializable {
           }
 
           all += "]";
-          System.out.println("JSON base 64 all::::::::" + all);
+
         } catch (SQLException e) {
           e.printStackTrace();
         }
@@ -310,7 +306,7 @@ public class PerformanceService implements Serializable {
           }
 
           all += "]";
-          System.out.println("JSON all::::::::" + all);
+
         } catch (SQLException e) {
           e.printStackTrace();
         }
