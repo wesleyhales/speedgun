@@ -162,16 +162,17 @@ var speedgun = {
 
     onLoadFinished: function (page, config) {
 
-      var size = 0, key, slowest, fastest, totalDuration = 0,
+      var size = 0, key, resources, slowest, fastest, totalDuration = 0,
           largest, smallest, totalSize = 0,
           missingList = [],
           missingSize = false;
 
       if(speedgun.reportData.resources) {
         resources = speedgun.reportData.resources.value;
+      }
 
-        for (var resource in resources) {
-          resource = resources[resource];
+      for(var resource in resources){
+        resource = resources[resource];
 
 //        if (resources.hasOwnProperty(resource)) {
           if (!resource.times.start || !resource.times.end) {
@@ -203,14 +204,13 @@ var speedgun = {
             missingList.push(resource.url);
           }
 //        }
-        }
-        ;
+      };
 
-        speedgun.reportData.resourceSingleSmallest.value = smallest;
-        speedgun.reportData.resourceSingleLargest.value = largest;
-        speedgun.reportData.resourceSingleFastest.value = fastest;
-        speedgun.reportData.resourceSingleSlowest.value = slowest;
-      }
+      speedgun.reportData.resourceSingleSmallest.value = smallest;
+      speedgun.reportData.resourceSingleLargest.value = largest;
+      speedgun.reportData.resourceSingleFastest.value = fastest;
+      speedgun.reportData.resourceSingleSlowest.value = slowest;
+
 
       page.evaluate(function (perfObj) {
 
