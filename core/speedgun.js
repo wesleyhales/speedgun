@@ -162,7 +162,7 @@ var speedgun = {
 
     onLoadFinished: function (page, config) {
 
-      var size = 0, key, resources, slowest, fastest, totalDuration = 0,
+      var size = 0, key, resources = [], slowest, fastest, totalDuration = 0,
           largest, smallest, totalSize = 0,
           missingList = [],
           missingSize = false;
@@ -305,7 +305,7 @@ var speedgun = {
     },
 
     onLoadStarted: function (page, config) {
-      console.log('###### onLoadStarted');
+      console.log('###### onLoadStarted ' + page.url);
     },
 
     onNavigationRequested: function(page, config, url, type, willNavigate, main) {
@@ -337,11 +337,11 @@ var speedgun = {
     },
 
     onPageCreated: function (page, config) {
-      console.log('###### onPageCreated');
+      console.log('###### onPageCreated ' + page.url);
     },
 
     onInitialized: function (page) {
-      console.log('###### onInitialized');
+      console.log('###### onInitialized ' + page.url);
 
       if(Object.keys(speedgun.reportData).length === 0){
         //init report
@@ -594,7 +594,7 @@ var speedgun = {
 
   load: function (config, task, scope) {
     var page = WebPage.create(),
-        pagetemp = WebPage.create(),
+//        pagetemp = WebPage.create(),
         event;
 
     if (config.userAgent && config.userAgent != "default") {
@@ -603,18 +603,23 @@ var speedgun = {
       }
       page.settings.userAgent = config.userAgent;
     }
+
+    var allEvents =
     ['onInitialized',
       'onLoadStarted',
       'onLoadFinished',
       'onNavigationRequested',
       'onPageCreated',
       'onResourceRequested',
-      'onResourceReceived']
-      .forEach(function (event) {
+      'onResourceReceived'];
+
+      console.log(':::::::::::calling entrypoint: load');
+      allEvents.forEach(function (event) {
         if (task[event]) {
+          console.log(':::::::::::assign ', task, event);
           page[event] = function () {
-            var args = [page, config],
-              a, aL;
+
+            var args = [page, config],a, aL;
             for (a = 0, aL = arguments.length; a < aL; a++) {
               args.push(arguments[a]);
             }
@@ -642,7 +647,7 @@ var speedgun = {
             //if not running on the server, create a special folder and render screenshot
             //TODO - move this down to printReport
             reportLocation = speedgun.reportData.url.value.replace('://','_').replace(":", "_") + '/';
-            console.log('Rendering Screenshot to','reports/' + reportLocation + speedgun.reportData.screenshot.value)
+            console.log('Rendering Screenshot to','reports/' + reportLocation + speedgun.reportData.screenshot.value);
             page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
           }
 
@@ -658,7 +663,7 @@ var speedgun = {
           printReport(speedgun.reportData,base64);
 
 
-        }, 10);
+        }, 100);
       };
     } else {
       page.onLoadFinished = function (status) {
@@ -667,6 +672,7 @@ var speedgun = {
     }
 
     function printReport(report,base64) {
+      console.log('print report running');
 
       var reportLocation = '/speedgun';
       if(!args[4]){
@@ -691,7 +697,9 @@ var speedgun = {
       if (args.indexOf('post') >= 0) {
         speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData');
         speedgun.postIMAGE(base64, 'http://127.0.0.1:8080/rest/performance/imageData');
+//        page.close();
         setTimeout('phantom.exit(0)',1000);
+
       }
 
     }
@@ -719,14 +727,14 @@ var speedgun = {
 
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.webSecurityEnabled = false;
-
     page.onConsoleMessage = function (msg) {
 
       var error = false,
           incoming = msg;
 
       //debug dump
-//      console.log('console',msg);
+//      console.log('console: ',msg.substring(0,50));
+
 
       if (msg.indexOf('error:') >= 0) {
         speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length, msg.length)));
@@ -738,10 +746,11 @@ var speedgun = {
 
         try{
           incoming = JSON.parse(incoming);
+
         }catch(e){
           //if being logged with no format, assume error
           msg = msg.replace('\n','');
-          msg = msg.replace(',','&#044;')
+          msg = msg.replace(',','&#044;');
           incoming = speedgun.reportData.errors.value.push(encodeURIComponent(msg));
         }
       }
@@ -912,10 +921,8 @@ var speedgun = {
   },
 
   postJSON: function(report, endpoint){
-
-    var reportEndpoint = WebPage.create();
-
-    var settings = {
+    var reportEndpoint = WebPage.create(),
+    settings = {
       operation: "POST",
       encoding: "utf8",
       headers: {
@@ -924,17 +931,14 @@ var speedgun = {
       data: {}
     };
 
-
     settings.data[args[4]] = report;
     speedgun.postData(reportEndpoint,settings,endpoint);
-
+//    reportEndpoint.close();
+   // setTimeout('phantom.exit(0)',2000);
   },
   postIMAGE: function(base64, endpoint){
-
-
-    var imageEndpoint = WebPage.create();
-
-    var settings = {
+    var imageEndpoint = WebPage.create(),
+    settings = {
       operation: "POST",
       encoding: "utf8",
       headers: {
@@ -945,7 +949,8 @@ var speedgun = {
 
     settings.data[args[4]] = base64;
     speedgun.postData(imageEndpoint,settings,endpoint);
-
+//    imageEndpoint.close()
+   // setTimeout('phantom.exit(0)',2000);
   },
 
   postData: function(pageInstance, settings, endpoint){
@@ -953,24 +958,29 @@ var speedgun = {
     settings.data = JSON.stringify(settings.data);
 
     pageInstance.open(endpoint, settings, function(status) {
-      console.log('open----',endpoint);
+      console.log('attempting to POST: ' + settings.data.substring(0,50));
       if (status !== 'success') {
         console.log('Unable to post!');
       } else {
-        console.log(page.plainText);
+        console.log('Post data success for:' + endpoint);
       }
-      phantom.exit();
+//      phantom.exit(0);
+
 
     });
 
+    pageInstance.onLoadStarted = function (status) {
+      console.log('[debug] onLoadStarted postData:', status);
+    };
+
     pageInstance.onLoadFinished = function (status) {
       setTimeout(function () {
-        console.log('**********onLoadFinished: ', pageInstance, status);
+        console.log('[debug] onLoadFinished postData: ', status);
       }, 1);
     };
 
     pageInstance.onConsoleMessage = function(msg, lineNum, sourceId) {
-      console.log('CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")');
+      console.log('[debug] postData CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")');
     };
   },
 
