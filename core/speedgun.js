@@ -1,8 +1,9 @@
 #!/usr/bin/env phantomjs
 var fs = require('fs'),
     WebPage = require('webpage'),
-    system = require('system');
-    args = system.args;
+    system = require('system'),
+    args = system.args,
+    pageInstance = WebPage.create();
 
 var speedgun = {
 
@@ -309,7 +310,7 @@ var speedgun = {
     },
 
     onNavigationRequested: function(page, config, url, type, willNavigate, main) {
-
+//      console.log('###### onNavigationRequested ', page.url);
       if(Object.keys(speedgun.reportData).length === 0){
         //init report
         speedgun.reportData = speedgun.performance.perfObj.data(false);
@@ -593,15 +594,33 @@ var speedgun = {
   },
 
   load: function (config, task, scope) {
-    var page = WebPage.create(),
-//        pagetemp = WebPage.create(),
-        event;
+
+    var page = WebPage.create();
+    page.settings.localToRemoteUrlAccessEnabled = true;
+    page.settings.webSecurityEnabled = false;
 
     if (config.userAgent && config.userAgent != "default") {
       if (config.userAgentAliases[config.userAgent]) {
         config.userAgent = config.userAgentAliases[config.userAgent];
       }
       page.settings.userAgent = config.userAgent;
+    }
+
+    function doPageLoad() {
+      setTimeout(function () {
+        page.open(config.url);
+      }, config.cacheWait);
+    }
+
+    if (config.task == 'performancecache') {
+      pagetemp.open(config.url, function (status) {
+        if (status === 'success') {
+          pagetemp.release();
+          doPageLoad();
+        }
+      });
+    } else {
+      doPageLoad();
     }
 
     var allEvents =
@@ -629,112 +648,13 @@ var speedgun = {
         }
       });
 
-    if (task.onLoadFinished) {
-      page.onLoadFinished = function (status) {
-      var base64 = null;
-        //need to timeout and wait for loadEventEnd
-        setTimeout(function () {
-          task.onLoadFinished.call(scope, page, config, status);
-          speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
-          page.viewportSize = { width: 1024, height: 768 };
-          var reportLocation = '';
-
-          if(args[4]){
-            //write it once
-            console.log('Rendering Screenshot to base64');
-            base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
-          }else{
-            //if not running on the server, create a special folder and render screenshot
-            //TODO - move this down to printReport
-            reportLocation = speedgun.reportData.url.value.replace('://','_').replace(":", "_") + '/';
-            console.log('Rendering Screenshot to','reports/' + reportLocation + speedgun.reportData.screenshot.value);
-            page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
-          }
-
-          //grand finale for the report. need a better final method that cleans up and
-          //decides which data to filter on.
-
-          //simple filter for detailed reporting
-          if(args.indexOf('detailed') <= 0){
-            delete speedgun.reportData.resources;
-          }
-
-          //let printReport handle the exit due to post option
-          printReport(speedgun.reportData,base64);
-
-
-        }, 100);
-      };
-    } else {
-      page.onLoadFinished = function (status) {
-        exit();
-      };
-    }
-
-    function printReport(report,base64) {
-      console.log('print report running');
-
-      var reportLocation = '/speedgun';
-      if(!args[4]){
-        reportLocation = speedgun.reportData.url.value.replace('://','_').replace(":", "_") + '/speedgun';
-      }
-
-      if (args.indexOf('csv') >= 0) {
-        speedgun.printToFile(report, reportLocation, 'csv', args.indexOf('wipe') >= 0);
-        exit();
-      }
-
-      if (args.indexOf('json') >= 0) {
-        speedgun.printToFile(report, reportLocation, 'json', args.indexOf('wipe') >= 0);
-        exit();
-      }
-
-      if (args.indexOf('junit') >= 0) {
-        speedgun.printToFile(report, reportLocation, 'xml', args.indexOf('wipe') >= 0);
-        exit();
-      }
-
-      if (args.indexOf('post') >= 0) {
-        speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData');
-        speedgun.postIMAGE(base64, 'http://127.0.0.1:8080/rest/performance/imageData');
-//        page.close();
-        setTimeout('phantom.exit(0)',1000);
-
-      }
-
-    }
-
-    function exit() {
-      phantom.exit(0);
-    }
-
-    function doPageLoad() {
-      setTimeout(function () {
-        page.open(config.url);
-      }, config.cacheWait);
-    }
-
-    if (config.task == 'performancecache') {
-      pagetemp.open(config.url, function (status) {
-        if (status === 'success') {
-          pagetemp.release();
-          doPageLoad();
-        }
-      });
-    } else {
-      doPageLoad();
-    }
-
-    page.settings.localToRemoteUrlAccessEnabled = true;
-    page.settings.webSecurityEnabled = false;
     page.onConsoleMessage = function (msg) {
 
       var error = false,
-          incoming = msg;
+        incoming = msg;
 
       //debug dump
 //      console.log('console: ',msg.substring(0,50));
-
 
       if (msg.indexOf('error:') >= 0) {
         speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length, msg.length)));
@@ -768,6 +688,80 @@ var speedgun = {
         speedgun.reportData.errors.value.push(encodeURIComponent(msg + ':' + item.file + ':' + item.line));
       })
     };
+
+    if (task.onLoadFinished) {
+      page.onLoadFinished = function (status) {
+      task.onLoadFinished.call(scope, page, config, status);
+
+//        setTimeout(function () {
+          //grand finale for the report. need a better final method that cleans up and
+          //decides which data to filter on.
+
+          //simple filter for detailed reporting
+          if(args.indexOf('detailed') <= 0){
+            delete speedgun.reportData.resources;
+          }
+
+          //let printReport handle the exit due to post option
+          var exit1 = function(param){
+            console.log('!!exit phantom!!');
+            phantom.exit(0);
+          };
+          printReport(speedgun.reportData,exit1);
+
+//        }, 1);
+      };
+    } else {
+      page.onLoadFinished = function (status) {
+        phantom.exit(0);
+      };
+    }
+
+    function printReport(report,exitphantom) {
+      console.log('Print report running with timestamp: ',speedgun.reportData.screenshot.value);
+      //setup screenshot
+      var reportLocation = '';
+      speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
+      page.viewportSize = { width: 1024, height: 768 };
+
+      //todo rework this part - need a better cli with legit args
+      if(!args[4]) {
+        reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/';
+        console.log('Rendering Screenshot to', 'reports/' + reportLocation + speedgun.reportData.screenshot.value);
+        page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
+        reportLocation += 'speedgun';
+
+        if (args.indexOf('csv') >= 0) {
+          console.log('filename', reportLocation);
+          speedgun.printToFile(report, reportLocation, 'csv', args.indexOf('wipe') >= 0, exitphantom);
+        }
+
+        if (args.indexOf('json') >= 0) {
+          speedgun.printToFile(report, reportLocation, 'json', args.indexOf('wipe') >= 0, exitphantom);
+        }
+
+        if (args.indexOf('junit') >= 0) {
+          speedgun.printToFile(report, reportLocation, 'xml', args.indexOf('wipe') >= 0, exitphantom);
+        }
+
+      }
+
+      if (args.indexOf('post') >= 0) {
+
+        var postImage = function(){
+          var base64 = null;
+          console.log('Rendering Screenshot to base64');
+          base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
+          speedgun.postIMAGE(base64, 'http://127.0.0.1:8080/rest/performance/imageData',exitphantom);
+        };
+
+        speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData',postImage);
+
+
+
+      }
+
+    }
 
   },
 
@@ -920,9 +914,9 @@ var speedgun = {
     return junit.join('\n');
   },
 
-  postJSON: function(report, endpoint){
-    var reportEndpoint = WebPage.create(),
-    settings = {
+  postJSON: function(report, endpoint, postImage){
+
+    var settings = {
       operation: "POST",
       encoding: "utf8",
       headers: {
@@ -932,13 +926,12 @@ var speedgun = {
     };
 
     settings.data[args[4]] = report;
-    speedgun.postData(reportEndpoint,settings,endpoint);
-//    reportEndpoint.close();
-   // setTimeout('phantom.exit(0)',2000);
+    speedgun.postData(settings,endpoint,postImage);
+
   },
-  postIMAGE: function(base64, endpoint){
-    var imageEndpoint = WebPage.create(),
-    settings = {
+  postIMAGE: function(base64, endpoint, exitphantom){
+
+    var settings = {
       operation: "POST",
       encoding: "utf8",
       headers: {
@@ -948,43 +941,46 @@ var speedgun = {
     };
 
     settings.data[args[4]] = base64;
-    speedgun.postData(imageEndpoint,settings,endpoint);
-//    imageEndpoint.close()
-   // setTimeout('phantom.exit(0)',2000);
+    speedgun.postData(settings,endpoint, exitphantom);
   },
 
-  postData: function(pageInstance, settings, endpoint){
+  postData: function(settings, endpoint, exitphantom){
+    console.log('settings.data length',endpoint, Object.keys(settings.data).length > 0);
 
-    settings.data = JSON.stringify(settings.data);
+    if(settings.data && Object.keys(settings.data).length > 0) {
+      console.log('settings.data',settings.data);
+      settings.data = JSON.stringify(settings.data);
 
-    pageInstance.open(endpoint, settings, function(status) {
-      console.log('attempting to POST: ' + settings.data.substring(0,50));
-      if (status !== 'success') {
-        console.log('Unable to post!');
-      } else {
-        console.log('Post data success for:' + endpoint);
-      }
-//      phantom.exit(0);
+      pageInstance.open(endpoint, settings, function (status) {
+        console.log('attempting to POST: ' + settings.data.substring(0, 50));
+        if (status !== 'success') {
+          console.log('Unable to post!',status);
+        } else {
+          console.log('Post data success for:' + endpoint);
+        }
+        console.log('!!!!!!!!!!!!!!!!!!!');
+        exitphantom();
+      });
 
 
-    });
+      pageInstance.onLoadStarted = function (status) {
+        console.log('[debug] onLoadStarted postData:', status);
+      };
 
-    pageInstance.onLoadStarted = function (status) {
-      console.log('[debug] onLoadStarted postData:', status);
-    };
+      pageInstance.onLoadFinished = function (status) {
+        setTimeout(function () {
+          console.log('[debug] onLoadFinished postData: ', status);
+        }, 1);
+      };
 
-    pageInstance.onLoadFinished = function (status) {
-      setTimeout(function () {
-        console.log('[debug] onLoadFinished postData: ', status);
-      }, 1);
-    };
+      pageInstance.onConsoleMessage = function (msg, lineNum, sourceId) {
+        console.log('[debug] postData CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")');
+      };
 
-    pageInstance.onConsoleMessage = function(msg, lineNum, sourceId) {
-      console.log('[debug] postData CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")');
-    };
+    }
   },
 
-  printToFile: function (report, filename, extension, createNew) {
+  printToFile: function (report, filename, extension, createNew, exitphantom) {
     var f,
         myfile,
         keys = [],
@@ -1078,6 +1074,7 @@ var speedgun = {
         console.log("problem writing to file", e);
       }
     }
+    exitphantom();
   }
 
 };
