@@ -598,6 +598,7 @@ var speedgun = {
     var page = WebPage.create();
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.webSecurityEnabled = false;
+//    page.clearMemoryCache();
 
     if (config.userAgent && config.userAgent != "default") {
       if (config.userAgentAliases[config.userAgent]) {
@@ -689,11 +690,31 @@ var speedgun = {
       })
     };
 
+    var phantomExit = function(param){
+      console.log('!!exit phantom!!');
+      phantom.exit(0);
+    };
+
+    var onLoadStarted = 'invalid';
+
+    if(task.onLoadStarted){
+      page.onLoadStarted = function (status) {
+        task.onLoadStarted.call(scope, page, config, status);
+        if(onLoadStarted === 'invalid'){
+          onLoadStarted = true;
+        }
+
+      }
+    }
+
     if (task.onLoadFinished) {
       page.onLoadFinished = function (status) {
       task.onLoadFinished.call(scope, page, config, status);
 
-//        setTimeout(function () {
+        //for some reason, on large sites like cnn.com, this event gets called multiple times.
+        //todo - file issue
+        if(onLoadStarted){
+          onLoadStarted = false;
           //grand finale for the report. need a better final method that cleans up and
           //decides which data to filter on.
 
@@ -702,22 +723,21 @@ var speedgun = {
             delete speedgun.reportData.resources;
           }
 
-          //let printReport handle the exit due to post option
-          var exit1 = function(param){
-            console.log('!!exit phantom!!');
-            phantom.exit(0);
-          };
-          printReport(speedgun.reportData,exit1);
+          printReport(speedgun.reportData,phantomExit);
 
-//        }, 1);
+        }
+
       };
     } else {
       page.onLoadFinished = function (status) {
-        phantom.exit(0);
+        phantomExit();
       };
     }
 
+
+
     function printReport(report,exitphantom) {
+
       console.log('Print report running with timestamp: ',speedgun.reportData.screenshot.value);
       //setup screenshot
       var reportLocation = '';
@@ -958,7 +978,6 @@ var speedgun = {
         } else {
           console.log('Post data success for:' + endpoint);
         }
-        console.log('!!!!!!!!!!!!!!!!!!!');
         exitphantom();
       });
 

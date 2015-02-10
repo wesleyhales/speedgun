@@ -69,10 +69,14 @@ public class PerformanceService implements Serializable {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response imageData(String base64) {
+
+//    log.info("-----posting Image data: " + base64);
+
+
     Response.ResponseBuilder builder = null;
     Map<String, String> responseObj = new HashMap<String, String>();
 
-    JsonObject jsonReport = readJSON(base64);
+  if(!base64.isEmpty()) {
 
     JsonObject object = null;
     try {
@@ -99,6 +103,7 @@ public class PerformanceService implements Serializable {
     } catch (SQLException e) {
       e.printStackTrace();
     }
+  }
 
     builder = Response.ok();
     return builder.build();
@@ -109,6 +114,7 @@ public class PerformanceService implements Serializable {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response reportData(String report) {
+//    log.info("-----posting report data: " + report);
     Response.ResponseBuilder builder = null;
     Map<String, String> responseObj = new HashMap<String, String>();
 
@@ -117,29 +123,31 @@ public class PerformanceService implements Serializable {
 //      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
 //      return builder.build();
 //    }
-    JsonObject jsonReport = readJSON(report);
 
-    JsonObject object = null;
-    try {
-      object = readJSON(report);
-    } catch (Exception e) {
-      e.printStackTrace();
-      responseObj.put("error", "failure parsing JSON");
-      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
-      return builder.build();
-    }
+    if(!report.isEmpty()) {
 
-    try {
-      java.sql.Connection con = postgresService.usePostgresDS();
-      String query = "INSERT INTO jsontest (data) VALUES (?::jsonb);";
-      PreparedStatement statement = con.prepareStatement(query);
-      statement.setString(1, object.toString());
+      JsonObject object = null;
+      try {
+        object = readJSON(report);
+      } catch (Exception e) {
+        e.printStackTrace();
+        responseObj.put("error", "failure parsing JSON");
+        builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
+        return builder.build();
+      }
 
-      statement.executeUpdate();
-      statement.close();
+      try {
+        java.sql.Connection con = postgresService.usePostgresDS();
+        String query = "INSERT INTO jsontest (data) VALUES (?::jsonb);";
+        PreparedStatement statement = con.prepareStatement(query);
+        statement.setString(1, object.toString());
 
-    } catch (SQLException e) {
-      e.printStackTrace();
+        statement.executeUpdate();
+        statement.close();
+
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
     }
 
     builder = Response.ok();
@@ -214,7 +222,7 @@ public class PerformanceService implements Serializable {
 
     Response.ResponseBuilder builder = null;
     Map<String, String> responseObj = new HashMap<String, String>();
-    System.out.println("---------uuid base64--" + uuid);
+//    System.out.println("---------uuid base64--" + uuid);
     String all = "";
 
     if(uuid == null || uuid == "null"){

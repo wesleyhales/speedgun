@@ -4,7 +4,8 @@ CREATE DATABASE SPEEDGUN;
 
 CREATE TABLE jsontest (
   id serial primary key,
-  data jsonb
+  data jsonb,
+  email citext unique
 );
 
 CREATE TABLE imagetest (
