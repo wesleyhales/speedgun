@@ -3,37 +3,53 @@ var fs = require('fs'),
     WebPage = require('webpage'),
     system = require('system'),
     args = system.args,
-    pageInstance = WebPage.create();
+    speedGunArgs = {
+        task: 'performance',
+        format: 'simple',
+        output: 'json',
+        userAgent: 'chrome',
+        configFile: 'config.json'
+    },
+    unaryArgs = {
+        help: false,
+        version: false,
+        verbose: false,
+        wipe: false,
+        postReport: false,
+        phantomCacheEnabled: false
+    },
+    validValues =  {
+      task: ['performance'],
+      format: ['detailed','simple'],
+      output: ['json','csv','junit']
+    }
+    argsAlias = {
+       t: 'task',
+       f: 'format',
+       o: 'output',
+       h: 'help',
+       v: 'version',
+       ua: 'userAgent'
+   },
+  pageInstance = WebPage.create();
 
 var speedgun = {
 
   run: function () {
-    var cliConfig = {};
-    speedgun.performancecache = this.clone(speedgun.performance);
-    if (!this.processArgs(cliConfig, [
-      {
-        name: 'url',
-        def: 'http://google.com',
-        req: true,
-        desc: 'the URL of the site to load test'
-      },
-      {
-        name: 'task',
-        def: 'performance',
-        req: false,
-        desc: 'the task to perform',
-        oneof: ['performance', 'navigation', 'performance_old', 'performancecache', 'filmstrip']
-      },
-      {
-        name: 'configFile',
-        def: 'config.json',
-        req: false,
-        desc: 'a local configuration file of further speedgun settings'
-      }
-    ])) {
-      return;
+
+    this.setupArgs();
+    // validate
+    this.validateArgs();
+
+    if (speedGunArgs.help) {
+      this.printHelp();
+      phantom.exit();
     }
-    this.config = this.mergeConfig(cliConfig, cliConfig.configFile);
+
+    speedgun.performancecache = this.clone(speedgun.performance);
+
+    this.config = this.mergeConfig(speedGunArgs, speedGunArgs.configFile);
+
     var task = this[this.config.task];
     this.load(this.config, task, this);
   },
@@ -46,7 +62,7 @@ var speedgun = {
 
         var report = {};
 
-        report.url = {label: 'URL', value: args[1], index: 32};
+        report.url = {label: 'URL', value: speedGunArgs.url, index: 32};
 
         report.screenshot = {label: 'Screenshot', value: '', index: 33};
 
@@ -520,8 +536,8 @@ var speedgun = {
       }
 
       var report = {};
-      report.url = args[1];
-      report.phantomCacheEnabled = args.indexOf('yes') >= 0 ? 'yes' : 'no';
+      report.url = speedGunArgs.url;
+      report.phantomCacheEnabled = speedGunArgs.phantomCacheEnabled;
       report.taskName = config.task;
       var drsi = parseInt(this.performance_old.evalConsole.interactive);
       var drsl = parseInt(this.performance_old.evalConsole.loading);
@@ -744,29 +760,27 @@ var speedgun = {
       speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
       page.viewportSize = { width: 1024, height: 768 };
 
-      //todo rework this part - need a better cli with legit args
-      if(!args[4]) {
-        reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/';
+      reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/';
         console.log('Rendering Screenshot to', 'reports/' + reportLocation + speedgun.reportData.screenshot.value);
         page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
         reportLocation += 'speedgun';
 
-        if (args.indexOf('csv') >= 0) {
+        if (speedGunArgs.output === 'csv') {
           console.log('filename', reportLocation);
-          speedgun.printToFile(report, reportLocation, 'csv', args.indexOf('wipe') >= 0, exitphantom);
+          speedgun.printToFile(report, reportLocation, 'csv', speedGunArgs.wipe, exitphantom);
         }
 
-        if (args.indexOf('json') >= 0) {
-          speedgun.printToFile(report, reportLocation, 'json', args.indexOf('wipe') >= 0, exitphantom);
+        if (speedGunArgs.output === 'json') {
+          speedgun.printToFile(report, reportLocation, 'json', speedGunArgs.wipe, exitphantom);
         }
 
-        if (args.indexOf('junit') >= 0) {
-          speedgun.printToFile(report, reportLocation, 'xml', args.indexOf('wipe') >= 0, exitphantom);
+        if (speedGunArgs.output === 'junit') {
+          speedgun.printToFile(report, reportLocation, 'xml', speedGunArgs.wipe, exitphantom);
         }
 
       }
 
-      if (args.indexOf('post') >= 0) {
+      if (speedGunArgs.postReport) {
 
         var postImage = function(){
           var base64 = null;
@@ -776,37 +790,7 @@ var speedgun = {
         };
 
         speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData',postImage);
-
-
-
       }
-
-    }
-
-  },
-
-  processArgs: function (config, contract) {
-    var a = 1;
-    var ok = true;
-
-    contract.forEach(function (argument) {
-      if (a < args.length) {
-        config[argument.name] = args[a];
-      } else {
-        if (argument.req) {
-          console.log('"' + argument.name + '" argument is required. This ' + argument.desc + '.');
-          ok = false;
-        } else {
-          config[argument.name] = argument.def;
-        }
-      }
-      if (argument.oneof && argument.oneof.indexOf(config[argument.name]) == -1) {
-        console.log('"' + argument.name + '" argument must be one of: ' + argument.oneof.join(', '));
-        ok = false;
-      }
-      a++;
-    });
-    return ok;
   },
 
   mergeConfig: function (config, configFile) {
@@ -945,7 +929,7 @@ var speedgun = {
       data: {}
     };
 
-    settings.data[args[4]] = report;
+    settings.data[speedGunArgs.output] = report;
     speedgun.postData(settings,endpoint,postImage);
 
   },
@@ -960,7 +944,7 @@ var speedgun = {
       data: {}
     };
 
-    settings.data[args[4]] = base64;
+    settings.data[speedGunArgs.output] = base64;
     speedgun.postData(settings,endpoint, exitphantom);
   },
 
@@ -998,7 +982,6 @@ var speedgun = {
 
     }
   },
-
   printToFile: function (report, filename, extension, createNew, exitphantom) {
     var f,
         myfile,
@@ -1029,10 +1012,11 @@ var speedgun = {
         }
       }
 
-    if (args[4] && args.indexOf('wipe') < 0) {
-      myfile = 'reports/' + filename + '-' + args[4] + '.' + extension;
-    } else {
+    // changed this, we will always output json/csv/etc right?
+    if (speedGunArgs.wipe) {
       myfile = 'reports/' + filename + '.' + extension;
+    } else {
+      myfile = 'reports/' + filename + '-' +speedGunArgs.output + '.' + extension;
     }
 
     console.log('Writing report data to: ',myfile);
@@ -1094,6 +1078,82 @@ var speedgun = {
       }
     }
     exitphantom();
+  },
+  setupArgs: function () {
+
+    // go through the args and create a better
+
+    // lets skip the script name (1)
+    for (i = 1; i < args.length; i += 1) {
+      arg = args[i];
+
+      // special handling for the URL
+      if (arg.charAt(0) !== '-') {
+        speedGunArgs['url'] = arg;
+      }
+
+     // lets remove the starting -
+    arg = arg.replace(/^\-\-?/, '');
+
+    if (speedGunArgs.hasOwnProperty(arg)) {
+        i += 1;
+        speedGunArgs[arg] = args[i];
+    } else if (speedGunArgs.hasOwnProperty(argsAlias[arg])) {
+        i += 1;
+        speedGunArgs[argsAlias[arg]] = args[i];
+    } else if (unaryArgs.hasOwnProperty(arg)) {
+        speedGunArgs[arg] = true;
+    } else if (unaryArgs.hasOwnProperty(argsAlias[arg])) {
+        speedGunArgs[argsAlias[arg]] = true;
+    }
+  }
+
+  // push the unararyArgs that dont exist
+  Object.keys(unaryArgs).forEach(function (arg) {
+    if(!speedGunArgs.hasOwnProperty(arg)) {
+      speedGunArgs[arg] = false;
+    }
+  });
+
+  },
+
+  printHelp: function () {
+    console.log('  Usage: phantomjs --ssl-protocol=any --ignore-ssl-errors=yes core/speedgun.js [options] url');
+    console.log('  Options:');
+    console.log('    -h, --help               This help');
+    console.log('    -t, --task               Choose task (' +  validValues['task'].toString().replace(/,/g,'|') + ') [performance]');
+    console.log('    -f, --format             How much information (' +  validValues['format'].toString().replace(/,/g,'|') +') [simple]');
+    console.log('    -o, --output             Output format ('+  validValues['output'].toString().replace(/,/g,'|') + ') [json]');
+    console.log('    -ua, --userAgent         Set the user agent (chrome|android|iphone) [chrome]');
+    console.log('    -v, --version            Not implemented yet');
+    console.log('    --verbose                Turn on verbose logging');
+    console.log('    --wipe                   @Wesley explain what this does');
+    console.log('    --postReport             Post the report to a server');
+    console.log('    --phantomCacheEnabled    Enable PhantomJS cache');
+    // Lets not talk about the configFile for now
+  },
+
+  validateArgs: function() {
+    var isFailing = false;
+    var self = this;
+
+    Object.keys(validValues).forEach(function(key) {
+      if (validValues[key].indexOf(speedGunArgs[key])<0) {
+        console.log('The ' + key + ' argument ' + speedGunArgs[key] + ' is not a valid value. Need to be one of ' + validValues[key]);
+        self.printHelp();
+        isFailing = true;
+      }
+    });
+
+    if (speedGunArgs.url === undefined) {
+      console.log('You must supply a URL');
+      this.printHelp();
+      isFailing = true;
+    }
+
+    if (isFailing) {
+      phantom.exit();
+    }
   }
 
 };
