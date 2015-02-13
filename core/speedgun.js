@@ -8,20 +8,21 @@ var fs = require('fs'),
         format: 'simple',
         output: 'json',
         userAgent: 'chrome',
-        configFile: 'config.json'
+        configFile: 'config.json',
+        uuid:    null
     },
     unaryArgs = {
         help: false,
         version: false,
         verbose: false,
+        screenshot: false,
         wipe: false,
-        postReport: false,
         phantomCacheEnabled: false
     },
     validValues =  {
       task: ['performance'],
       format: ['detailed','simple'],
-      output: ['json','csv','junit']
+      output: ['json','csv','junit','post']
     }
     argsAlias = {
        t: 'task',
@@ -29,9 +30,11 @@ var fs = require('fs'),
        o: 'output',
        h: 'help',
        v: 'version',
-       ua: 'userAgent'
+       ua: 'userAgent',
+       u: 'uuid'
    },
   pageInstance = WebPage.create();
+
 
 var speedgun = {
 
@@ -52,6 +55,7 @@ var speedgun = {
 
     var task = this[this.config.task];
     this.load(this.config, task, this);
+
   },
 
   performance: {
@@ -649,10 +653,8 @@ var speedgun = {
       'onResourceRequested',
       'onResourceReceived'];
 
-      console.log(':::::::::::calling entrypoint: load');
       allEvents.forEach(function (event) {
         if (task[event]) {
-          console.log(':::::::::::assign ', task, event);
           page[event] = function () {
 
             var args = [page, config],a, aL;
@@ -750,38 +752,32 @@ var speedgun = {
       };
     }
 
-
-
     function printReport(report,exitphantom) {
 
-      console.log('Print report running with timestamp: ',speedgun.reportData.screenshot.value);
       //setup screenshot
-      var reportLocation = '';
+      var reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/speedgun';
       speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
       page.viewportSize = { width: 1024, height: 768 };
 
-      reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/';
+      if(!speedGunArgs.uuid && speedGunArgs.screenshot){
         console.log('Rendering Screenshot to', 'reports/' + reportLocation + speedgun.reportData.screenshot.value);
         page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
-        reportLocation += 'speedgun';
-
-        if (speedGunArgs.output === 'csv') {
-          console.log('filename', reportLocation);
-          speedgun.printToFile(report, reportLocation, 'csv', speedGunArgs.wipe, exitphantom);
-        }
-
-        if (speedGunArgs.output === 'json') {
-          speedgun.printToFile(report, reportLocation, 'json', speedGunArgs.wipe, exitphantom);
-        }
-
-        if (speedGunArgs.output === 'junit') {
-          speedgun.printToFile(report, reportLocation, 'xml', speedGunArgs.wipe, exitphantom);
-        }
-
       }
 
-      if (speedGunArgs.postReport) {
+      if (speedGunArgs.output === 'csv') {
+        console.log('filename', reportLocation);
+        speedgun.printToFile(report, reportLocation, 'csv', speedGunArgs.wipe, exitphantom);
+      }
 
+      if (speedGunArgs.output === 'json') {
+        speedgun.printToFile(report, reportLocation, 'json', speedGunArgs.wipe, exitphantom);
+      }
+
+      if (speedGunArgs.output === 'junit') {
+        speedgun.printToFile(report, reportLocation, 'xml', speedGunArgs.wipe, exitphantom);
+      }
+
+      if (speedGunArgs.output === 'post') {
         var postImage = function(){
           var base64 = null;
           console.log('Rendering Screenshot to base64');
@@ -791,6 +787,10 @@ var speedgun = {
 
         speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData',postImage);
       }
+
+    }
+
+
   },
 
   mergeConfig: function (config, configFile) {
@@ -929,7 +929,7 @@ var speedgun = {
       data: {}
     };
 
-    settings.data[speedGunArgs.output] = report;
+    settings.data[speedGunArgs.uuid] = report;
     speedgun.postData(settings,endpoint,postImage);
 
   },
@@ -944,12 +944,11 @@ var speedgun = {
       data: {}
     };
 
-    settings.data[speedGunArgs.output] = base64;
+    settings.data[speedGunArgs.uuid] = base64;
     speedgun.postData(settings,endpoint, exitphantom);
   },
 
   postData: function(settings, endpoint, exitphantom){
-    console.log('settings.data length',endpoint, Object.keys(settings.data).length > 0);
 
     if(settings.data && Object.keys(settings.data).length > 0) {
       console.log('settings.data',settings.data);
@@ -1126,9 +1125,9 @@ var speedgun = {
     console.log('    -o, --output             Output format ('+  validValues['output'].toString().replace(/,/g,'|') + ') [json]');
     console.log('    -ua, --userAgent         Set the user agent (chrome|android|iphone) [chrome]');
     console.log('    -v, --version            Not implemented yet');
+    console.log('    -u, --uuid               only used for server side run in speedgun.io');
     console.log('    --verbose                Turn on verbose logging');
-    console.log('    --wipe                   @Wesley explain what this does');
-    console.log('    --postReport             Post the report to a server');
+    console.log('    --wipe                   Wipe the file instead of appending to it on each report');
     console.log('    --phantomCacheEnabled    Enable PhantomJS cache');
     // Lets not talk about the configFile for now
   },
