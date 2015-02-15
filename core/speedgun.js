@@ -618,6 +618,7 @@ var speedgun = {
     var page = WebPage.create();
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.webSecurityEnabled = false;
+
 //    page.clearMemoryCache();
 
     if (config.userAgent && config.userAgent != "default") {
@@ -1117,7 +1118,7 @@ var speedgun = {
   },
 
   printHelp: function () {
-    console.log('  Usage: phantomjs --ssl-protocol=any --ignore-ssl-errors=yes core/speedgun.js [options] url');
+    console.log('  Usage: phantomjs --config=core/pconfig.json core/speedgun.js [options] url');
     console.log('  Options:');
     console.log('    -h, --help               This help');
     console.log('    -t, --task               Choose task (' +  validValues['task'].toString().replace(/,/g,'|') + ') [performance]');

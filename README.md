@@ -5,17 +5,11 @@
 ### npm install -g
 
 #Usage
-`phantomjs --ssl-protocol=any --ignore-ssl-errors=yes core/speedgun.js http://www.google.com performance simple csv`
-`phantomjs --ssl-protocol=any --ignore-ssl-errors=yes core/speedgun.js http://www.speedgun.io performance detailed json`
+`phantomjs --config=core/pconfig.json core/speedgun.js http://www.cnn.com -o csv --screenshot`
+
 
 ## Arguments
-* [0] path to speedgun script ```core/speedgun.js```
-* [1] url to test ```http://www.speedgun.io```
-* [2] ```performance``` or ```performancecache```
- * performancecache was used with phantom 1.x to simulate a cached page. It needs some work for phantom2 so use performance for now.
-* [3] ```simple``` or ```detailed```
- * A simple report only produces the numbers presented on speedgun.io ui. If you want everything use ```detailed``` instead
-* [4] ```csv``` or ```json```
+![readme/speedgun-help.png](readme/speedgun-help.png)
 
 ## License
 

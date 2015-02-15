@@ -11,6 +11,5 @@ var path = require('path');
 (function(exports) {
 
   exports.load_reports = path.resolve(__dirname+"/../")+"/speedgun.js";
-  exports.speedreports = path.resolve(__dirname+"/../")+"/speedreport.js";
 
 }(typeof exports === 'object' && exports || this));
