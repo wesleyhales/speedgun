@@ -2,8 +2,7 @@
 
 0. Install VirtualBox and Vagrant
 1. Run: ```./server.sh```
-2. If vagrant bombs out with this error: "Failed to mount folders in Linux guest. This is usually because the "vboxsf" file system is not available...." then run:
- ```./fix-virtualbox.sh```
+2. If vagrant bombs out with this error: "Failed to mount folders in Linux guest. This is usually because the "vboxsf" file system is not available...." then run: ```./fix-virtualbox.sh```
 3. After build is done, open your browser and go to http://localhost:8081
 
 
