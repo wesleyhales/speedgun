@@ -1,4 +1,4 @@
-##Running server locally using Vagrant
+## Running server locally using Vagrant
 
 0. Install VirtualBox and Vagrant
 1. Run: ```./server.sh```
@@ -7,12 +7,12 @@
 3. After build is done, open your browser and go to http://localhost:8081
 
 
-###Notes
+### Notes
 
 * run -ti === interactive mode, should be -d for prod server
 * --net=host === allows use of host network stack.. otherwise no access
 
-###problems with vagrant:
+### problems with vagrant:
 
 ####ref http://stackoverflow.com/questions/22717428/vagrant-error-failed-to-mount-folders-in-linux-guest
 
