@@ -91,6 +91,8 @@ VOLUME /root/jboss-as-7.1.1.Final-fluxui/standalone/log
 
 ENTRYPOINT ["/server-entrypoint.sh"]
 
+RUN apt-get update
+
 RUN apt-get install -y postgresql-client
 
 COPY speedgun.sql /

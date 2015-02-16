@@ -43,11 +43,6 @@ public class PerfQueueManager {
   @Inject
   private transient Logger log;
 
-//  @Inject
-//  DBService cassandraService;
-
-//  DBService cassandraService = new DBService();
-
   private static final String DEFAULT_USERNAME = "quickstartUser";
   private static final String DEFAULT_PASSWORD = "quickstartPassword";
   private static final String INITIAL_CONTEXT_FACTORY = "org.jboss.naming.remote.client.InitialContextFactory";

@@ -181,6 +181,13 @@ var speedgun = {
 
     },
 
+    onResourceTimeout: function(e) {
+      console.log(e.errorCode);   // it'll probably be 408
+      console.log(e.errorString); // it'll probably be 'Network timeout on resource'
+      console.log(e.url);         // the url whose request timed out
+      phantom.exit(1);
+    },
+
     onLoadFinished: function (page, config) {
 
       var size = 0, key, resources = [], slowest, fastest, totalDuration = 0,
@@ -358,7 +365,7 @@ var speedgun = {
     },
 
     onPageCreated: function (page, config) {
-      console.log('###### onPageCreated ' + page.url);
+//      console.log('###### onPageCreated ' + page.url);
     },
 
     onInitialized: function (page) {
@@ -618,6 +625,7 @@ var speedgun = {
     var page = WebPage.create();
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.webSecurityEnabled = false;
+    page.settings.resourceTimeout = 5000; // 5 seconds
 
 //    page.clearMemoryCache();
 
@@ -652,7 +660,8 @@ var speedgun = {
       'onNavigationRequested',
       'onPageCreated',
       'onResourceRequested',
-      'onResourceReceived'];
+      'onResourceReceived',
+      'onResourceTimeout'];
 
       allEvents.forEach(function (event) {
         if (task[event]) {
