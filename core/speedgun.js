@@ -625,7 +625,7 @@ var speedgun = {
     var page = WebPage.create();
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.webSecurityEnabled = false;
-    page.settings.resourceTimeout = 5000; // 5 seconds
+    page.settings.resourceTimeout = 20000; // 20 seconds
 
 //    page.clearMemoryCache();
 
