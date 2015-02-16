@@ -65,13 +65,13 @@ RUN cd /root && tar -xvf server.tar
 #RUN echo "cd /root/jboss-as-7.1.1.Final-fluxui/ && ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
 
 # install maven
-#dev RUN sudo apt-get update && apt-get install -y maven
+RUN sudo apt-get update && apt-get install -y maven
 
-#dev ADD src /root/src
-#dev ADD pom.xml /root/pom.xml
-#dev RUN mvn clean install
+ADD src /root/src
+ADD pom.xml /root/pom.xml
+RUN mvn clean install
 
-RUN mkdir /root/target
+#RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
 
 RUN ln -s /root/target/speedgun /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war
 
