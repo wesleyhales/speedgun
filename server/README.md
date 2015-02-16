@@ -10,6 +10,7 @@
 
 * run -ti === interactive mode, should be -d for prod server
 * --net=host === allows use of host network stack.. otherwise no access
+* http://localhost:8081/rest/beacon/init (init the RUM beacon)
 
 ### problems with vagrant:
 
