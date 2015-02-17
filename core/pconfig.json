@@ -1,5 +1,5 @@
 {
-  /* Same as: --ignore-ssl-errors=true */
+
   "ignoreSslErrors": true,
 
   "sslProtocol": "any",
