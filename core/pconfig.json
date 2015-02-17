@@ -2,7 +2,7 @@
   /* Same as: --ignore-ssl-errors=true */
   "ignoreSslErrors": true,
 
-  "sslProtocol": "tlsv1",
+  "sslProtocol": "any",
 
   "diskCacheEnabled" : false
 }
