@@ -70,11 +70,10 @@ public class PerformanceService implements Serializable {
   @Produces(MediaType.APPLICATION_JSON)
   public Response imageData(String base64) {
 
-//    log.info("-----posting Image data: " + base64);
+//    System.out.println("-----posting Image data: " + base64);
 
-
-    Response.ResponseBuilder builder = null;
-    Map<String, String> responseObj = new HashMap<String, String>();
+  Response.ResponseBuilder builder = null;
+  Map<String, String> responseObj = new HashMap<String, String>();
 
   if(!base64.isEmpty()) {
 

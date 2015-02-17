@@ -635,119 +635,138 @@ var fs = require('fs'),
         phantom.exit(0);
       };
 
+      //hack to eliminate multiple calls to this method from other page.evaluate events.
+      //todo - this is a bug in impl or phantom
+      var onLoadStarted = 'invalid';
+      if(task.onLoadStarted){
+        page.onLoadStarted = function (status) {
+          task.onLoadStarted.call(scope, page, config, status);
+          if(onLoadStarted === 'invalid'){
+            onLoadStarted = true;
+          }
+
+        }
+      }
+
       if (task.onLoadFinished) {
         page.onLoadFinished = function (status) {
           task.onLoadFinished.call(scope, page, config, status);
 
-          waitFor(function () {
-            // Check in the page if a specific element is now visible
-            return page.evaluate(function () {
-              return (window.performance.timing.loadEventEnd > 0);
-            });
-          }, function () {
+
+          if (onLoadStarted) {
+            onLoadStarted = false;
 
 
-            page.evaluate(function (perfObj) {
+            waitFor(function () {
+              // Check in the page if a specific element is now visible
+              return page.evaluate(function () {
+                return (window.performance.timing.loadEventEnd > 0);
+              });
+            }, function () {
 
-              var report = JSON.parse(perfObj),
-                timing = performance.timing,
-                nav = performance.navigation,
-                navStart = timing.navigationStart;
+
+              page.evaluate(function (perfObj) {
+
+                var report = JSON.parse(perfObj),
+                  timing = performance.timing,
+                  nav = performance.navigation,
+                  navStart = timing.navigationStart;
 
 
-              //--------------- Begin PhantomJS supported user timing and performance timing measurements
+                //--------------- Begin PhantomJS supported user timing and performance timing measurements
 
-              //try to calculate understandable load numbers
-              report.pageLoadTime.value = validateTimes(timing.loadEventEnd);
-              report.perceivedLoadTime.value = validateTimes(report.nowms.value); //from https://developer.mozilla.org/en-US/docs/Navigation_timing
-              report.requestResponseTime.value = validateTimes(timing.responseEnd, timing.requestStart);
-              report.redirectTime.value = validateTimes(timing.redirectEnd, timing.redirectStart);
-              report.fetchTime.value = validateTimes(timing.connectEnd, timing.fetchStart);
-              report.pageProcessTime.value = validateTimes(timing.loadEventStart, timing.domLoading);
-              report.loadEventTime.value = validateTimes(timing.loadEventEnd, timing.loadEventStart);
-              report.domContentTime.value = validateTimes(timing.domContentLoadedEventEnd, timing.domContentLoadedEventStart);
-              report.responseTime.value = validateTimes(timing.responseEnd, timing.responseStart);
-              report.connectTime.value = validateTimes(timing.connectEnd, timing.connectStart);
-              report.domainLookupTime.value = validateTimes(timing.domainLookupEnd, timing.domainLookupStart);
+                //try to calculate understandable load numbers
+                report.pageLoadTime.value = validateTimes(timing.loadEventEnd);
+                report.perceivedLoadTime.value = validateTimes(report.nowms.value); //from https://developer.mozilla.org/en-US/docs/Navigation_timing
+                report.requestResponseTime.value = validateTimes(timing.responseEnd, timing.requestStart);
+                report.redirectTime.value = validateTimes(timing.redirectEnd, timing.redirectStart);
+                report.fetchTime.value = validateTimes(timing.connectEnd, timing.fetchStart);
+                report.pageProcessTime.value = validateTimes(timing.loadEventStart, timing.domLoading);
+                report.loadEventTime.value = validateTimes(timing.loadEventEnd, timing.loadEventStart);
+                report.domContentTime.value = validateTimes(timing.domContentLoadedEventEnd, timing.domContentLoadedEventStart);
+                report.responseTime.value = validateTimes(timing.responseEnd, timing.responseStart);
+                report.connectTime.value = validateTimes(timing.connectEnd, timing.connectStart);
+                report.domainLookupTime.value = validateTimes(timing.domainLookupEnd, timing.domainLookupStart);
 
-              //subtract the rest from navigationStart to see when the event was fired relative to browser load
-              //1 offs
-              report.navigationStart.value = validateTimes(timing.navigationStart);
-              report.secureConnectionStart.value = validateTimes(timing.secureConnectionStart);
-              report.domInteractive.value = validateTimes(timing.domInteractive);
-              report.fetchStart.value = validateTimes(timing.fetchStart);
-              report.requestStart.value = validateTimes(timing.requestStart);
-              report.domLoading.value = validateTimes(timing.domLoading);
-              report.domComplete.value = validateTimes(timing.domComplete);
+                //subtract the rest from navigationStart to see when the event was fired relative to browser load
+                //1 offs
+                report.navigationStart.value = validateTimes(timing.navigationStart);
+                report.secureConnectionStart.value = validateTimes(timing.secureConnectionStart);
+                report.domInteractive.value = validateTimes(timing.domInteractive);
+                report.fetchStart.value = validateTimes(timing.fetchStart);
+                report.requestStart.value = validateTimes(timing.requestStart);
+                report.domLoading.value = validateTimes(timing.domLoading);
+                report.domComplete.value = validateTimes(timing.domComplete);
 
-              //start and end
-              report.connectStart.value = validateTimes(timing.connectStart);
-              report.connectEnd.value = validateTimes(timing.connectEnd);
+                //start and end
+                report.connectStart.value = validateTimes(timing.connectStart);
+                report.connectEnd.value = validateTimes(timing.connectEnd);
 
-              report.domContentLoadedEventStart.value = validateTimes(timing.domContentLoadedEventStart);
-              report.domContentLoadedEventEnd.value = validateTimes(timing.domContentLoadedEventEnd);
+                report.domContentLoadedEventStart.value = validateTimes(timing.domContentLoadedEventStart);
+                report.domContentLoadedEventEnd.value = validateTimes(timing.domContentLoadedEventEnd);
 
-              report.responseStart.value = validateTimes(timing.responseStart);
-              report.responseEnd.value = validateTimes(timing.responseEnd);
+                report.responseStart.value = validateTimes(timing.responseStart);
+                report.responseEnd.value = validateTimes(timing.responseEnd);
 
-              report.domainLookupStart.value = validateTimes(timing.domainLookupStart);
-              report.domainLookupEnd.value = validateTimes(timing.domainLookupEnd);
+                report.domainLookupStart.value = validateTimes(timing.domainLookupStart);
+                report.domainLookupEnd.value = validateTimes(timing.domainLookupEnd);
 
-              report.redirectStart.value = validateTimes(timing.redirectStart);
-              report.redirectEnd.value = validateTimes(timing.redirectEnd);
+                report.redirectStart.value = validateTimes(timing.redirectStart);
+                report.redirectEnd.value = validateTimes(timing.redirectEnd);
 
-              report.unloadEventStart.value = validateTimes(timing.unloadEventStart);
-              report.unloadEventEnd.value = validateTimes(timing.unloadEventEnd);
+                report.unloadEventStart.value = validateTimes(timing.unloadEventStart);
+                report.unloadEventEnd.value = validateTimes(timing.unloadEventEnd);
 
-              report.loadEventStart.value = validateTimes(timing.loadEventStart);
-              report.loadEventEnd.value = validateTimes(timing.loadEventEnd);
+                report.loadEventStart.value = validateTimes(timing.loadEventStart);
+                report.loadEventEnd.value = validateTimes(timing.loadEventEnd);
 
-              //sometimes, numbers are returned as negative when subtracting from navigationStart. This could possibly be a bug with PhantomJS
-              function validateTimes(end, start) {
-                if (!start) {
-                  start = navStart;
+                //sometimes, numbers are returned as negative when subtracting from navigationStart. This could possibly be a bug with PhantomJS
+                function validateTimes(end, start) {
+                  if (!start) {
+                    start = navStart;
+                  }
+                  var diffTime = end - start;
+                  return diffTime > 0 ? diffTime : 'na';
                 }
-                var diffTime = end - start;
-                return diffTime > 0 ? diffTime : 'na';
+
+                report.timing.value = nav.type;
+
+                switch (report.timing.value) {
+                  case 0:
+                    report.timing.label = ('Type_NavigateNext: Navigation started by clicking on a link, or entering the URL in the user agent\'s address bar, or form submission, or initializing through a script operation');
+                    break;
+                  case 1:
+                    report.timing.label = ('Type_Reload: Navigation through the reload operation or the location.reload() method.');
+                    break;
+                  case 2:
+                    report.timing.label = ('Type_Back_Forward: Navigation through a history traversal operation.');
+                    break;
+                  case 255:
+                    report.timing.label = ('Type_Undefined: Any navigation types not defined by values above.');
+                    break;
+                  default:
+                    report.timing.label = ('Not detected');
+                }
+
+                for (var key in report) {
+                  //export/bridge data back to phantom context
+                  console.log(JSON.stringify(report[key]));
+                }
+
+              }, JSON.stringify(speedgun.reportData));
+
+              //finish up any leftover tasks to complete the report
+
+              //simple filter for detailed reporting
+              if (speedGunArgs.format === 'simple') {
+                delete speedgun.reportData.resources;
               }
 
-              report.timing.value = nav.type;
-
-              switch (report.timing.value) {
-                case 0:
-                  report.timing.label = ('Type_NavigateNext: Navigation started by clicking on a link, or entering the URL in the user agent\'s address bar, or form submission, or initializing through a script operation');
-                  break;
-                case 1:
-                  report.timing.label = ('Type_Reload: Navigation through the reload operation or the location.reload() method.');
-                  break;
-                case 2:
-                  report.timing.label = ('Type_Back_Forward: Navigation through a history traversal operation.');
-                  break;
-                case 255:
-                  report.timing.label = ('Type_Undefined: Any navigation types not defined by values above.');
-                  break;
-                default:
-                  report.timing.label = ('Not detected');
-              }
-
-              for (var key in report) {
-                //export/bridge data back to phantom context
-                console.log(JSON.stringify(report[key]));
-              }
-
-            }, JSON.stringify(speedgun.reportData));
-
-            //finish up any leftover tasks to complete the report
-
-            //simple filter for detailed reporting
-            if (speedGunArgs.format === 'simple') {
-              delete speedgun.reportData.resources;
-            }
-
-            printReport(speedgun.reportData, phantomExit);
-          });
+              printReport(speedgun.reportData, phantomExit);
+            });
 
 
+          }
         }
 
 
@@ -980,9 +999,9 @@ var fs = require('fs'),
   postData: function (settings, endpoint, exitphantom) {
 
     if (settings.data && Object.keys(settings.data).length > 0) {
-      console.log('settings.data', settings.data || 'empty');
-      settings.data = JSON.stringify(settings.data);
 
+      settings.data = JSON.stringify(settings.data);
+      console.log('settings.data: ', getByteCount(settings.data), ' size in bytes');
       pageInstance.open(endpoint, settings, function (status) {
         console.log('attempting to POST: ' + settings.data.substring(0, 50));
         if (status !== 'success') {
@@ -1185,6 +1204,18 @@ var fs = require('fs'),
   }
 
   };
+
+function getByteCount( s )
+{
+  var count = 0, stringLength = s.length, i;
+  s = String( s || "" );
+  for( i = 0 ; i < stringLength ; i++ )
+  {
+    var partCount = encodeURI( s[i] ).split("%").length;
+    count += partCount==1?1:partCount-1;
+  }
+  return count;
+}
 
 
 
