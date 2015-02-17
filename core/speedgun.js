@@ -980,7 +980,7 @@ var fs = require('fs'),
   postData: function (settings, endpoint, exitphantom) {
 
     if (settings.data && Object.keys(settings.data).length > 0) {
-      console.log('settings.data', settings.data);
+      console.log('settings.data', settings.data || 'empty');
       settings.data = JSON.stringify(settings.data);
 
       pageInstance.open(endpoint, settings, function (status) {
