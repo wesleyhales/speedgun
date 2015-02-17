@@ -631,31 +631,9 @@ var fs = require('fs'),
         phantom.exit(0);
       };
 
-  //    var onLoadStarted = 'invalid';
-
-  //    if(task.onLoadStarted){
-  //      page.onLoadStarted = function (status) {
-  //        task.onLoadStarted.call(scope, page, config, status);
-  //        if(onLoadStarted === 'invalid'){
-  //          onLoadStarted = true;
-  //        }
-  //
-  //      }
-  //    }
-
       if (task.onLoadFinished) {
         page.onLoadFinished = function (status) {
           task.onLoadFinished.call(scope, page, config, status);
-
-          //for some reason, on large sites like cnn.com, this event gets called multiple times.
-          //todo - file issue
-  //        if(onLoadStarted){
-  //          onLoadStarted = false;
-
-
-          //grand finale for the report. need a better final method that cleans up and
-          //decides which data to filter on.
-
 
           waitFor(function () {
             // Check in the page if a specific element is now visible
@@ -775,43 +753,67 @@ var fs = require('fs'),
     };
   }
 
-  function printReport(report, exitphantom) {
+    function printReport(report, exitphantom) {
 
-    //setup screenshot
-    var reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/speedgun';
-    speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
-    page.viewportSize = { width: 1024, height: 768 };
+      //setup screenshot
+      var reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/speedgun';
+      speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
+      page.viewportSize = { width: 1024, height: 768 };
 
-    if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
-      console.log('Rendering Screenshot to', 'reports/' + reportLocation + speedgun.reportData.screenshot.value);
-      page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
+      if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
+        console.log('Rendering Screenshot to', 'reports/' + reportLocation + speedgun.reportData.screenshot.value);
+        page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
+      }
+
+      if (speedGunArgs.output === 'csv') {
+        console.log('filename', reportLocation);
+        speedgun.printToFile(report, reportLocation, 'csv', speedGunArgs.wipe, exitphantom);
+      }
+
+      if (speedGunArgs.output === 'json') {
+        speedgun.printToFile(report, reportLocation, 'json', speedGunArgs.wipe, exitphantom);
+      }
+
+      if (speedGunArgs.output === 'junit') {
+        speedgun.printToFile(report, reportLocation, 'xml', speedGunArgs.wipe, exitphantom);
+      }
+
+      if (speedGunArgs.output === 'post') {
+        var postImage = function () {
+          var base64 = null;
+          console.log('Rendering Screenshot to base64');
+          base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
+          speedgun.postIMAGE(base64, 'http://127.0.0.1:8080/rest/performance/imageData', exitphantom);
+        };
+
+        speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData', postImage);
+      }
+
     }
 
-    if (speedGunArgs.output === 'csv') {
-      console.log('filename', reportLocation);
-      speedgun.printToFile(report, reportLocation, 'csv', speedGunArgs.wipe, exitphantom);
+    /** Classic waitFor example from PhantomJS
+     */
+    function waitFor(testFx, onReady, timeOutMillis) {
+      var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 10000, //< Default Max Timout is 10s
+        start = new Date().getTime(),
+        condition = false,
+        interval = setInterval(function () {
+          if ((new Date().getTime() - start < maxtimeOutMillis) && !condition) {
+            // If not time-out yet and condition not yet fulfilled
+            condition = (typeof(testFx) === "string" ? eval(testFx) : testFx()); //< defensive code
+          } else {
+            if (!condition) {
+              // If condition still not fulfilled (timeout but condition is 'false')
+              console.log("'waitFor()' timeout");
+              phantom.exit(1);
+            } else {
+              // Condition fulfilled (timeout and/or condition is 'true')
+              typeof(onReady) === "string" ? eval(onReady) : onReady(); //< Do what it's supposed to do once the condition is fulfilled
+              clearInterval(interval); //< Stop this interval
+            }
+          }
+        }, 250); //< repeat check every 250ms
     }
-
-    if (speedGunArgs.output === 'json') {
-      speedgun.printToFile(report, reportLocation, 'json', speedGunArgs.wipe, exitphantom);
-    }
-
-    if (speedGunArgs.output === 'junit') {
-      speedgun.printToFile(report, reportLocation, 'xml', speedGunArgs.wipe, exitphantom);
-    }
-
-    if (speedGunArgs.output === 'post') {
-      var postImage = function () {
-        var base64 = null;
-        console.log('Rendering Screenshot to base64');
-        base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
-        speedgun.postIMAGE(base64, 'http://127.0.0.1:8080/rest/performance/imageData', exitphantom);
-      };
-
-      speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData', postImage);
-    }
-
-  }
 
 
   },
@@ -842,8 +844,7 @@ var fs = require('fs'),
     }
 
     return result;
-  }
-  ,
+  },
 
   truncate: function (str, length) {
     length = length || 80;
@@ -852,8 +853,7 @@ var fs = require('fs'),
     }
     var half = length / 2;
     return str.substr(0, half - 2) + '...' + str.substr(str.length - half + 1);
-  }
-  ,
+  },
 
   pad: function (str, length) {
     var padded = str.toString();
@@ -861,16 +861,14 @@ var fs = require('fs'),
       return this.pad(padded, length * 2);
     }
     return this.repeat(' ', length - padded.length) + padded;
-  }
-  ,
+  },
 
   repeat: function (chr, length) {
     for (var str = '', l = 0; l < length; l++) {
       str += chr;
     }
     return str;
-  }
-  ,
+  },
 
   clone: function (obj) {
     var target = {};
@@ -880,18 +878,15 @@ var fs = require('fs'),
       }
     }
     return target;
-  }
-  ,
+  },
 
   timerStart: function () {
     return Date.now();
-  }
-  ,
+  },
 
   timerEnd: function (start) {
     return (Date.now() - start);
-  }
-  ,
+  },
 
   screenshot: function (now, page) {
     var start = this.timerStart();
@@ -904,8 +899,7 @@ var fs = require('fs'),
       //subtract the time it took to render this image
       this.performance_old.timer = this.timerEnd(start) - this.performance_old.count1;
     }
-  }
-  ,
+  },
 
   /**
    * Format test results as JUnit XML for CI
@@ -947,8 +941,7 @@ var fs = require('fs'),
     junit.push('</testsuites>');
 
     return junit.join('\n');
-  }
-  ,
+  },
 
   postJSON: function (report, endpoint, postImage) {
 
@@ -964,8 +957,7 @@ var fs = require('fs'),
     settings.data[speedGunArgs.uuid] = report;
     speedgun.postData(settings, endpoint, postImage);
 
-  }
-  ,
+  },
   postIMAGE: function (base64, endpoint, exitphantom) {
 
     var settings = {
@@ -979,8 +971,7 @@ var fs = require('fs'),
 
     settings.data[speedGunArgs.uuid] = base64;
     speedgun.postData(settings, endpoint, exitphantom);
-  }
-  ,
+  },
 
   postData: function (settings, endpoint, exitphantom) {
 
@@ -1014,8 +1005,7 @@ var fs = require('fs'),
       };
 
     }
-  }
-  ,
+  },
   printToFile: function (report, filename, extension, createNew, exitphantom) {
     var f,
       myfile,
@@ -1112,8 +1102,7 @@ var fs = require('fs'),
       }
     }
     exitphantom();
-  }
-  ,
+  },
   setupArgs: function () {
 
     // go through the args and create a better
@@ -1150,8 +1139,7 @@ var fs = require('fs'),
       }
     });
 
-  }
-  ,
+  },
 
   printHelp: function () {
     console.log('  Usage: phantomjs --config=core/pconfig.json core/speedgun.js [options] url');
@@ -1167,8 +1155,7 @@ var fs = require('fs'),
     console.log('    --wipe                   Wipe the file instead of appending to it on each report');
     console.log('    --phantomCacheEnabled    Enable PhantomJS cache');
     // Lets not talk about the configFile for now
-  }
-  ,
+  },
 
   validateArgs: function () {
     var isFailing = false;
@@ -1193,32 +1180,8 @@ var fs = require('fs'),
     }
   }
 
-  }
-  ;
+  };
 
-  /** Classic waitFor example from PhantomJS
-   */
-  function waitFor(testFx, onReady, timeOutMillis) {
-    var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 10000, //< Default Max Timout is 10s
-      start = new Date().getTime(),
-      condition = false,
-      interval = setInterval(function () {
-        if ((new Date().getTime() - start < maxtimeOutMillis) && !condition) {
-          // If not time-out yet and condition not yet fulfilled
-          condition = (typeof(testFx) === "string" ? eval(testFx) : testFx()); //< defensive code
-        } else {
-          if (!condition) {
-            // If condition still not fulfilled (timeout but condition is 'false')
-            console.log("'waitFor()' timeout");
-            phantom.exit(1);
-          } else {
-            // Condition fulfilled (timeout and/or condition is 'true')
-            typeof(onReady) === "string" ? eval(onReady) : onReady(); //< Do what it's supposed to do once the condition is fulfilled
-            clearInterval(interval); //< Stop this interval
-          }
-        }
-      }, 250); //< repeat check every 250ms
-  }
 
 
   speedgun.run();
