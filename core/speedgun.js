@@ -211,7 +211,11 @@ var fs = require('fs'),
             slowest = resource;
           }
           if (!fastest || resource.times.start !== 0 || resource.duration < fastest.duration) {
-            fastest = resource;
+            // we catch resources with empty durations, we should look at the root of the evil
+            // but for now, just don't add them to the list
+            if (resource.duration !== '') {
+              fastest = resource;
+            }
           }
           //console.log(totalDuration);
           totalDuration += resource.duration;
