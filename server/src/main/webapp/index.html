@@ -36,7 +36,8 @@
             </section>
             <section layout="row" layout-align="center center" class="url-input-container">
                 <md-card class="url-input">
-                    <input type="text" name="url" id="url" ng-disabled="running" placeholder="http://www.whatever.com" ng-model="url" required autofocus/>
+                    <input type="text" name="url" id="url" ng-disabled="running" placeholder="http://www.whatever.com"
+                           ng-model="url" required autofocus/>
                 </md-card>
                 <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url,email)" ng-disabled="running"
                            style="width: 54px; height: 54px;">
@@ -51,16 +52,11 @@
 
 
             </section>
-            <div class="masthead-marketing">
-
-                <section layout="row" layout-align="center center">
-
-                </section>
-            </div>
         </form>
     </md-content>
 
 </div>
+
 
 <md-content class="results" ng-class="{visible: running }">
     <md-card class="runCount{{speedgun.length}} header">
@@ -68,7 +64,8 @@
 
             You are {{position === 0 ? 'first in line!!' : ' number ' + position + ' in line.'}}
             <md-progress-linear md-mode="indeterminate"></md-progress-linear>
-            <md-progress-linear class="md-warn" md-mode="buffer" value="{{speedgun.length * .20 * 100}}" md-buffer-value="{{determinateValue2}}">
+            <md-progress-linear class="md-warn" md-mode="buffer" value="{{speedgun.length * .20 * 100}}"
+                                md-buffer-value="{{determinateValue2}}">
             </md-progress-linear>
         </h3>
     </md-card>
@@ -167,73 +164,92 @@
     </div>
 </md-content>
 
-<md-content class="documentation">
+<md-content class="documentation" layout="column">
 
-    <h3 class="center">WHAT IS THIS?</h3>
-    <p >This site allows you to point <a href="http://github.com/wesleyhales/speedgun">Speedgun.js</a> at any public facing
-        website to gather important web performance data.
-        <img src="images/speedgun-times.png" class="sg-times" />
-        It runs five times providing the <a href="https://twitter.com/souders/status/268807147456978944">best possible data</a>
-        to understand how your page is loaded.
-    </p>
-    <p>There are already a lot of great, open source services for web performance automation.
-        The goal for this project is simplicity in running and automating web performance.
-        There are three parts:
-    <ul class="main-part-list">
-        <li>A standalone <a href="https://github.com/wesleyhales/speedgun/blob/master/core/speedgun.js">JavaScript file</a> that uses PhantomJS2 to measure
-            web perf timing through the W3C Navigation Timing API specification.</li>
-        <li>A repeatable Docker setup that allows anyone to run this server.</li>
-        <li>Use the Speedgun Docker containers as RUM nodes.</li>
-    </ul>
-    </p>
-</md-content>
+    <div layout="row" layout-align="space-around center">
+        <div flex>
+            <img src="images/speedgun-times.png" class="sg-times"/>
+        </div>
+        <div flex>
+            <h2>WHAT IS THIS?</h2>
+            <section>
+                <p>This site allows you to point <a href="http://github.com/wesleyhales/speedgun">Speedgun.js</a> at any public
+                    facing
+                    website to gather important web performance data.
+                    It runs five times providing the <a href="https://twitter.com/souders/status/268807147456978944">best possible
+                        data</a>
+                    to understand how your page is loaded.</p>
 
-<md-content class="documentation">
-
-    <h3 class="center">GETTING STARTED WITH SPEEDGUN.JS</h3>
-
-    <p class="part-list" ><a href="https://bitbucket.org/ariya/phantomjs/downloads/">Install PhantomJS 2</a> to run this (Don't run it against old 1.x versions).</p>
-
-    <ul class="part-list">
-        <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
-        <li>Run it: <code>cd speedgun && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes core/speedgun.js http://www.wesleyhales.com performance csv</code></li>
-        <li>View the report in <code>speedgun/core/reports</code></li>
-        <li>View the <a href="https://github.com/wesleyhales/speedgun/blob/master/README.md">Readme</a> for more options.</li>
-    </ul>
-
-</md-content>
+                <p>There are already a lot of great, open source services for web performance automation.
+                    The goal for this project is simplicity in running and automating web performance.
+                    There are three parts:
+                <ul class="main-part-list">
+                    <li>A standalone <a href="https://github.com/wesleyhales/speedgun/blob/master/core/speedgun.js">JavaScript
+                        file</a> that uses PhantomJS2 to measure
+                        web perf timing through the W3C Navigation Timing API specification.
+                    </li>
+                    <li>A repeatable Docker setup that allows anyone to run this server.</li>
+                    <li>Use the Speedgun Docker containers as RUM nodes.</li>
+                </ul>
+                </p>
+            </section>
+        </div>
+    </div>
 
 
-<md-content class="marketing" style="margin: 10px 0 0 0">
+    <div layout="row" layout-align="space-around left">
+        <div flex>
+            <h3 class="center">GETTING STARTED WITH SPEEDGUN.JS</h3>
+            <section>
+                <p class="part-list"><a href="https://bitbucket.org/ariya/phantomjs/downloads/">Install PhantomJS 2</a> to run this
+                    (Don't run it against old 1.x versions).</p>
 
-    <h3 class="center">GETTING STARTED WITH SPEEDGUN.IO</h3>
+                <ul class="part-list">
+                    <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
+                    <li>Run it: <code>cd speedgun && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes core/speedgun.js
+                        http://www.wesleyhales.com performance csv</code></li>
+                    <li>View the report in <code>speedgun/core/reports</code></li>
+                    <li>View the <a href="https://github.com/wesleyhales/speedgun/blob/master/README.md">Readme</a> for more
+                        options.
+                    </li>
+                </ul>
+            </section>
+        </div>
 
-    <p class="part-list" >To run this server, follow these steps:</p>
-    <h4 class="part-list" style="margin: 10px auto 0 auto">Mac</h4>
 
-    <ul class="part-list">
-        <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
-        <li>Install <a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a> and <a href="http://www.vagrantup.com">Vagrant</a></li>
-        <li><code>cd speedgun/server</code></li>
-        <li>Run: <code>./server.sh</code> (this will take a while)</li>
-        <li>Done: Open browser and go to <a href="http://localhost:8081">http://localhost:8081</a></li>
-        <li><a href="https://github.com/wesleyhales/speedgun/blob/master/server/README.md">If you run into VirtualBox errors see this...</a></li>
-    </ul>
+        <div flex>
+            <h3 class="center">GETTING STARTED WITH SPEEDGUN.IO</h3>
+            <section>
+                <p class="part-list">To run this server, follow these steps:</p>
+                <h4 class="part-list" style="margin: 10px auto 0 auto">Mac</h4>
 
-</md-content>
+                <ul class="part-list">
+                    <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
+                    <li>Install <a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a> and <a
+                            href="http://www.vagrantup.com">Vagrant</a></li>
+                    <li><code>cd speedgun/server</code></li>
+                    <li>Run: <code>./server.sh</code> (this will take a while)</li>
+                    <li>Done: Open browser and go to <a href="http://localhost:8081">http://localhost:8081</a></li>
+                    <li><a href="https://github.com/wesleyhales/speedgun/blob/master/server/README.md">If you run into VirtualBox
+                        errors see this...</a></li>
+                </ul>
+            </section>
+        </div>
+    </div>
 
-<md-content class="marketing">
-    <section layout="row" layout-align="center center">
+    <div layout="column" layout-align="space-around center">
         <h3>TEAM</h3>
-    </section>
-    <section layout="row" layout-align="center center">
-        <a href="http://twitter.com/wesleyhales">Wesley Hales</a>
-        <a href="https://github.com/jsoverson">Jarrod Overson</a>
-        <a href="https://github.com/soulgalore">Peter Hedenskog</a>
-        <a href="https://github.com/wesleyhales/speedgun/graphs/contributors">and more...</a>
-    </section>
+
+        <div layout="row" layout-align="space-around center">
+
+
+            <div flex><a href="http://twitter.com/wesleyhales">Wesley Hales</a></div>
+            <div flex><a href="https://github.com/jsoverson">Jarrod Overson</a></div>
+            <div flex><a href="https://github.com/soulgalore">Peter Hedenskog</a></div>
+            <div flex><a href="https://github.com/wesleyhales/speedgun/graphs/contributors">and more...</a></div>
+        </div>
+    </div>
 </md-content>
-<br/><br/>
 </div>
 </div>
 
@@ -249,10 +265,17 @@
 <script type="text/javascript" src="js/app.js"></script>
 
 <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
     ga('create', 'UA-58941838-1', 'auto');
     ga('send', 'pageview');

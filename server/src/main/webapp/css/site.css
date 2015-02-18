@@ -21,14 +21,14 @@ and (min-width : 600px) {
 
 @media only screen and (min-width : 1000px) {
     .part-list {
-        clear:both;
-        width: 50%;
-        margin: 0 auto;
+        /*clear:both;*/
+        /*width: 50%;*/
+        /*margin: 0 auto;*/
     }
 }
 
 .documentation {
-    width: 80%;
+    /*width: 80%;*/
 }
 
 .card-group {
@@ -257,9 +257,8 @@ html p, body p {
 }
 
 .sg-times {
-    float: left;
-    margin: 14px;
-    width: 40%;
+    margin: 0 auto;
+    width: 80%;
 }
 
 .part-list li, .main-part-list li {
