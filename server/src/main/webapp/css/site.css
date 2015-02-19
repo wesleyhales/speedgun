@@ -272,3 +272,23 @@ html p, body p {
 p, .part-list, .main-part-list{
     font-size: 1.1em;
 }
+
+.more-data {
+    background-color: #F2F2F2;
+    width: 100%;
+    font-weight: 500;
+    float: left;
+    padding: 10px;
+    font-size: 1.5em;
+    border: 1px solid #C2C2C2;
+    color: #519FC7;
+    text-align: center;
+}
+
+.screenshot-img{
+    float: left;
+    width: 25%;
+    border: 1px solid #ececec;
+    padding: 10px;
+    margin: 10px;
+}
