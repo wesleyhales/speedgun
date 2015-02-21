@@ -85,13 +85,14 @@
     <md-card class="header">
         <h4 class="subheader">
             Screenshots
-
+        </h4>
+        <div class="ss-container">
             <div ng-repeat="step in screenshots.data">
                 <div ng-repeat="(key, value) in step">
                     <img class="screenshot-img" ng-src="data:image/jpeg;base64,{{value}}"/>
                 </div>
             </div>
-        </h4>
+        </div>
 
     </md-card>
 

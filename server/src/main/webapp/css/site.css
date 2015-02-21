@@ -292,3 +292,8 @@ p, .part-list, .main-part-list{
     padding: 10px;
     margin: 10px;
 }
+
+.ss-container {
+    width: 100%;
+    float:left;
+}

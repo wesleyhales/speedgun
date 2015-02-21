@@ -129,12 +129,12 @@ angular.module('app', [
 
 
     $scope.xgo = function(url, email, cached){
-
+      if(url.indexOf('http://') === -1 && url.indexOf('https://') === -1){
+        url = 'http://' + url;
+      }
       api.go(url, email, cached).then(function(initResponse){
         var uuid = initResponse.data.uuid;
         $location.search('uuid',uuid);
-
-//          console.log('initResponse',initResponse);
 
         $scope.uuid = uuid;
         $scope.position = initResponse.data.position;
