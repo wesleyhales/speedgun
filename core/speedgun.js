@@ -201,19 +201,20 @@ var fs = require('fs'),
         for (var resource in resources) {
           resource = resources[resource];
 
-  //        if (resources.hasOwnProperty(resource)) {
+          //        if (resources.hasOwnProperty(resource)) {
           if (!resource.times.start || !resource.times.end) {
             //if one of start or end times is undefined - don't calculate
             resource.times.start = resource.times.end = 0;
           }
 
-          if (!slowest || resource.times.start !== 0 || resource.duration > slowest.duration) {
+          if ((!slowest || resource.times.start !== 0 || resource.duration > slowest.duration) && (!resource.url.match(/(^data:.+\/.*)/i))) {
             slowest = resource;
           }
           if (!fastest || resource.times.start !== 0 || resource.duration < fastest.duration) {
             // we catch resources with empty durations, we should look at the root of the evil
-            // but for now, just don't add them to the list
-            if (resource.duration !== '') {
+            // but for now, just don't add them to the list. And exclude DATA uri:s
+
+            if (resource.duration !== '' && (!resource.url.match(/(^data:.+\/.*)/i))) {
               fastest = resource;
             }
           }
