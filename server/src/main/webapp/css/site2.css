@@ -22,6 +22,11 @@
     width: 80%;
 }
 
+.ss-container {
+    max-height: 500px;
+    overflow-y: scroll;
+}
+
 /*#begin copy old*/
 
 .part-list li, .main-part-list li {
