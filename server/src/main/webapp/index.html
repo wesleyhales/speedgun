@@ -18,6 +18,10 @@
 </head>
 <body layout="column" ng-controller="MainCtrl">
 
+<div style="top:0;right:10px; width: 500px; position:absolute; z-index: 1; text-align: right">
+    <a href="https://github.com/wesleyhales/speedgun/"><img class="fade" src="images/GitHub-Mark.png"  style="width: 51px"/></a>
+    <a href="https://registry.hub.docker.com/u/wesleyhales/speedgun-server/"><img class="fade" src="images/docker-logo.png"  style="width: 51px"/></a>
+</div>
 
 <div class="main">
 
@@ -26,7 +30,10 @@
     <md-content class="masthead" layout="row" layout-align="center center" flex>
 
 
-        <div flex="20"><img src="images/sg-logo.png"  style="max-width:100%" layout-margin layout-padding/></div>
+        <div flex="20">
+            <img src="images/sg-logo.png"  class="fade" style="max-width:100%" layout-margin layout-padding/>
+
+        </div>
 
 
         <form name="reportform" id="reportform" ng-submit="go(url)" flex="80">
@@ -71,7 +78,7 @@
 
     <h3 class="subheader" ng-hide="!running">
         You are {{position === 0 ? 'first in line!!' : ' number ' + position + ' in line.'}}
-        <md-progress-linear class="md-warn" md-mode="buffer" value="{{speedgun.length * .20 * 100}}"
+        <md-progress-linear class="md-info" md-mode="buffer" value="{{speedgun.length * .20 * 100}}"
                             md-buffer-value="{{determinateValue2}}">
         </md-progress-linear>
     </h3>
@@ -213,6 +220,7 @@
                     <li>Get the data from the newly created reports folder.
                     </li>
                 </ul>
+                <hr/>
 
                 <h4>Speedgun.io Server (Install <a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a> and <a
                         href="http://www.vagrantup.com">Vagrant</a>)</h4>
@@ -228,6 +236,16 @@
                     </li>
                     <li>Visit <a href="http://localhost:8081">http://localhost:8081</a></li>
                 </ul>
+                <hr/>
+
+                <h4>Speedgun.io Server (Docker)</h4>
+                <ul>
+                    <li>Use the repositories:
+                        <code flex>docker pull wesleyhales/speedgun-server</code>
+                        <code flex>docker pull wesleyhales/speedgun-postgres</code>
+                    </li>
+                </ul>
+                <hr/>
 
                 <h3>ABOUT</h3>
                 <p>This project is the successor of <a href="https://github.com/wesleyhales/loadreport">loadreport.js</a>.
