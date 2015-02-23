@@ -148,5 +148,6 @@ code {
     float:left;
     background-color: #e3e3e3;
     margin: 5px 0 5px 0;
-    border-radius:2px
+    border-radius:2px;
+    word-break: break-all;
 }
