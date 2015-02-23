@@ -5,52 +5,59 @@
         console.log(Date.now(), performance.timing.navigationStart, Date.now() - performance.timing.navigationStart)
     </script>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A layout example that shows off a responsive product landing page.">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
 
-    <title>speedgun.io - allows you to give speedgun.js a spin</title>
+    <title>speedgun.io</title>
 
 
-    <link rel="stylesheet" href="bower_components/angular-material/angular-material.css">
-
-    <link rel="stylesheet" href="bower_components/angular-material/themes/green-theme.css">
-    <link rel="stylesheet" href="bower_components/angular-material/themes/light-blue-dark-theme.css">
-    <link rel="stylesheet" href="bower_components/angular-material/themes/blue-theme.css">
-    <link rel="stylesheet" href="css/site.css">
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/angular_material/0.7.1/angular-material.min.css">
+    <link rel="stylesheet" href="css/site2.css">
 
 </head>
-<body ng-controller="MainCtrl">
-
-<div layout="column" layout-fill>
-<div class="main" layout=column layout-align="center center">
-<div class="masthead-container" layout=column layout-align="center center">
-    <md-content class="masthead" layout="column" layout-align="center center">
+<body layout="column" ng-controller="MainCtrl">
 
 
-        <div style="padding:10px"><img src="images/sg-logo.png"/></div>
+<div class="main">
+
+<div class="masthead-container">
+
+    <md-content class="masthead" layout="row" layout-align="center center" flex>
 
 
-        <form name="reportform" id="reportform" ng-submit="go(url)">
-            <section layout="row" layout-align="center center">
-                <p>ENTER A WEB ADDRESS</p>
+        <div><img src="images/sg-logo.png"  layout-margin layout-fill layout-padding/></div>
+
+
+        <form name="reportform" id="reportform" ng-submit="go(url)" flex>
+            <section layout="row" layout-align="center center" class="url-input-container" flex>
+                <md-content  class="md-padding" layout="row" layout-sm="column" style="font-size:1.2em" flex>
+                    <md-input-container flex>
+                        <label>ENTER A WEB ADDRESS</label>
+                        <input type="text" name="url" id="url" ng-disabled="running" placeholder="http://www.whatever.com"
+                               ng-model="url" required autofocus/>
+                        <div ng-messages="projectForm.description.$error">
+                            <div ng-message="required">This is required.</div>
+                        </div>
+                    </md-input-container>
+
+
+
+                </md-content>
             </section>
-            <section layout="row" layout-align="center center" class="url-input-container">
-                <md-card class="url-input">
-                    <input type="text" name="url" id="url" ng-disabled="running" placeholder="http://www.whatever.com"
-                           ng-model="url" required autofocus/>
-                </md-card>
-                <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url,email)" ng-disabled="running"
-                           style="width: 54px; height: 54px;">
-                    Go
-                </md-button>
-            </section>
-            <section layout="row" layout-align="center center" class="email-input-container">
-                <span class="email-label">Send me a link when done:</span>
-                <md-card class="email-input">
-                    <input type="text" name="email" ng-disabled="running" id="email" placeholder="you@domain.com" ng-model="email"/>
-                </md-card>
-
-
+            <section layout="row" layout-align="center center" class="url-input-container" flex>
+                <md-content class="md-padding" layout="row" layout-sm="column" style="font-size:1.2em" flex>
+                    <md-input-container flex>
+                        <label>Send me a link when done</label>
+                        <input type="text" name="email" ng-disabled="running" id="email" placeholder="you@domain.com" ng-model="email"/>
+                    </md-input-container>
+                    <md-input-container flex>
+                        <md-button class="md-fab md-primary btn-go" aria-label="Go" ng-click="xgo(url,email)" ng-disabled="running"
+                                   style="width: 54px; height: 54px;">
+                            Go
+                        </md-button>
+                    </md-input-container>
+                </md-content>
             </section>
         </form>
     </md-content>
@@ -58,43 +65,41 @@
 </div>
 
 
-<md-content class="results" ng-class="{visible: running }">
-    <md-card class="runCount{{speedgun.length}} header">
-        <h3 class="subheader">
 
-            You are {{position === 0 ? 'first in line!!' : ' number ' + position + ' in line.'}}
-            <md-progress-linear md-mode="indeterminate"></md-progress-linear>
-            <md-progress-linear class="md-warn" md-mode="buffer" value="{{speedgun.length * .20 * 100}}"
-                                md-buffer-value="{{determinateValue2}}">
-            </md-progress-linear>
-        </h3>
-    </md-card>
+
+<md-content  class="md-padding">
+
+    <h3 class="subheader" ng-hide="!running">
+        You are {{position === 0 ? 'first in line!!' : ' number ' + position + ' in line.'}}
+        <md-progress-linear class="md-warn" md-mode="buffer" value="{{speedgun.length * .20 * 100}}"
+                            md-buffer-value="{{determinateValue2}}">
+        </md-progress-linear>
+    </h3>
+
 </md-content>
 
-<md-content class="results" ng-class="{visible: speedgun[0][uuid].url}">
-    <md-card class="header">
-        <h3 class="subheader">
-            {{speedgun[0][uuid].url.value}} <a class="clear-link" ng-click="clear()">[clear]</a>
-            <a class="report-link" href="/rest/performance/report?uuid={{uuid}}">
-                Full Report (JSON)
-            </a>
-        </h3>
-    </md-card>
+<md-content ng-hide="!speedgun[0][uuid].url" class="md-padding">
+
+    <h3 class="subheader">
+        {{speedgun[0][uuid].url.value}}
+        <md-button md-no-ink class="md-primary md-button-colored" ng-click="clear()">[clear]</md-button>
+
+        <md-button md-no-inkclass="md-raised md-primary md-button-colored" href="/rest/performance/report?uuid={{uuid}}">[RAW JSON]</md-button>
+    </h3>
 
 
-    <md-card class="header">
-        <h4 class="subheader">
-            Screenshots
-        </h4>
-        <div class="ss-container">
-            <div ng-repeat="step in screenshots.data">
-                <div ng-repeat="(key, value) in step">
-                    <img class="screenshot-img" ng-src="data:image/jpeg;base64,{{value}}"/>
-                </div>
+    <h4 class="subheader">
+        Screenshots
+    </h4>
+    <div class="ss-container" layout="row" layout-align="space-around center">
+        <div ng-repeat="step in screenshots.data" flex>
+            <div ng-repeat="(key, value) in step" flex>
+                <img class="screenshot-img" ng-src="data:image/jpeg;base64,{{value}}" flex/>
             </div>
         </div>
+    </div>
 
-    </md-card>
+
 
     <div layout-sm="column">
         <card data="speedgun" property="pageLoadTime" suffix="ms"></card>
@@ -118,44 +123,44 @@
 
         <div ng-hide="!show">
 
-        <card data="speedgun" property="secureConnectionStart" suffix="ms" detail="secondary"></card>
-        <card data="speedgun" property="fetchStart" suffix="ms" detail="secondary"></card>
-        <card data="speedgun" property="requestStart" suffix="ms" detail="secondary"></card>
+            <card data="speedgun" property="secureConnectionStart" suffix="ms" detail="secondary"></card>
+            <card data="speedgun" property="fetchStart" suffix="ms" detail="secondary"></card>
+            <card data="speedgun" property="requestStart" suffix="ms" detail="secondary"></card>
 
 
-        <div class="card-group">
-            <card data="speedgun" property="connectStart" suffix="ms" detail="secondary"></card>
-            <card data="speedgun" property="connectEnd" suffix="ms" detail="secondary"></card>
-        </div>
+            <div class="card-group">
+                <card data="speedgun" property="connectStart" suffix="ms" detail="secondary"></card>
+                <card data="speedgun" property="connectEnd" suffix="ms" detail="secondary"></card>
+            </div>
 
-        <div class="card-group">
-            <card data="speedgun" property="domContentLoadedEventStart" suffix="ms" detail="secondary"></card>
-            <card data="speedgun" property="domContentLoadedEventEnd" suffix="ms" detail="secondary"></card>
-        </div>
+            <div class="card-group">
+                <card data="speedgun" property="domContentLoadedEventStart" suffix="ms" detail="secondary"></card>
+                <card data="speedgun" property="domContentLoadedEventEnd" suffix="ms" detail="secondary"></card>
+            </div>
 
-        <div class="card-group">
-            <card data="speedgun" property="domainLookupStart" suffix="ms" detail="secondary"></card>
-            <card data="speedgun" property="domainLookupEnd" suffix="ms" detail="secondary"></card>
-        </div>
+            <div class="card-group">
+                <card data="speedgun" property="domainLookupStart" suffix="ms" detail="secondary"></card>
+                <card data="speedgun" property="domainLookupEnd" suffix="ms" detail="secondary"></card>
+            </div>
 
-        <div class="card-group">
-            <card data="speedgun" property="loadEventStart" suffix="ms" detail="secondary"></card>
-            <card data="speedgun" property="loadEventEnd" suffix="ms" detail="secondary"></card>
-        </div>
-        <div class="card-group">
-            <card data="speedgun" property="redirectStart" suffix="ms" detail="secondary"></card>
-            <card data="speedgun" property="redirectEnd" suffix="ms" detail="secondary"></card>
-        </div>
+            <div class="card-group">
+                <card data="speedgun" property="loadEventStart" suffix="ms" detail="secondary"></card>
+                <card data="speedgun" property="loadEventEnd" suffix="ms" detail="secondary"></card>
+            </div>
+            <div class="card-group">
+                <card data="speedgun" property="redirectStart" suffix="ms" detail="secondary"></card>
+                <card data="speedgun" property="redirectEnd" suffix="ms" detail="secondary"></card>
+            </div>
 
-        <div class="card-group">
-            <card data="speedgun" property="responseStart" suffix="ms" detail="secondary"></card>
-            <card data="speedgun" property="responseEnd" suffix="ms" detail="secondary"></card>
-        </div>
+            <div class="card-group">
+                <card data="speedgun" property="responseStart" suffix="ms" detail="secondary"></card>
+                <card data="speedgun" property="responseEnd" suffix="ms" detail="secondary"></card>
+            </div>
 
-        <div class="card-group">
-            <card data="speedgun" property="unloadEventStart" suffix="ms" detail="secondary"></card>
-            <card data="speedgun" property="unloadEventEnd" suffix="ms" detail="secondary"></card>
-        </div>
+            <div class="card-group">
+                <card data="speedgun" property="unloadEventStart" suffix="ms" detail="secondary"></card>
+                <card data="speedgun" property="unloadEventEnd" suffix="ms" detail="secondary"></card>
+            </div>
 
         </div>
 
@@ -174,103 +179,84 @@
     </div>
 </md-content>
 
-<md-content class="documentation" layout="column">
 
-    <div layout="row" layout-align="space-around center">
-        <div flex>
-            <img src="images/speedgun-times.png" class="sg-times"/>
-        </div>
+<md-content class="documentation" layout="column" class="md-padding">
+
+    <div layout="row" layout-margin layout-fill layout-padding>
+
         <div flex>
             <h3>WHAT IS THIS?</h3>
             <section>
                 <p>This site allows you to point <a href="http://github.com/wesleyhales/speedgun">Speedgun.js</a> at any public
-                    facing
-                    website to gather important web performance data.
-                    It runs five times providing the <a href="https://twitter.com/souders/status/268807147456978944">best possible
-                        data</a>
-                    to understand how your page is loaded.</p>
+                    facing website* to gather important web performance data.
+                    It runs five times providing a <a href="https://twitter.com/souders/status/268807147456978944">good view</a>
+                    on understanding how a web page is loaded.</p>
 
-                <p>There are already a lot of great, open source services for web performance automation.
-                    The goal for this project is simplicity in running and automating web performance.
-                    There are three parts:
-                <ul class="main-part-list">
-                    <li>A standalone <a href="https://github.com/wesleyhales/speedgun/blob/master/core/speedgun.js">JavaScript
-                        file</a> that uses PhantomJS2 to measure
-                        web perf timing through the W3C Navigation Timing API specification.
+                <p>*Some sites blacklist Digital Ocean IPs (like where this site is hosted)</p>
+
+                <h3>GETTING STARTED</h3>
+                <p>
+                    You can run the Speedgun.js script standalone with <a href="https://bitbucket.org/ariya/phantomjs/downloads/">PhantomJS 2</a>,
+                    or you can run this server (speedgun.io) via a docker container.</p>
+
+                <h4>Speedgun.js (Output to csv, json, junit, or png)</h4>
+                <ul>
+                    <li>Clone the speedgun repository:
+                        <code>git clone https://github.com/wesleyhales/speedgun.git</code>
                     </li>
-                    <li>A repeatable Docker setup that allows anyone to run this server.</li>
-                    <li>Use the Speedgun Docker containers as RUM nodes.</li>
-                </ul>
-                </p>
-            </section>
-        </div>
-    </div>
-
-
-    <div layout="row" layout-align="space-around left">
-        <div flex>
-            <h3 class="center">GETTING STARTED WITH SPEEDGUN.JS</h3>
-            <section>
-                <p class="part-list"><a href="https://bitbucket.org/ariya/phantomjs/downloads/">Install PhantomJS 2</a> to run this
-                    (Don't run it against old 1.x versions).</p>
-
-                <ul class="part-list">
-                    <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
-                    <li>Run it: <code>cd speedgun && phantomjs --ssl-protocol=any --ignore-ssl-errors=yes core/speedgun.js
-                        http://www.wesleyhales.com performance csv</code></li>
-                    <li>View the report in <code>speedgun/core/reports</code></li>
-                    <li>View the <a href="https://github.com/wesleyhales/speedgun/blob/master/README.md">Readme</a> for more
-                        options.
+                    <li>Run it:
+                        <code>cd speedgun && phantomjs core/speedgun.js -h</code>
+                    </li>
+                    <li>Example:
+                        <code>phantomjs --config=core/pconfig.json core/speedgun.js -o csv http://www.wesleyhales.com --screenshot</code>
+                    </li>
+                    <li>Get the data from the newly created reports folder.
                     </li>
                 </ul>
-            </section>
-        </div>
 
-
-        <div flex>
-            <h3 class="center">GETTING STARTED WITH SPEEDGUN.IO</h3>
-            <section>
-                <p class="part-list">To run this server, follow these steps:</p>
-                <h4 class="part-list" style="margin: 10px auto 0 auto">Mac</h4>
-
-                <ul class="part-list">
-                    <li>Clone it: <code>git clone https://github.com/wesleyhales/speedgun.git</code></li>
-                    <li>Install <a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a> and <a
-                            href="http://www.vagrantup.com">Vagrant</a></li>
-                    <li><code>cd speedgun/server</code></li>
-                    <li>Run: <code>./server.sh</code> (this will take a while)</li>
-                    <li>Done: Open browser and go to <a href="http://localhost:8081">http://localhost:8081</a></li>
-                    <li><a href="https://github.com/wesleyhales/speedgun/blob/master/server/README.md">If you run into VirtualBox
-                        errors see this...</a></li>
+                <h4>Speedgun.io Server (Install <a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a> and <a
+                        href="http://www.vagrantup.com">Vagrant</a>)</h4>
+                <ul>
+                    <li>Clone the speedgun repository:
+                        <code flex>git clone https://github.com/wesleyhales/speedgun.git</code>
+                    </li>
+                    <li>Run it:
+                        <code flex>./server.sh</code>
+                    </li>
+                    <li>VirtualBox Problems?
+                        <code flex>./fix-virtualbox.sh</code>
+                    </li>
+                    <li>Visit <a href="http://localhost:8081">http://localhost:8081</a></li>
                 </ul>
+
+                <div layout="column" >
+                    <h3>TEAM</h3>
+
+                    <div layout="row" layout-align="space-around left">
+
+                        <div flex><a href="http://twitter.com/wesleyhales">Wesley Hales</a></div>
+                        <div flex><a href="https://github.com/jsoverson">Jarrod Overson</a></div>
+                        <div flex><a href="https://github.com/soulgalore">Peter Hedenskog</a></div>
+                        <div flex><a href="https://github.com/wesleyhales/speedgun/graphs/contributors">All Contributors...</a></div>
+                        <div flex><a href="https://github.com/wesleyhales/speedgun/issues">Still Reading?</a></div>
+                    </div>
+                </div>
+
             </section>
         </div>
     </div>
 
-    <div layout="column" layout-align="space-around center">
-        <h3>TEAM</h3>
 
-        <div layout="row" layout-align="space-around center">
-
-
-            <div flex><a href="http://twitter.com/wesleyhales">Wesley Hales</a></div>
-            <div flex><a href="https://github.com/jsoverson">Jarrod Overson</a></div>
-            <div flex><a href="https://github.com/soulgalore">Peter Hedenskog</a></div>
-            <div flex><a href="https://github.com/wesleyhales/speedgun/graphs/contributors">and more...</a></div>
-        </div>
-    </div>
 </md-content>
-</div>
+
 </div>
 
-<script src="bower_components/hammerjs/hammer.min.js"></script>
-<script src="bower_components/angular/angular.min.js"></script>
-<script src="bower_components/angular-animate/angular-animate.min.js"></script>
-<script src="bower_components/angular-aria/angular-aria.js"></script>
-<script src="bower_components/angular-material/angular-material.js"></script>
-<script src="bower_components/angular-route/angular-route.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-animate.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-aria.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-route.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angular_material/0.7.1/angular-material.min.js"></script>
 
-<script src="speedgun.js"></script>
 
 <script type="text/javascript" src="js/app.js"></script>
 

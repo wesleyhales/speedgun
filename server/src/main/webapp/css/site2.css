@@ -1,0 +1,152 @@
+.more-data {
+    background-color: #F2F2F2;
+    width: 100%;
+    font-weight: 500;
+
+    padding: 10px;
+    font-size: 1.5em;
+    border: 1px solid #C2C2C2;
+    color: #519FC7;
+    text-align: center;
+}
+
+.screenshot-img{
+    max-width: 100%;
+    border: 1px solid #ececec;
+    padding: 10px;
+    margin: 10px;
+}
+
+.sg-times {
+    margin: 0 auto;
+    width: 80%;
+}
+
+/*#begin copy old*/
+
+.part-list li, .main-part-list li {
+    padding: 3px;
+}
+
+.part-list, .main-part-list {
+    clear:both;
+}
+
+p, .part-list, .main-part-list{
+    font-size: 1.1em;
+}
+
+
+.results md-card.header {
+    box-shadow: none;
+}
+
+
+.results md-card {
+    background-color:white;
+}
+
+.results.visible {
+    height:auto;
+}
+
+
+.md-fab {
+    border-radius:2px !important;
+
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    width: 100%;
+    display: block;
+    padding: 5px 0 5px 0;
+}
+
+.word-break {
+    overflow-wrap: break-word;
+}
+
+.clear-link {
+    font-size: 17px;
+    color: grey;
+}
+
+
+.btn-go {
+    opacity:.95;
+    text-transform:none;
+    font-family: RobotoDraft, Roboto, 'Helvetica Neue', sans-serif;
+    font-weight:500;
+    letter-spacing: 1px;
+}
+
+/*----------Cards*/
+
+.z-anim { transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+.z-0 { box-shadow: 0 0px 0px 0 rgba(0, 0, 0, 0); }
+.z-1 { box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26); }
+.z-2 { box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4); }
+
+.card {
+    transition: opacity .5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transparent {
+    opacity:0;
+}
+
+.cell {
+    min-height: 150px;
+    padding: 2%;
+}
+
+.cell .header {
+    font-size:30px;
+    margin-bottom:10px;
+}
+
+.cell .desc {
+    margin-bottom:10px;
+    min-height:1em;
+}
+
+.cell .stat {
+    text-align: center;
+    height: 60px;
+    margin:10px;
+    border-radius:1px;
+}
+
+.stat.best {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4);
+    color: #4CAF50;
+}
+
+.stat.worst {
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    color:#9f0000;
+}
+
+.stat.median {
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    background-color: #ececec;
+    color:#000;
+    font-weight: bold;
+}
+
+/*#end copy old*/
+
+code {
+    font-family: consolas, menlo, monaco, monospace;
+    padding: 10px 5px;
+    width: 100%;
+    float:left;
+    background-color: #e3e3e3;
+    margin: 5px 0 5px 0;
+    border-radius:2px
+}

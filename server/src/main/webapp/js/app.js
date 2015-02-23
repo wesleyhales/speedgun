@@ -73,6 +73,15 @@ angular.module('app', [
     return deferred.promise;
   };
 }])
+  .config(function($mdThemingProvider) {
+
+    // Use the 'brown' theme - override default 'blue' theme
+
+    $mdThemingProvider.theme('default')
+      .primaryColor('brown')
+      .accentColor('brown');
+
+  })
   .controller('MainCtrl', ['$scope', 'api', '$routeParams', '$location', function ($scope, api, $routeParams, $location) {
 //    $scope.url = 'localhost:8080';
 
@@ -93,7 +102,6 @@ angular.module('app', [
 
     function loadTheGun(uuid){
       $scope.uuid = uuid;
-      $scope.running = true;
       $scope.screenshots = [{'2':'1'}];
 //      animate();
       var done = function(data){
@@ -129,6 +137,9 @@ angular.module('app', [
 
 
     $scope.xgo = function(url, email, cached){
+
+      $scope.running = url;
+
       if(url.indexOf('http://') === -1 && url.indexOf('https://') === -1){
         url = 'http://' + url;
       }
