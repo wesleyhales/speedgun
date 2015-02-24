@@ -4,10 +4,10 @@ args=("$@")
 SERVER_MODE=${args[0]}
 
 pushd ./data/postgres > /dev/null
-    docker rm -f sg-postgres-name
-    docker build -t sg-postgres .
-    #docker run --net=host --rm -P --name sg-postgres-name sg-postgres
-    docker run -d -P -v /home/speedgun/postgres/data:/var/lib/postgresql/data -p 5432:5432 --name sg-postgres-name sg-postgres sh -c "./docker-entrypoint.sh postgres"
+#    docker rm -f sg-postgres-name
+#    docker build -t sg-postgres .
+    docker pull wesleyhales/speedgun-postgres
+    docker run -d -P -v /home/speedgun/postgres/data:/var/lib/postgresql/data -p 5432:5432 --name sg-postgres-name wesleyhales/speedgun-postgres sh -c "./docker-entrypoint.sh postgres"
 popd > /dev/null
 
 if [ "$SERVER_MODE" = "dev" ]; then
@@ -21,10 +21,11 @@ if [ "$SERVER_MODE" = "dev" ]; then
 else
   #prod
   pushd ./server > /dev/null
-    cp -rf Dockerfile-prod Dockerfile &&
-    docker rm -f sg-server-name
-    docker build -t sg-server .
-    docker run -d -P -v /home/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 80:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
+#    cp -rf Dockerfile-prod Dockerfile &&
+#    docker rm -f sg-server-name
+#    docker build -t sg-server .
+    docker pull wesleyhales/speedgun-server
+    docker run -d -P -v /home/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 80:8080 --name sg-server-name --link sg-postgres-name:spn wesleyhales/speedgun-server sh -c "./server-entrypoint.sh"
   popd > /dev/null
 fi
 

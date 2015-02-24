@@ -1,7 +1,7 @@
 CREATE DATABASE SPEEDGUN;
 
 \c speedgun;
-
+CREATE EXTENSION citext;
 CREATE TABLE jsontest (
   id serial primary key,
   data jsonb,
