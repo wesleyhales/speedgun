@@ -20,6 +20,7 @@
 * run -ti === interactive mode, should be -d for prod server
 * --net=host === allows use of host network stack.. otherwise no access
 * http://localhost:8081/rest/beacon/init (init the RUM beacon)
+* tag an image prepping for dockerhub: docker tag sg-server wesleyhales/speedgun-server
 
 ### problems with vagrant:
 
