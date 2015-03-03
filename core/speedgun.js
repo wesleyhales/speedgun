@@ -53,7 +53,68 @@ var fs = require('fs'),
       this.config = this.mergeConfig(speedGunArgs, speedGunArgs.configFile);
 
       var task = this[this.config.task];
-      this.load(this.config, task, this);
+
+      //start crawler functionality
+
+      var WebPage = require('webpage'),
+        linkgrabber = WebPage.create();
+
+      linkgrabber.open(this.config.url, function (status) {
+
+        linkgrabber.evaluate(function () {
+          var collection = document.getElementsByTagName('a');
+          var currentValues = [];
+          var values = [].map.call(collection, function(obj) {
+            if(currentValues.indexOf(obj.href) < 0){
+              currentValues.push(obj.href);
+            }
+          });
+
+          console.log(JSON.stringify(currentValues));
+
+        });
+
+      });
+
+      var crawlablePages;
+
+      linkgrabber.onConsoleMessage = function (msg) {
+
+        if(msg && msg.indexOf('[') === 0){
+        try {
+          crawlablePages = JSON.parse(msg)
+        } catch (e) {
+        }
+
+        if(crawlablePages.constructor === Array){
+          go(crawlablePages)
+        }
+        }
+      };
+      var that = this,timeoutObj = {};
+      function go(crawlablePages){
+
+        function callback(){
+          var page = crawlablePages.pop();
+          console.log('#############start',page,crawlablePages.length);
+          doit(page,page,callback)
+        }
+
+        function doit(url,index, callback){
+          timeoutObj[index] = setTimeout(function(){
+            console.log(url);
+            that.config.url = url;
+            that.load(that.config, task, that,callback);
+          },(index * 5000))
+        }
+
+        callback();
+
+      }
+
+
+//
+//      this.load(this.config, task, this);
 
     },
 
@@ -532,14 +593,12 @@ var fs = require('fs'),
       }
     },
 
-    load: function (config, task, scope) {
+    load: function (config, task, scope, callback) {
 
       var page = WebPage.create();
       page.settings.localToRemoteUrlAccessEnabled = true;
       page.settings.webSecurityEnabled = false;
       page.settings.resourceTimeout = 20000; // 20 seconds
-
-  //    page.clearMemoryCache();
 
       if (config.userAgent && config.userAgent != "default") {
         if (config.userAgentAliases[config.userAgent]) {
@@ -630,9 +689,10 @@ var fs = require('fs'),
         })
       };
 
-      var phantomExit = function (param) {
+      var phantomExit = function () {
         console.log('!!exit phantom!!');
-        phantom.exit(0);
+//      phantom.exit(0);
+        callback();
       };
 
       //hack to eliminate multiple calls to this method from other page.evaluate events.
@@ -779,7 +839,7 @@ var fs = require('fs'),
     function printReport(report, exitphantom) {
 
       //setup screenshot
-      var reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/speedgun';
+      var reportLocation = config.url.replace('://', '_').replace(":", "_") + '/speedgun';
       speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
       page.viewportSize = { width: 1024, height: 768 };
 
