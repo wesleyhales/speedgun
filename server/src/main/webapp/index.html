@@ -18,7 +18,7 @@
 </head>
 <body layout="column" ng-controller="MainCtrl">
 
-<div style="top:0;right:10px; width: 500px; position:absolute; z-index: 1; text-align: right">
+<div style="top:0;right:10px; width: 150px; position:absolute; z-index: 1; text-align: right">
     <a href="https://github.com/wesleyhales/speedgun/"><img class="fade" src="images/GitHub-Mark.png"  style="width: 51px"/></a>
     <a href="https://registry.hub.docker.com/u/wesleyhales/speedgun-server/"><img class="fade" src="images/docker-logo.png"  style="width: 51px"/></a>
 </div>
@@ -47,7 +47,12 @@
                             <div ng-message="required">This is required.</div>
                         </div>
                     </md-input-container>
-
+                    <md-input-container flex>
+                        <md-select ng-model="someModel">
+                            <md-select-label>Run from: </md-select-label>
+                            <select ng-model="selectedNode" ng-options="key as key for (key , value) in nodeList.data"></select>
+                        </md-select>
+                    </md-input-container>
 
 
                 </md-content>
@@ -64,6 +69,8 @@
                             Go
                         </md-button>
                     </md-input-container>
+
+
                 </md-content>
             </section>
         </form>

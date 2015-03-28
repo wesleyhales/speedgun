@@ -40,14 +40,15 @@ public class BeaconService {
   public Response init() {
     Response.ResponseBuilder response = null;
     response = Response.ok("Centralized Ping Started", MediaType.TEXT_HTML);
+    startBeaconTimer();
     return response.build();
   }
 
-  @PostConstruct
-  public void initialize() {
-    log.info("[Speedgun] Start the beacon timer");
-    startBeaconTimer();
-  }
+//  @PostConstruct
+//  public void initialize() {
+//    log.info("[Speedgun] Start the beacon timer");
+//
+//  }
 
   private Timer timer = null;
 

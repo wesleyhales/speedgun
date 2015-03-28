@@ -31,6 +31,10 @@ angular.module('app', [
     };
     return $http.get(base64url, config);
   };
+  this.getNodes = function(){
+    var nodeList = host + 'http://speedgun.io/rest/beacon/getlist';
+    return $http.get(nodeList);
+  };
   this.get = function (uuid) {
 //        if (!uuid) return $q.when(speedgun);
 //      http://127.0.0.1:8080/rest/performance/checkimage?uuid=586930c7-5cc3-46a5-9802-fbd36ff05c1a
@@ -134,6 +138,12 @@ angular.module('app', [
       $scope.speedgun = [];
     };
 
+
+    api.getNodes().then(function(response){
+      $scope.nodeList = response;
+    });
+
+    $scope.selectedNode = "Select a value";
 
 
     $scope.xgo = function(url, email, cached){
