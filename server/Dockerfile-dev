@@ -62,15 +62,6 @@ RUN cd /root && wget https://www.dropbox.com/s/k2iz3qttedm43s9/server.tar
 
 RUN cd /root && tar -xvf server.tar
 
-#RUN echo "cd /root/jboss-as-7.1.1.Final-fluxui/ && ./bin/standalone.sh --server-config=standalone-full.xml -b 0.0.0.0" >> /root/.bashrc
-
-# install maven
-#dev RUN sudo apt-get update && apt-get install -y maven
-
-#dev ADD src /root/src
-#dev ADD pom.xml /root/pom.xml
-#dev RUN mvn clean install
-
 RUN mkdir /root/target
 
 RUN ln -s /root/target/speedgun /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war
@@ -79,6 +70,7 @@ RUN touch /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war.
 
 # Cleanup old JMS queue
 RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/jboss-as-7.1.1.Final-fluxui/standalone/data/*
+RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/configuration/standalone_xml_history
 
 RUN mkdir /root/jboss-as-7.1.1.Final-fluxui/speedgun
 RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/speedgun.js #v4
