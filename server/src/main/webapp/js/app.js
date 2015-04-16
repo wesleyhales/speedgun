@@ -2,7 +2,7 @@
 
 
 var host = '';
-//host = 'http://localhost:8081';
+
 
 angular.module('app', [
   'ngMaterial',
@@ -32,7 +32,7 @@ angular.module('app', [
     return $http.get(base64url, config);
   };
   this.getNodes = function(){
-    var nodeList = host + 'http://speedgun.io/rest/beacon/getlist';
+    var nodeList = 'http://speedgun.io/rest/beacon/getlist';
     return $http.get(nodeList);
   };
   this.get = function (uuid) {
@@ -82,8 +82,8 @@ angular.module('app', [
     // Use the 'brown' theme - override default 'blue' theme
 
     $mdThemingProvider.theme('default')
-      .primaryColor('brown')
-      .accentColor('brown');
+      .primaryColor('red')
+      .accentColor('red');
 
   })
   .controller('MainCtrl', ['$scope', 'api', '$routeParams', '$location', function ($scope, api, $routeParams, $location) {
@@ -140,11 +140,26 @@ angular.module('app', [
 
 
     api.getNodes().then(function(response){
-      $scope.nodeList = response;
+      var tempNodes = response.data;
+      console.log(tempNodes);
+      $scope.nodeList = [];
+      for(key in tempNodes){
+        $scope.nodeList.push({'label':key,'value':key})
+      }
     });
 
-    $scope.selectedNode = "Select a value";
+    $scope.selectedNode = '';
 
+    $scope.$watch('selectedNode', function(node) {
+      if(node === null || node === ''){
+        host = '';
+      }else{
+        host = 'http://' + node + ':8081';
+      }
+
+
+
+    });
 
     $scope.xgo = function(url, email, cached){
 

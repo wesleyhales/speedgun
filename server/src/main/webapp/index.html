@@ -33,6 +33,7 @@
         <div flex="20">
             <img src="images/sg-logo.png"  class="fade" style="max-width:100%" layout-margin layout-padding/>
 
+
         </div>
 
 
@@ -47,14 +48,18 @@
                             <div ng-message="required">This is required.</div>
                         </div>
                     </md-input-container>
-                    <md-input-container flex>
-                        <md-select ng-model="someModel">
-                            <md-select-label>Run from: </md-select-label>
-                            <select ng-model="selectedNode" ng-options="key as key for (key , value) in nodeList.data"></select>
-                        </md-select>
-                    </md-input-container>
 
 
+                </md-content>
+            </section>
+            <section layout="row" layout-align="center center" class="url-input-container" flex>
+                <md-content  class="md-padding" layout="row" layout-sm="column" style="font-size:1.2em" flex>
+                    <md-select ng-model="someModel">
+                        <md-select-label class="run-from-label">Run report from: </md-select-label>
+                        <select role="listbox" class="md-whiteframe-z1" ng-model="selectedNode" ng-options="i.label as i.value for i in nodeList">
+                            <option value="">This Node</option>
+                        </select>
+                    </md-select>
                 </md-content>
             </section>
             <section layout="row" layout-align="center center" class="url-input-container" flex>

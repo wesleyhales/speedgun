@@ -105,6 +105,10 @@ public class PerformanceService implements Serializable {
   }
 
     builder = Response.ok();
+    builder.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    builder.header("Access-Control-Allow-Origin", "*");
+    builder.header("Access-Control-Allow-Headers", "accept, origin, sg-variant, content-type");
+
     return builder.build();
   }
 
@@ -150,6 +154,10 @@ public class PerformanceService implements Serializable {
     }
 
     builder = Response.ok();
+    builder.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    builder.header("Access-Control-Allow-Origin", "*");
+    builder.header("Access-Control-Allow-Headers", "accept, origin, sg-variant, content-type");
+
     return builder.build();
   }
 
@@ -158,9 +166,10 @@ public class PerformanceService implements Serializable {
   @GET
   @Path("/go")
   @Produces("text/html")
-  public String go(@QueryParam("url") String url, @QueryParam("cached") String cached, @QueryParam("email") String email) {
+  public Response go(@QueryParam("url") String url, @QueryParam("cached") String cached, @QueryParam("email") String email) {
 
 
+    Response.ResponseBuilder builder = null;
 		String retVal = "";
     String response = "{}";
     String taskName = "performance";
@@ -199,7 +208,9 @@ public class PerformanceService implements Serializable {
       position = perfQueueManager.storeMessage(url, taskName, random.toString(), email);
     } else {
       System.out.println("Bad URL");
-      return response;
+      builder = Response.ok(response, MediaType.APPLICATION_JSON);
+      return builder.build();
+
     }
 
     try {
@@ -208,7 +219,13 @@ public class PerformanceService implements Serializable {
       retVal = response;
     }
 
-    return retVal;
+    builder = Response.ok(retVal, MediaType.APPLICATION_JSON);
+
+    builder.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    builder.header("Access-Control-Allow-Origin", "*");
+    builder.header("Access-Control-Allow-Headers", "accept, origin, sg-variant, content-type");
+
+    return builder.build();
 
 
   }
@@ -269,6 +286,10 @@ public class PerformanceService implements Serializable {
       responseObj.put("error", e.getMessage());
       builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
     }
+
+    builder.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    builder.header("Access-Control-Allow-Origin", "*");
+    builder.header("Access-Control-Allow-Headers", "accept, origin, sg-variant, content-type");
 
     return builder.build();
   }
@@ -337,6 +358,10 @@ public class PerformanceService implements Serializable {
 
 //        return "{\"status\":\"pending\",\"position\":\"" + PerfQueueManager.incomingMsgs + "\"}";
 
+
+    builder.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    builder.header("Access-Control-Allow-Origin", "*");
+    builder.header("Access-Control-Allow-Headers", "accept, origin, sg-variant, content-type");
 
     return builder.build();
   }
