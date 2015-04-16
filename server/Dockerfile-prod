@@ -50,7 +50,7 @@ ADD phantomjs /root/phantomjs
 RUN ln -s /root/phantomjs /usr/bin/phantomjs
 ######################################+++++ END comment out when building new version of phantomjs
 
-RUN git clone git://github.com/wesleyhales/speedgun.git
+RUN git clone git://github.com/wesleyhales/speedgun.git #v2
 
 #RUN mkdir /root/speedgun/core/reports
 
@@ -67,13 +67,9 @@ RUN cd /root && tar -xvf server.tar
 # install maven
 RUN sudo apt-get update && apt-get install -y maven
 
-ADD src /root/src
-ADD pom.xml /root/pom.xml
-RUN mvn clean install
+RUN cd /root/speedgun/server && mvn clean install
 
-#RUN cp -rf /root/target/speedgun.war /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/
-
-RUN ln -s /root/target/speedgun /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war
+RUN ln -s /root/speedgun/server/target/speedgun /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war
 
 RUN touch /root/jboss-as-7.1.1.Final-fluxui/standalone/deployments/speedgun.war.dodeploy
 

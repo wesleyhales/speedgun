@@ -19,12 +19,19 @@ if [ "$SERVER_MODE" = "dev" ]; then
       docker build -t sg-server .
       docker run -d -P --restart=always -v /vagrant/server/target/speedgun:/root/target/speedgun -v /home/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 80:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
   popd > /dev/null
+elif [ "$SERVER_MODE" = "build" ]; then
+   echo "running in build mode"
+   pushd ./server > /dev/null
+     cp -rf Dockerfile-prod Dockerfile &&
+     docker rm -f sg-server-name
+     docker build -t sg-server .
+     docker run -d -P --restart=always -v /home/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 80:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
+   popd > /dev/null
 else
   #prod
+  echo "running in pull mode"
   pushd ./server > /dev/null
-#    cp -rf Dockerfile-prod Dockerfile &&
     docker rm -f sg-server-name
-#    docker build -t sg-server .
     docker pull wesleyhales/speedgun-server
     docker run -d -P --restart=always -v /home/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 80:8080 --name sg-server-name --link sg-postgres-name:spn wesleyhales/speedgun-server sh -c "./server-entrypoint.sh"
   popd > /dev/null
