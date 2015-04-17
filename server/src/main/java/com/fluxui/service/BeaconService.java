@@ -64,7 +64,7 @@ public class BeaconService {
           log.info("[Speedgun] Beacon is running");
 
         }
-      }, 0, 60000);
+      }, 0, 3600000);
     }
   }
 
@@ -167,12 +167,11 @@ public class BeaconService {
       //Create an "ok" response
     response = Response.ok("{\"status\":\"msg received from: " + req.getRemoteHost() + "\"}", MediaType.APPLICATION_JSON);
 
-
-    log.info("[Speedgun] Beacon received msg from: " + req.getRemoteHost() + " port: " + req.getRemotePort());
-
     sgstatus.setIp(req.getRemoteHost());
     sessionMap.put(req.getRemoteHost(), sgstatus);
     //need a timer... or check on page load and then call purge if not available
+
+    log.info("[Speedgun] Beacon received msg from: " + req.getRemoteHost() + " map size: " + sessionMap.size());
 
     response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     response.header("Access-Control-Allow-Origin", "*");
