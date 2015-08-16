@@ -54,4 +54,7 @@ fi
 #psql -h ${SPN_PORT_5432_TCP_ADDR} -p 5432 -U postgres
 #\c speedgun
 #\COPY jsontest to 'jsontest.csv' DELIMITER ',' CSV HEADER;
-#fish out by copying to a shared sir i.e. jboss/standalone/log/
+#or...
+#select count(*) from jsontest; for total records
+#or..
+#fish out by copying to a shared dir i.e. jboss/standalone/log/
