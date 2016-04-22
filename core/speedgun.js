@@ -16,6 +16,8 @@ var fs = require('fs'),
     version: false,
     verbose: false,
     screenshot: false,
+    crawl: false,
+    debug: false,
     wipe: false,
     phantomCacheEnabled: false
   },
@@ -49,11 +51,19 @@ var speedgun = {
     }
 
     speedgun.performancecache = this.clone(speedgun.performance);
-
     this.config = this.mergeConfig(speedGunArgs, speedGunArgs.configFile);
-
     var task = this[this.config.task];
-    this.load(this.config, task, this);
+
+    if(speedGunArgs.crawl){
+      var WebPage = require('webpage'),
+          linkgrabber = WebPage.create();
+      var hostmatch = document.createElement('a');
+      hostmatch.href = speedGunArgs.url;
+      this.crawl(task,linkgrabber,hostmatch.hostname);
+    }else{
+      this.load(this.config, task, this);
+    }
+
 
   },
 
@@ -362,7 +372,65 @@ var speedgun = {
 
   reportData: {},
 
-  load: function (config, task, scope) {
+  crawl: function(task,linkgrabber,hostmatch){
+
+    //open the page to initiate the crawl
+    linkgrabber.open(this.config.url, function (status) {
+      linkgrabber.evaluate(function (hostmatch) {
+        var collection = document.getElementsByTagName('a'),
+            currentValues = [],
+            values = [].map.call(collection, function(obj) {
+              if(currentValues.indexOf(obj.href) < 0){
+                //match only on same domain. todo - make configurable
+                if(hostmatch && (hostmatch.indexOf(obj.hostname) > -1)){
+                  currentValues.push(obj.href);
+                }
+              }
+            });
+        //console is used as a channel for sending data out of
+        //this evaluate to phantomJS parent context
+        console.log(JSON.stringify(currentValues));
+      },hostmatch);
+
+    });
+
+    var crawlablePages;
+
+    linkgrabber.onConsoleMessage = function (msg) {
+      if(msg && msg.indexOf('[') === 0){
+        try {
+          crawlablePages = JSON.parse(msg);
+          console.log('***Crawling ' + crawlablePages.length + ' total pages.')
+        } catch (e) {
+          console.log('problem parsing links for crawler ',e)
+        }
+        if(crawlablePages.constructor === Array){
+          go(crawlablePages)
+        }
+      }
+    };
+
+    var that = this,timeoutObj = {};
+    function go(crawlablePages){
+
+      function callback(){
+        var page = crawlablePages.shift();
+        console.log('### Running speedgun report for: ',page, crawlablePages.length + ' left to go...');
+        doit(page,crawlablePages.length,callback)
+      }
+
+      function doit(url,index, callback){
+        timeoutObj[index] = setTimeout(function(){
+          console.log('url being loaded: ',url,index);
+          that.config.url = url;
+          that.load(that.config, task, that,callback);
+        },(5000))
+      }
+      callback();
+    }
+  },
+
+  load: function (config, task, scope, callback) {
 
     var page = WebPage.create();
     page.settings.localToRemoteUrlAccessEnabled = true;
@@ -425,7 +493,7 @@ var speedgun = {
         incoming = msg;
 
       //debug dump
-      console.log('console: ',msg.substring(0,50));
+      (speedGunArgs.debug ? console.log('console: ',msg.substring(0,50)) : null);
 
       if (msg.indexOf('error:') >= 0) {
         speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length, msg.length)));
@@ -460,9 +528,15 @@ var speedgun = {
       })
     };
 
-    var phantomExit = function (param) {
-      console.log('!!exit phantom!!');
-      phantom.exit(0);
+    var phantomExit = function () {
+      if(callback){
+        //in crawler mode.
+        console.log('!!load new page!!');
+        callback();
+      }else{
+        console.log('!!exit phantom!!', callback);
+        phantom.exit(0);
+      }
     };
 
     //hack to eliminate multiple calls to this method from other page.evaluate events.
@@ -937,9 +1011,11 @@ var speedgun = {
     console.log('    -v, --version            Not implemented yet');
     console.log('    -u, --uuid               only used for server side run in speedgun.io');
     console.log('    --verbose                Turn on verbose logging');
+    console.log('    --crawl                  Crawl all links on the page');
     console.log('    --screenshot             Create a png of screen');
     console.log('    --wipe                   Wipe the file instead of appending to it on each report');
     console.log('    --phantomCacheEnabled    Enable PhantomJS cache');
+    console.log('    --debug                  Debug output to terminal');
     // Lets not talk about the configFile for now
   },
 
