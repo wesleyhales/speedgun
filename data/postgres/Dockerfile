@@ -1,18 +1,22 @@
 # vim:set ft=dockerfile:
-FROM debian:wheezy
+FROM debian:jessie
 
-# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-RUN groupadd -r postgres && useradd -r -g postgres postgres
+# explicitly set user/group IDs
+RUN groupadd -r postgres --gid=999 && useradd -r -g postgres --uid=999 postgres
 
 # grab gosu for easy step-down from root
-RUN gpg --keyserver pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* \
-	&& curl -o /usr/local/bin/gosu -SL "https://github.com/tianon/gosu/releases/download/1.2/gosu-$(dpkg --print-architecture)" \
-	&& curl -o /usr/local/bin/gosu.asc -SL "https://github.com/tianon/gosu/releases/download/1.2/gosu-$(dpkg --print-architecture).asc" \
-	&& gpg --verify /usr/local/bin/gosu.asc \
-	&& rm /usr/local/bin/gosu.asc \
+ENV GOSU_VERSION 1.7
+RUN set -x \
+	&& apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
+	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
+	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
+	&& export GNUPGHOME="$(mktemp -d)" \
+	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+	&& rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
 	&& chmod +x /usr/local/bin/gosu \
-	&& apt-get purge -y --auto-remove curl
+	&& gosu nobody true \
+	&& apt-get purge -y --auto-remove ca-certificates wget
 
 # make the "en_US.UTF-8" locale so postgres will be utf-8 enabled by default
 RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
@@ -21,12 +25,12 @@ ENV LANG en_US.utf8
 
 RUN mkdir /docker-entrypoint-initdb.d
 
-RUN apt-key adv --keyserver pool.sks-keyservers.net --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
+RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
 
-ENV PG_MAJOR 9.4
-ENV PG_VERSION 9.4.0-1.pgdg70+1
+ENV PG_MAJOR 9.6
+ENV PG_VERSION 9.6~beta2-1.pgdg80+1
 
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ wheezy-pgdg main' $PG_MAJOR > /etc/apt/sources.list.d/pgdg.list
+RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main' $PG_MAJOR > /etc/apt/sources.list.d/pgdg.list
 
 RUN apt-get update \
 	&& apt-get install -y postgresql-common \
@@ -36,15 +40,18 @@ RUN apt-get update \
 		postgresql-contrib-$PG_MAJOR=$PG_VERSION \
 	&& rm -rf /var/lib/apt/lists/*
 
+# make the sample config easier to munge (and "correct by default")
+RUN mv -v /usr/share/postgresql/$PG_MAJOR/postgresql.conf.sample /usr/share/postgresql/ \
+	&& ln -sv ../postgresql.conf.sample /usr/share/postgresql/$PG_MAJOR/ \
+	&& sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/share/postgresql/postgresql.conf.sample
+
 RUN mkdir -p /var/run/postgresql && chown -R postgres /var/run/postgresql
 
 ENV PATH /usr/lib/postgresql/$PG_MAJOR/bin:$PATH
 ENV PGDATA /var/lib/postgresql/data
-
 VOLUME /var/lib/postgresql/data
 
 COPY docker-entrypoint.sh /
-
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 

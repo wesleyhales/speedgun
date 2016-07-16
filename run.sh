@@ -10,6 +10,7 @@ pushd ./data/postgres > /dev/null
 #    docker build -t sg-postgres .
     docker pull wesleyhales/speedgun-postgres
     docker run -d -P --restart=always -v /home/speedgun/postgres/data:/var/lib/postgresql/data -p 5432:5432 --name sg-postgres-name wesleyhales/speedgun-postgres sh -c "./docker-entrypoint.sh postgres"
+    #docker run -d -P --restart=always -v /Users/speedgun/postgres/data:/var/lib/postgresql/data -p 5432:5432 --name sg-postgres-name 549907d445d1 sh -c "./docker-entrypoint.sh postgres"
 popd > /dev/null
 
 if [ "$SERVER_MODE" = "dev" ]; then
@@ -18,7 +19,8 @@ if [ "$SERVER_MODE" = "dev" ]; then
       cp -rf Dockerfile-dev Dockerfile &&
       docker rm -f sg-server-name
       docker build -t sg-server .
-      docker run -d -P --restart=always -v /vagrant/server/target/speedgun:/root/target/speedgun -v /home/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 8081:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
+       #you need to build to /Users/speedgun/server/target/speedgun
+      docker run -d -P --restart=always -v /Users/whales/dev/speedgun/server/target/speedgun:/root/target/speedgun -v /Users/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 8081:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
   popd > /dev/null
 elif [ "$SERVER_MODE" = "build" ]; then
    pushd ./server > /dev/null
