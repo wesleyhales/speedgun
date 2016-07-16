@@ -1,41 +1,43 @@
 #!/usr/bin/env phantomjs
 var fs = require('fs'),
-  WebPage = require('webpage'),
-  system = require('system'),
-  args = system.args,
-  speedGunArgs = {
-    task: 'performance',
-    format: 'simple',
-    output: 'json',
-    userAgent: 'chrome',
-    configFile: 'config.json',
-    uuid: null
-  },
-  unaryArgs = {
-    help: false,
-    version: false,
-    verbose: false,
-    screenshot: false,
-    crawl: false,
-    debug: false,
-    wipe: false,
-    phantomCacheEnabled: false
-  },
-  validValues = {
-    task: ['performance'],
-    format: ['detailed', 'simple'],
-    output: ['json', 'csv', 'post']
-  },
-  argsAlias = {
-    t: 'task',
-    f: 'format',
-    o: 'output',
-    h: 'help',
-    v: 'version',
-    ua: 'userAgent',
-    u: 'uuid'
-  },
-  pageInstance = WebPage.create();
+    WebPage = require('webpage'),
+    system = require('system'),
+    args = system.args,
+    speedGunArgs = {
+      task: 'performance',
+      format: 'simple',
+      output: 'json',
+      userAgent: 'chrome',
+      configFile: 'config.json',
+      uuid: null
+    },
+    unaryArgs = {
+      help: false,
+      version: false,
+      verbose: false,
+      screenshot: false,
+      crawl: false,
+      debug: false,
+      wipe: false,
+      phantomCacheEnabled: false
+    },
+    validValues = {
+      task: ['performance'],
+      format: ['detailed', 'simple'],
+      output: ['json', 'csv', 'post']
+    },
+    argsAlias = {
+      t: 'task',
+      f: 'format',
+      o: 'output',
+      h: 'help',
+      v: 'version',
+      ua: 'userAgent',
+      u: 'uuid'
+    },
+    pageInstance = WebPage.create(),
+    paintDetected = false;
+onInitializedFired = false;
 
 var speedgun = {
 
@@ -166,17 +168,9 @@ var speedgun = {
 
         report.DOMContentLoaded = {value: 0, label: 'Old perf measurement', index: 40};
 
+        report.startRender = {value: 0, label: 'Old perf measurement', index: 85};
+
         report.Load = {value: 0, label: 'Old perf measurement', index: 41};
-
-        report.resources = {label: '', value: {}, index: 51};
-
-        report.resourceSingleSmallest = {label: 'Smallest resource on the page in bytes.', value: '', index: 52};
-
-        report.resourceSingleLargest = {label: 'Largest resource on the page in bytes.', value: '', index: 53};
-
-        report.resourceSingleFastest = {label: 'Fastest downloaded resource.', value: '', index: 54};
-
-        report.resourceSingleSlowest = {label: 'Slowest downloaded resource.', value: '', index: 55};
 
         report.navEvents = {label: '', value: [], index: 56};
 
@@ -190,6 +184,22 @@ var speedgun = {
 
     },
 
+    onRepaintRequested: function(page, time, x, y, width, height) {
+
+      if(onInitializedFired && !paintDetected && !(width === 0 && height === 0)) {
+        // if(onInitializedFired && !paintDetected) {
+
+        page.render('firstPaint.png',{format: 'jpeg', quality: '50'});
+        page.evaluate(function () {
+
+          console.log(JSON.stringify({label: 'Start Render', value: performance.now(), index: 85}));
+
+        });
+        paintDetected = true;
+      };
+
+    },
+
     onResourceTimeout: function (e) {
       console.log(e.errorCode);   // it'll probably be 408
       console.log(e.errorString); // it'll probably be 'Network timeout on resource'
@@ -198,61 +208,6 @@ var speedgun = {
     },
 
     onLoadFinished: function (page, config) {
-
-      var size = 0, key, resources = [], slowest, fastest, totalDuration = 0,
-        largest, smallest, totalSize = 0,
-        missingList = [],
-        missingSize = false;
-
-      if (speedgun.reportData.resources) {
-        resources = speedgun.reportData.resources.value;
-      }
-
-      for (var resource in resources) {
-        resource = resources[resource];
-
-        //        if (resources.hasOwnProperty(resource)) {
-        if (!resource.times.start || !resource.times.end) {
-          //if one of start or end times is undefined - don't calculate
-          resource.times.start = resource.times.end = 0;
-        }
-
-        if ((!slowest || resource.times.start !== 0 || resource.duration > slowest.duration) && (!resource.url.match(/(^data:.+\/.*)/i))) {
-          slowest = resource;
-        }
-        if (!fastest || resource.times.start !== 0 || resource.duration < fastest.duration) {
-          // we catch resources with empty durations, we should look at the root of the evil
-          // but for now, just don't add them to the list. And exclude DATA uri:s
-
-          if (resource.duration !== '' && (!resource.url.match(/(^data:.+\/.*)/i))) {
-            fastest = resource;
-          }
-        }
-        //console.log(totalDuration);
-        totalDuration += resource.duration;
-
-
-        if (resource.size) {
-          if (!largest || resource.size > largest.size) {
-            largest = resource;
-          }
-          if (!smallest || resource.size < smallest.size) {
-            smallest = resource;
-          }
-          totalSize += resource.size;
-        } else {
-          resource.size = 0;
-          missingSize = true;
-          missingList.push(resource.url);
-        }
-      }
-
-      speedgun.reportData.resourceSingleSmallest.value = smallest;
-      speedgun.reportData.resourceSingleLargest.value = largest;
-      speedgun.reportData.resourceSingleFastest.value = fastest;
-      speedgun.reportData.resourceSingleSlowest.value = slowest;
-
-
     },
 
     onLoadStarted: function (page, config) {
@@ -260,7 +215,7 @@ var speedgun = {
     },
 
     onNavigationRequested: function (page, config, url, type, willNavigate, main) {
-      //      console.log('###### onNavigationRequested ', page.url);
+
       if (Object.keys(speedgun.reportData).length === 0) {
         //init report
         speedgun.reportData = speedgun.performance.perfObj.data(false);
@@ -292,6 +247,7 @@ var speedgun = {
     },
 
     onInitialized: function (page) {
+      onInitializedFired = true;
       console.log('###### onInitialized ' + page.url);
 
       if (Object.keys(speedgun.reportData).length === 0) {
@@ -331,42 +287,9 @@ var speedgun = {
     },
 
     onResourceRequested: function (page, config, request) {
-      var now = Date.now();
-      speedgun.reportData.resources.value[request.id] = {
-        id: request.id,
-        url: request.url,
-        request: request,
-        responses: {},
-        duration: '',
-        times: {
-          request: now
-        }
-      };
-
     },
 
     onResourceReceived: function (page, config, response) {
-      var now = Date.now(),
-        resource = speedgun.reportData.resources.value[response.id];
-
-      resource.responses[response.stage] = response;
-
-      if (!resource.times[response.stage]) {
-        resource.times[response.stage] = now;
-        resource.duration = now - resource.times.request;
-      }
-
-      if (response.bodySize) {
-        resource.size = response.bodySize;
-        response.headers.forEach(function (header) {
-        });
-      } else if (!resource.size) {
-        response.headers.forEach(function (header) {
-          if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
-            resource.size = parseInt(header.value);
-          }
-        });
-      }
     }
   },
 
@@ -421,7 +344,7 @@ var speedgun = {
 
       function doit(url,index, callback){
         timeoutObj[index] = setTimeout(function(){
-          console.log('url being loaded: ',url,index);
+          console.log('url being loaded: ',url,index, ' at ', (index * 5), ' seconds');
           that.config.url = url;
           that.load(that.config, task, that,callback);
         },(5000))
@@ -436,6 +359,7 @@ var speedgun = {
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.webSecurityEnabled = false;
     page.settings.resourceTimeout = 20000; // 20 seconds
+    page.viewportSize = { width: 1280, height: 1024 };
 
     //    page.clearMemoryCache();
 
@@ -464,14 +388,15 @@ var speedgun = {
     }
 
     var allEvents =
-      ['onInitialized',
-        'onLoadStarted',
-        'onLoadFinished',
-        'onNavigationRequested',
-        'onPageCreated',
-        'onResourceRequested',
-        'onResourceReceived',
-        'onResourceTimeout'];
+        ['onInitialized',
+          'onLoadStarted',
+          'onLoadFinished',
+          'onNavigationRequested',
+          'onPageCreated',
+          'onResourceRequested',
+          'onResourceReceived',
+          'onResourceTimeout',
+          'onRepaintRequested'];
 
     allEvents.forEach(function (event) {
       if (task[event]) {
@@ -490,10 +415,10 @@ var speedgun = {
     page.onConsoleMessage = function (msg) {
 
       var error = false,
-        incoming = msg;
+          incoming = msg;
 
       //debug dump
-      (speedGunArgs.debug ? console.log('console: ',msg.substring(0,50)) : null);
+      (speedGunArgs.debug ? console.log('console: ',msg) : null);
 
       if (msg.indexOf('error:') >= 0) {
         speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length, msg.length)));
@@ -569,9 +494,9 @@ var speedgun = {
             page.evaluate(function (perfObj) {
 
               var report = JSON.parse(perfObj),
-                timing = performance.timing,
-                nav = performance.navigation,
-                navStart = timing.navigationStart;
+                  timing = performance.timing,
+                  nav = performance.navigation,
+                  navStart = timing.navigationStart;
 
               //--------------- Begin PhantomJS supported user timing and performance timing measurements
 
@@ -657,11 +582,6 @@ var speedgun = {
 
             //finish up any leftover tasks to complete the report
 
-            //simple filter for detailed reporting
-            if (speedGunArgs.format === 'simple') {
-              delete speedgun.reportData.resources;
-            }
-
             printReport(speedgun.reportData, phantomExit);
           });
 
@@ -681,11 +601,11 @@ var speedgun = {
       //setup screenshot
       var reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/speedgun';
       speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
-      page.viewportSize = { width: 1024, height: 768 };
+      page.viewportSize = { width: 1280, height: 1024 };
 
       if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
         console.log('Rendering Screenshot to', 'reports/' + reportLocation + speedgun.reportData.screenshot.value);
-        page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value);
+        page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value, {format: 'jpeg', quality: '50'});
       }
 
       if (speedGunArgs.output === 'csv') {
@@ -714,24 +634,24 @@ var speedgun = {
      */
     function waitFor(testFx, onReady, timeOutMillis) {
       var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 10000, //< Default Max Timout is 10s
-        start = new Date().getTime(),
-        condition = false,
-        interval = setInterval(function () {
-          if ((new Date().getTime() - start < maxtimeOutMillis) && !condition) {
-            // If not time-out yet and condition not yet fulfilled
-            condition = (typeof(testFx) === "string" ? eval(testFx) : testFx()); //< defensive code
-          } else {
-            if (!condition) {
-              // If condition still not fulfilled (timeout but condition is 'false')
-              console.log("'waitFor()' timeout");
-              phantom.exit(1);
+          start = new Date().getTime(),
+          condition = false,
+          interval = setInterval(function () {
+            if ((new Date().getTime() - start < maxtimeOutMillis) && !condition) {
+              // If not time-out yet and condition not yet fulfilled
+              condition = (typeof(testFx) === "string" ? eval(testFx) : testFx()); //< defensive code
             } else {
-              // Condition fulfilled (timeout and/or condition is 'true')
-              typeof(onReady) === "string" ? eval(onReady) : onReady(); //< Do what it's supposed to do once the condition is fulfilled
-              clearInterval(interval); //< Stop this interval
+              if (!condition) {
+                // If condition still not fulfilled (timeout but condition is 'false')
+                console.log("'waitFor()' timeout");
+                phantom.exit(1);
+              } else {
+                // Condition fulfilled (timeout and/or condition is 'true')
+                typeof(onReady) === "string" ? eval(onReady) : onReady(); //< Do what it's supposed to do once the condition is fulfilled
+                clearInterval(interval); //< Stop this interval
+              }
             }
-          }
-        }, 250); //< repeat check every 250ms
+          }, 250); //< repeat check every 250ms
     }
 
 
@@ -763,15 +683,6 @@ var speedgun = {
     return result;
   },
 
-  truncate: function (str, length) {
-    length = length || 80;
-    if (str.length <= length) {
-      return str;
-    }
-    var half = length / 2;
-    return str.substr(0, half - 2) + '...' + str.substr(str.length - half + 1);
-  },
-
   pad: function (str, length) {
     var padded = str.toString();
     if (padded.length > length) {
@@ -795,14 +706,6 @@ var speedgun = {
       }
     }
     return target;
-  },
-
-  timerStart: function () {
-    return Date.now();
-  },
-
-  timerEnd: function (start) {
-    return (Date.now() - start);
   },
 
   postJSON: function (report, endpoint, postImage) {
@@ -872,9 +775,9 @@ var speedgun = {
 
   printToFile: function (report, filename, extension, createNew, exitphantom) {
     var f,
-      myfile,
-      keys = [],
-      values = [];
+        myfile,
+        keys = [],
+        values = [];
 
     for (var key in report) {
       var value = report[key].value;
