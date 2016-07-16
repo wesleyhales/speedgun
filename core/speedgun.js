@@ -168,7 +168,7 @@ var speedgun = {
 
         report.DOMContentLoaded = {value: 0, label: 'Old perf measurement', index: 40};
 
-        report.startRender = {value: 0, label: 'Old perf measurement', index: 85};
+        report.startRender = {value: 0, label: '', index: 85};
 
         report.Load = {value: 0, label: 'Old perf measurement', index: 41};
 
@@ -191,8 +191,8 @@ var speedgun = {
 
         page.render('firstPaint.png',{format: 'jpeg', quality: '50'});
         page.evaluate(function () {
-
-          console.log(JSON.stringify({label: 'Start Render', value: performance.now(), index: 85}));
+          var startRender = Math.floor(performance.now());
+          console.log(JSON.stringify({label: 'Start Render measured using PhantomJS\'s onRepaintRequested.', value: performance.now(), index: 85}));
 
         });
         paintDetected = true;
