@@ -40,7 +40,7 @@ elif [ "$SERVER_MODE" = "pullprod" ]; then
    pushd ./server > /dev/null
      docker rm -f sg-server-name
      docker pull wesleyhales/speedgun-server
-     docker run -d -P --restart=always -v /home/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 80:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
+     docker run -d -P --restart=always -v /home/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 80:8080 --name sg-server-name --link sg-postgres-name:spn wesleyhales/speedgun-server -c "./server-entrypoint.sh"
 popd > /dev/null
 else
   #prod
