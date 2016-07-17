@@ -192,7 +192,7 @@ var speedgun = {
         page.render('firstPaint.png',{format: 'jpeg', quality: '50'});
         page.evaluate(function () {
           var startRender = Math.floor(performance.now());
-          console.log(JSON.stringify({label: 'Start Render measured using PhantomJS\'s onRepaintRequested.', value: performance.now(), index: 85}));
+          console.log(JSON.stringify({label: 'Start Render measured using PhantomJS\'s onRepaintRequested.', value: startRender, index: 85}));
 
         });
         paintDetected = true;
