@@ -187,9 +187,7 @@ var speedgun = {
     onRepaintRequested: function(page, time, x, y, width, height) {
 
       if(onInitializedFired && !paintDetected && !(width === 0 && height === 0)) {
-        // if(onInitializedFired && !paintDetected) {
-
-        page.render('firstPaint.png',{format: 'jpeg', quality: '50'});
+        //page.render('firstPaint.png',{format: 'jpeg', quality: '50'});
         page.evaluate(function () {
           var startRender = Math.floor(performance.now());
           console.log(JSON.stringify({label: 'Start Render measured using PhantomJS\'s onRepaintRequested.', value: startRender, index: 85}));
@@ -197,7 +195,6 @@ var speedgun = {
         });
         paintDetected = true;
       };
-
     },
 
     onResourceTimeout: function (e) {

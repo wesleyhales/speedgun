@@ -3,7 +3,7 @@
 args=("$@")
 SERVER_MODE=${args[0]}
 
-echo "running in $SERVER_MODE mode"
+echo "running Speedgun.io in $SERVER_MODE mode"
 
 pushd ./data/postgres > /dev/null
     docker rm -f sg-postgres-name
