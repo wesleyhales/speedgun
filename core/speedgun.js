@@ -483,12 +483,13 @@ var speedgun = {
 
           waitFor(function () {
             // Check in the page if a specific element is now visible
+
             return page.evaluate(function () {
               return (window.performance.timing.loadEventEnd > 0);
             });
           }, function () {
 
-            page.evaluate(function (perfObj) {
+            speedgun.reportData = page.evaluate(function (perfObj) {
 
               var report = JSON.parse(perfObj),
                   timing = performance.timing,
@@ -570,15 +571,15 @@ var speedgun = {
                   report.timing.label = ('Not detected');
               }
 
-              for (var key in report) {
-                //export/bridge data back to phantom context
-                console.log(JSON.stringify(report[key]));
-              }
+              // for (var key in report) {
+              //   //export/bridge data back to phantom context
+              //   console.log(JSON.stringify(report[key]));
+              // }
+              return report;
 
             }, JSON.stringify(speedgun.reportData));
 
             //finish up any leftover tasks to complete the report
-
             printReport(speedgun.reportData, phantomExit);
           });
 
