@@ -128,7 +128,7 @@ public class PerfQueueManager {
         message.addRecipient(javax.mail.Message.RecipientType.TO, toAddress[i]);
         message.addRecipient(Message.RecipientType.BCC, bccAddress);
       }
-      message.setSubject("Your speedgun report is done!");
+      message.setSubject("Your Speedgun report is done!");
       message
           .setText("Here's your report: http://speedgun.io/#?uuid=" + uuid);
       Transport transport = session.getTransport("smtps");
