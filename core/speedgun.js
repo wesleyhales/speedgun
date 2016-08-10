@@ -24,7 +24,7 @@ var fs = require('fs'),
     validValues = {
       task: ['performance'],
       format: ['detailed', 'simple'],
-      output: ['json', 'csv', 'post']
+      output: ['json', 'csv', 'junit', 'post']
     },
     argsAlias = {
       t: 'task',
@@ -284,6 +284,16 @@ var speedgun = {
     },
 
     onResourceRequested: function (page, config, request) {
+      // var domain = 'www.rebeccataylor.com',
+      //     targetDNS = 'a021.kellwoodrebeccataylor.inscname.net',
+      //     match = requestData.url.match(/https?:\/\/www[.]rebeccataylor[.]com\//);
+      //
+      // if (match != null) {
+      //   var cdnUrl = requestData.url.replace(domain, targetDNS);
+      //   console.log('Rewriting request:', requestData.url, cdnUrl);
+      //   networkRequest.changeUrl(cdnUrl);
+      //   networkRequest.setHeader('Host', domain);
+      // }
     },
 
     onResourceReceived: function (page, config, response) {
@@ -614,6 +624,10 @@ var speedgun = {
       if (speedGunArgs.output === 'json') {
         speedgun.printToFile(report, reportLocation, 'json', speedGunArgs.wipe, exitphantom);
       }
+  
+      if (speedGunArgs.output === 'junit') {
+        speedgun.printToFile(report, reportLocation, 'xml', true, exitphantom);
+      }
 
       if (speedGunArgs.output === 'post') {
         var postImage = function () {
@@ -830,6 +844,9 @@ var speedgun = {
             f.writeLine(JSON.stringify(phantomLog));
             f.close();
             break;
+          case 'xml':
+            console.log("cannot append report to xml file");
+            break;
           default:
             f = fs.open(myfile, "a");
             f.writeLine(values);
@@ -850,6 +867,9 @@ var speedgun = {
           case 'json':
             f.writeLine(JSON.stringify(report));
             break;
+          case 'xml':
+            f.writeLine(this.formatAsJUnit(keys, values));
+            break;
           default:
             f.writeLine(keys);
             f.writeLine(values);
@@ -861,6 +881,47 @@ var speedgun = {
       }
     }
     exitphantom();
+  },
+
+  /**
+   * Format test results as JUnit XML for CI
+   * @see: http://www.junit.org/
+   * @param {Array} tests the arrays containing the test results from testResults.
+   * @return {String} the results as JUnit XML text
+   */
+  formatAsJUnit: function (keys, values) {
+    var junitable = ['url','startRender','DOMContentLoaded','Load','domComplete','domainLookupTime','loadEventStart','navigationStart','pageLoadTime','responseTime'];
+    var i, n = 0, key, value, suite,
+        junit = [],
+        suites = [];
+
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      if (junitable.indexOf(key) === -1) {
+        continue;
+      }
+      value = values[i];
+      // open test suite w/ summary
+      suite = '  <testsuite name="' + key + '" tests="1">\n';
+      suite += '    <testcase name="' + key + '" time="' + value + '"/>\n';
+      suite +='  </testsuite>';
+      suites.push(suite);
+      n++;
+    }
+
+    // xml
+    junit.push('<?xml version="1.0" encoding="UTF-8" ?>');
+
+    // open test suites wrapper
+    junit.push('<testsuites>');
+
+    // concat test cases
+    junit = junit.concat(suites);
+
+    // close test suites wrapper
+    junit.push('</testsuites>');
+
+    return junit.join('\n');
   },
 
   setupArgs: function () {
