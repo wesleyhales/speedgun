@@ -1,4 +1,4 @@
-FROM ubuntu:15.04
+FROM debian:wheezy
 
 MAINTAINER Wesley Hales <wesleyhales@gmail.com>
 
@@ -19,27 +19,28 @@ ENV HOME /root
 WORKDIR /root
 
 # Install Java.
-RUN \
-  echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  add-apt-repository -y ppa:webupd8team/java && \
-  apt-get update && \
-  apt-get install -y oracle-java7-installer && \
-  rm -rf /var/lib/apt/lists/* \
-  echo "done"
+# auto validate license
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
 
-# Install Phantom2 build requirements    (Won't build on systems < 2GB ram)
-RUN \
-  apt-get update && apt-get -y install g++ flex bison gperf ruby perl \
-  libsqlite3-dev libfontconfig1-dev libicu-dev libfreetype6 libssl-dev libjpeg-dev libqt5webkit5-dev
+# update repos
+RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list
+RUN echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
+RUN apt-get update
+
+# install java
+RUN apt-get install oracle-java8-installer -y
+RUN apt-get clean
 
 #####################################build latest phantom
 ######################################+++++ only do this in dev when needed
+#RUN apt-get -y install python
 
 #RUN rm -rf phantomjs
 
 #RUN git clone git://github.com/ariya/phantomjs.git
 
-#RUN cd /root/phantomjs/ && ./build.sh --confirm
+#RUN cd /root/phantomjs/deploy && ./docker-build.sh
 
 #RUN ln -s /root/phantomjs/bin/phantomjs /usr/bin/phantomjs
 ######################################+++++ END only do this in dev when needed
