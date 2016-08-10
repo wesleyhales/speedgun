@@ -890,7 +890,7 @@ var speedgun = {
    * @return {String} the results as JUnit XML text
    */
   formatAsJUnit: function (keys, values) {
-    var junitable = ['url','startRender','DOMContentLoaded','Load','domComplete','domainLookupTime','loadEventStart','navigationStart','pageLoadTime','responseTime'];
+    var junitable = ['startRender','DOMContentLoaded','Load','domComplete','domainLookupTime','loadEventStart','pageLoadTime','responseTime'];
     var i, n = 0, key, value, suite,
         junit = [],
         suites = [];
@@ -901,6 +901,7 @@ var speedgun = {
         continue;
       }
       value = values[i];
+      if(value > 0){value = (value / 1000)}
       // open test suite w/ summary
       suite = '  <testsuite name="' + key + '" tests="1">\n';
       suite += '    <testcase name="' + key + '" time="' + value + '"/>\n';
