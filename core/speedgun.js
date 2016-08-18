@@ -36,8 +36,8 @@ var fs = require('fs'),
       u: 'uuid'
     },
     pageInstance = WebPage.create(),
-    paintDetected = false;
-onInitializedFired = false;
+    paintDetected = false,
+    onInitializedFired = false;
 
 var speedgun = {
 
@@ -185,16 +185,17 @@ var speedgun = {
     },
 
     onRepaintRequested: function(page, time, x, y, width, height) {
-
+      
       if(onInitializedFired && !paintDetected && !(width === 0 && height === 0)) {
-        //page.render('firstPaint.png',{format: 'jpeg', quality: '50'});
-        page.evaluate(function () {
+        rendertime = page.evaluate(function () {
           var startRender = Math.floor(performance.now());
           console.log(JSON.stringify({label: 'Start Render measured using PhantomJS\'s onRepaintRequested.', value: startRender, index: 85}));
-
+          return startRender;
         });
+        // page.render('firstPaint' + rendertime + '.png',{format: 'jpeg', quality: '50'});
         paintDetected = true;
-      };
+      }
+ 
     },
 
     onResourceTimeout: function (e) {

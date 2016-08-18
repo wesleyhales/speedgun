@@ -51,19 +51,10 @@ else
   popd > /dev/null
 fi
 
-#the following is for fishing out the phantomjs binary built from source
-#pushd ./server > /dev/null
-#    docker rm -f sg-server-name
-#    docker build -t sg-server .
-#    docker run -d -P -p 80:8080  -v /vagrant/bin:/root/phantomjs2/ --link sg-postgres-name:spn sg-server
-##    docker exec -ti "container name" /bin/bash
-##cp -rf /root/phantomjs/bin/phantomjs /root/phantomjs2/
-#popd > /dev/null
-
 #jump into running container
 #docker exec -ti sg-server-name /bin/bash
 
-#export to CSV from sg-server-name
+#export to CSV from sg-server-name postgres client
 #psql -h ${SPN_PORT_5432_TCP_ADDR} -p 5432 -U postgres
 #\c speedgun
 #\COPY jsontest to 'jsontest.csv' DELIMITER ',' CSV HEADER;
