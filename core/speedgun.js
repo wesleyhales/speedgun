@@ -19,6 +19,7 @@ var fs = require('fs'),
       crawl: false,
       debug: false,
       wipe: false,
+      override: false,
       phantomCacheEnabled: false
     },
     validValues = {
@@ -306,69 +307,50 @@ var speedgun = {
       
     },
 
-    onResourceRequested: function (page, config, request) {
-      var now = Date.now();
-      speedgun.reportData.resources.value[request.id] = {
-        id: request.id,
-        url: request.url,
-        request: request,
-        responses: {},
-        duration: '',
-        times: {
-          request: now
-        }
-      };
+    onResourceRequested: function (page, config, request, networkRequest) {
+      console.log('_____________________________________');
+      console.log('Resource Requested',request.url);
+      // var now = Date.now();
+      // speedgun.reportData.resources.value[request.id] = {
+      //   id: request.id,
+      //   url: request.url,
+      //   request: request,
+      //   responses: {},
+      //   duration: '',
+      //   times: {
+      //     request: now
+      //   }
+      // };
       
-      // var domain = 'www.ashleyfurniture.com',
-      //     targetDNS = 'a001.ashleyfurniture.inscname.net',
-      //     match = requestData.url.match(/https?:\/\/www[.]ashleyfurniture[.]com\//);
-      //
-      // if (match != null) {
-      //   var cdnUrl = requestData.url.replace(domain, targetDNS);
-      //   console.log('Rewriting request:', requestData.url, cdnUrl);
-      //   networkRequest.changeUrl(cdnUrl);
-      //   networkRequest.setHeader('Host', domain);
-      // }
-      //
-      // domain = 's7d3.scene7.com',
-      // targetDNS = 'a001.ashleyfurniture.inscname.net',
-      // match = requestData.url.match(/https?:\/\/s7d3[.]scene7[.]com\//);
-      //
-      // if (match != null) {
-      //   var cdnUrl = requestData.url.replace(domain, targetDNS);
-      //   console.log('Rewriting request:', requestData.url, cdnUrl);
-      //   networkRequest.changeUrl(cdnUrl);
-      //   networkRequest.setHeader('Host', domain);
-      // }
+      if(speedGunArgs.override && config.dns.target){
   
-      // domain = 's7d1.scene7.com',
-      //   targetDNS = 'a001.ashleyfurniture.inscname.net',
-      //   match = requestData.url.match(/https?:\/\/s7d1[.]scene7[.]com\//);
-      //
-      // if (match != null) {
-      //   var cdnUrl = requestData.url.replace(domain, targetDNS);
-      //   console.log('Rewriting request:', requestData.url, cdnUrl);
-      //   networkRequest.changeUrl(cdnUrl);
-      //   networkRequest.setHeader('Host', domain);
-      // }
+        var domain = config.dns.originalDomain,
+            targetDNS = config.dns.target,
+            match = request.url.indexOf(domain);
+  
+        //console.log('_______________resourceRequested: ',domain,request.url,config.dns.target,match);
+        
+        if (match >= 0) {
+          var cdnUrl = request.url.replace(domain, targetDNS);
+          console.log('Rewriting request:', request.url, cdnUrl);
+          networkRequest.changeUrl(cdnUrl);
+          networkRequest.setHeader('Host', domain);
+        }
+        
+      }
+      console.log('_____________________________________');
     },
 
     onResourceReceived: function (page, config, response) {
-      //console.log('response.bodySize',response.bodySize);
-      if (response.bodySize) {
-        resource.size = response.bodySize;
-        response.headers.forEach(function (header) {
-          console.log(header);
-        });
-      } else if (!resource.size) {
-        response.headers.forEach(function (header) {
-          if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
-            console.log(1,header)
-            resource.size = parseInt(header.value);
-          }
-        });
-      }
-      
+      console.log('########################################');
+      console.log('Received:',response.url);
+      console.log('Response.bodySize',response.bodySize);
+      response.headers.forEach(function (header) {
+        //if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
+          console.log('header: ',header.name, header.value)
+        //}
+      });
+      console.log('########################################');
     }
   },
 
@@ -930,7 +912,7 @@ var speedgun = {
             break;
           default:
             f = fs.open(myfile, "a");
-            f.writeLine(keys);
+            //f.writeLine(keys);
             f.writeLine(values);
             f.close();
             break;
@@ -1057,6 +1039,7 @@ var speedgun = {
     console.log('    -u, --uuid               only used for server side run in speedgun.io');
     console.log('    --verbose                Turn on verbose logging');
     console.log('    --crawl                  Crawl all links on the page');
+    console.log('    --override               Override DNS entries for all resources (listed in config)');
     console.log('    --screenshot             Create a png of screen');
     console.log('    --wipe                   Wipe the file instead of appending to it on each report');
     console.log('    --phantomCacheEnabled    Enable PhantomJS cache');

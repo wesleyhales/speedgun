@@ -14,5 +14,9 @@
   "screenWidth": 1280,
   "screenHeight": 1024,
   "consolePrefix": "#",
-  "verbose": false
+  "verbose": false,
+  "dns": {
+    "target": "a001.ashleyfurniture.inscname.net",
+     "originalDomain": "www.ashleyfurniturehomestore.com"
+  }
 }
