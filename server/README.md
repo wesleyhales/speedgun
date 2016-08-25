@@ -21,12 +21,9 @@
 * --net=host === allows use of host network stack.. otherwise no access
 * http://localhost:8081/rest/beacon/init (init the RUM beacon)
 * tag an image prepping for dockerhub: docker tag sg-server wesleyhales/speedgun-server
+* systemd monitor: https://coreos.com/os/docs/latest/scheduling-tasks-with-systemd-timers.html
 
-### problems with vagrant:
 
-####ref http://stackoverflow.com/questions/22717428/vagrant-error-failed-to-mount-folders-in-linux-guest
-
-####ref https://gist.github.com/kazu69/4576d886089358ad61b0
 
 ###Docker no sudo
 sudo chmod +s /usr/bin/docker

@@ -37,7 +37,10 @@ var fs = require('fs'),
     },
     pageInstance = WebPage.create(),
     paintDetected = false,
-    onInitializedFired = false;
+    onInitializedFired = false,
+    repaintCount = 0,
+    repaintLimit = 0,
+    rendertime = [];
 
 var speedgun = {
 
@@ -186,13 +189,29 @@ var speedgun = {
 
     onRepaintRequested: function(page, time, x, y, width, height) {
       
-      if(onInitializedFired && !paintDetected && !(width === 0 && height === 0)) {
-        rendertime = page.evaluate(function () {
+      if(onInitializedFired && !(width === 0 && height === 0) && repaintCount <= repaintLimit) {
+        console.log('repaint data: ',repaintCount,width,height,x, y,repaintCount,repaintLimit);
+        rendertime[repaintCount] = page.evaluate(function (paintDetected) {
+          document.body.bgColor = 'white';
           var startRender = Math.floor(performance.now());
-          console.log(JSON.stringify({label: 'Start Render measured using PhantomJS\'s onRepaintRequested.', value: startRender, index: 85}));
+          if(!paintDetected) {
+            console.log(JSON.stringify({
+              label: 'Start Render measured using PhantomJS\'s onRepaintRequested.',
+              value: startRender,
+              index: 85
+            }));
+          }
           return startRender;
-        });
-        // page.render('firstPaint' + rendertime + '.png',{format: 'jpeg', quality: '50'});
+        },paintDetected);
+        
+        if(rendertime[repaintCount] === null){
+          //phantomjs has a problem with some sites and showing an accurate startrender.
+          console.log('problem with start render measurement: ', rendertime);
+          rendertime[repaintCount] = repaintCount;
+        }
+        
+        page.render('paints/firstPaint' + rendertime[repaintCount] + '.png',{format: 'jpeg', quality: '50'});
+        repaintCount++;
         paintDetected = true;
       }
  
@@ -236,12 +255,13 @@ var speedgun = {
       }
 
       speedgun.reportData.navEvents.value.push(eventData);
+      
 
 
     },
 
     onPageCreated: function (page, config) {
-      //      console.log('###### onPageCreated ' + page.url);
+      //console.log('###### onPageCreated ' + page.url);
     },
 
     onInitialized: function (page) {
@@ -254,7 +274,8 @@ var speedgun = {
       }
 
       page.evaluate(function (perfObj) {
-
+  
+        
         var nowms = Date.now();
 
         console.log(JSON.stringify({value: nowms, label: '', index: 2}));
@@ -282,12 +303,47 @@ var speedgun = {
 
         //--------------- End DOM event Listeners
       });
+      
     },
 
     onResourceRequested: function (page, config, request) {
-      // var domain = 'www.rebeccataylor.com',
-      //     targetDNS = 'a021.kellwoodrebeccataylor.inscname.net',
-      //     match = requestData.url.match(/https?:\/\/www[.]rebeccataylor[.]com\//);
+      var now = Date.now();
+      speedgun.reportData.resources.value[request.id] = {
+        id: request.id,
+        url: request.url,
+        request: request,
+        responses: {},
+        duration: '',
+        times: {
+          request: now
+        }
+      };
+      
+      // var domain = 'www.ashleyfurniture.com',
+      //     targetDNS = 'a001.ashleyfurniture.inscname.net',
+      //     match = requestData.url.match(/https?:\/\/www[.]ashleyfurniture[.]com\//);
+      //
+      // if (match != null) {
+      //   var cdnUrl = requestData.url.replace(domain, targetDNS);
+      //   console.log('Rewriting request:', requestData.url, cdnUrl);
+      //   networkRequest.changeUrl(cdnUrl);
+      //   networkRequest.setHeader('Host', domain);
+      // }
+      //
+      // domain = 's7d3.scene7.com',
+      // targetDNS = 'a001.ashleyfurniture.inscname.net',
+      // match = requestData.url.match(/https?:\/\/s7d3[.]scene7[.]com\//);
+      //
+      // if (match != null) {
+      //   var cdnUrl = requestData.url.replace(domain, targetDNS);
+      //   console.log('Rewriting request:', requestData.url, cdnUrl);
+      //   networkRequest.changeUrl(cdnUrl);
+      //   networkRequest.setHeader('Host', domain);
+      // }
+  
+      // domain = 's7d1.scene7.com',
+      //   targetDNS = 'a001.ashleyfurniture.inscname.net',
+      //   match = requestData.url.match(/https?:\/\/s7d1[.]scene7[.]com\//);
       //
       // if (match != null) {
       //   var cdnUrl = requestData.url.replace(domain, targetDNS);
@@ -298,6 +354,21 @@ var speedgun = {
     },
 
     onResourceReceived: function (page, config, response) {
+      //console.log('response.bodySize',response.bodySize);
+      if (response.bodySize) {
+        resource.size = response.bodySize;
+        response.headers.forEach(function (header) {
+          console.log(header);
+        });
+      } else if (!resource.size) {
+        response.headers.forEach(function (header) {
+          if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
+            console.log(1,header)
+            resource.size = parseInt(header.value);
+          }
+        });
+      }
+      
     }
   },
 
@@ -367,7 +438,7 @@ var speedgun = {
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.webSecurityEnabled = false;
     page.settings.resourceTimeout = 20000; // 20 seconds
-    page.viewportSize = { width: 1280, height: 1024 };
+    page.viewportSize = { width: config.screenWidth, height: config.screenHeight };
 
     //    page.clearMemoryCache();
 
@@ -610,7 +681,6 @@ var speedgun = {
       //setup screenshot
       var reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/speedgun';
       speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
-      page.viewportSize = { width: 1280, height: 1024 };
 
       if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
         console.log('Rendering Screenshot to', 'reports/' + reportLocation + speedgun.reportData.screenshot.value);
@@ -794,26 +864,36 @@ var speedgun = {
 
     for (var key in report) {
       var value = report[key].value;
-      if (typeof value === 'object') {
-        for (var secondkey in value) {
-          if (key === 'navEvents') {
-            keys.push(key);
-            values.push(value[secondkey].url);
-          } else if (key.indexOf('resourceSingle') >= 0) {
-            //only store for url
-            if (value[secondkey].url) {
+      
+      if(speedGunArgs.format === 'detailed'){
+        if (typeof value === 'object') {
+          for (var secondkey in value) {
+            if (key === 'navEvents') {
               keys.push(key);
-              values.push(value[secondkey].url)
+              values.push(value[secondkey].url);
+            } else if (key.indexOf('resourceSingle') >= 0) {
+              //only store for url
+              if (value[secondkey].url) {
+                keys.push(key);
+                values.push(value[secondkey].url)
+              }
+            } else if (key.indexOf('error') >= 0) {
+              keys.push(key);
+              values.push(value[secondkey])
             }
-          } else if (key.indexOf('error') >= 0) {
-            keys.push(key);
-            values.push(value[secondkey])
           }
+        } else {
+          keys.push(key);
+          values.push(value);
         }
-      } else {
-        keys.push(key);
-        values.push(value);
+      }else{ //print simple
+        if (typeof value !== 'object') {
+          keys.push(key);
+          values.push(value);
+        }
       }
+      
+      
     }
 
     // changed this, we will always output json/csv/etc right?
@@ -850,6 +930,7 @@ var speedgun = {
             break;
           default:
             f = fs.open(myfile, "a");
+            f.writeLine(keys);
             f.writeLine(values);
             f.close();
             break;
