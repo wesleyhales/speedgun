@@ -20,6 +20,8 @@ var fs = require('fs'),
       debug: false,
       wipe: false,
       override: false,
+      akamaiDebug: false,
+      detectReflow: false,
       phantomCacheEnabled: false
     },
     validValues = {
@@ -39,10 +41,12 @@ var fs = require('fs'),
     pageInstance = WebPage.create(),
     paintDetected = false,
     onInitializedFired = false,
-    repaintCount = 0,
-    repaintLimit = 0,
+    repaintCount = 1,
+    repaintLimit = 3,
     rendertime = [],
-    totalBytes = 0;
+    totalBytes = 0,
+    hlimit,
+    wlimit;
 
 var speedgun = {
 
@@ -188,49 +192,60 @@ var speedgun = {
       }
 
     },
-
-    // onRepaintRequested: function(page, time, x, y, width, height) {
-    //
-    //   if(onInitializedFired && !(width === 0 && height === 0) && repaintCount <= repaintLimit) {
-    //     console.log('repaint data: ',repaintCount,width,height,x, y,repaintCount,repaintLimit);
-    //     rendertime[repaintCount] = page.evaluate(function (paintDetected) {
-    //       document.body.bgColor = 'white';
-    //       var startRender = Math.floor(performance.now());
-    //       if(!paintDetected) {
-    //         console.log(JSON.stringify({
-    //           label: 'Start Render measured using PhantomJS\'s onRepaintRequested.',
-    //           value: startRender,
-    //           index: 85
-    //         }));
-    //       }
-    //       return startRender;
-    //     },paintDetected);
-    //
-    //     if(rendertime[repaintCount] === null){
-    //       //phantomjs has a problem with some sites and showing an accurate startrender.
-    //       console.log('problem with start render measurement: ', rendertime);
-    //       rendertime[repaintCount] = repaintCount;
-    //     }
-    //
-    //     page.render('paints/firstPaint' + rendertime[repaintCount] + '.png',{format: 'jpeg', quality: '50'});
-    //     repaintCount++;
-    //     paintDetected = true;
-    //   }
-    //
-    // },
-  
+    
     onRepaintRequested: function(page, time, x, y, width, height) {
-    
-      if(onInitializedFired && !paintDetected && !(width === 0 && height === 0)) {
-        var rendertime = page.evaluate(function () {
-          var startRender = Math.floor(performance.now());
-          console.log(JSON.stringify({label: 'Start Render measured using PhantomJS\'s onRepaintRequested.', value: startRender, index: 85}));
-          return startRender;
-        });
-        page.render('firstPaint' + rendertime + '.png',{format: 'jpeg', quality: '50'});
-        paintDetected = true;
+      
+      var reflow = (hlimit < height || wlimit < width);
+      
+      //console.log('x, y, width, height', x, y, width, height);
+      if(onInitializedFired && (width > 100 && height > 100)) { //pull these values from config
+  
+        try {
+  
+          
+          var rendertime = page.evaluate(function (repaintCount) {
+            var startRender = Math.floor(performance.now());
+  
+            //only record first one
+            if (repaintCount === 1){
+              console.log(JSON.stringify({
+                label: 'Start Render measured using PhantomJS\'s onRepaintRequested.',
+                value: startRender,
+                index: 85
+              }));
+            }
+            
+            return startRender;
+          },repaintCount);
+          //
+  
+          console.log('repaintCount before', repaintCount, repaintLimit, speedGunArgs.detectReflow, reflow);
+  
+          if(repaintCount <= repaintLimit){
+            if(speedGunArgs.detectReflow){
+              if(reflow){
+                console.log('write reflow paint');
+                page.render('reflow' + repaintCount + 'Paint' + rendertime + '.png',{format: 'jpeg', quality: '50'});
+                repaintCount++;
+              }
+              
+            }else{
+              console.log('write paint file');
+              page.render('' + repaintCount + ' paint ' + rendertime + '.png',{format: 'jpeg', quality: '50'});
+              repaintCount++;
+            }
+          }
+          
+          
+          
+          
+        } catch (e) {
+          console.log('___ERROR',e);
+        }
       }
-    
+  
+      hlimit = height;
+      wlimit = width;
     },
 
     onResourceTimeout: function (e) {
@@ -245,6 +260,7 @@ var speedgun = {
 
     onLoadStarted: function (page, config) {
       console.log('###### onLoadStarted ' + page.url);
+      onInitializedFired = true;
     },
 
     onNavigationRequested: function (page, config, url, type, willNavigate, main) {
@@ -281,7 +297,6 @@ var speedgun = {
     },
 
     onInitialized: function (page) {
-      onInitializedFired = true;
       console.log('###### onInitialized ' + page.url);
 
       if (Object.keys(speedgun.reportData).length === 0) {
@@ -350,6 +365,10 @@ var speedgun = {
           //console.log('Rewriting request:', request.url, cdnUrl);
           networkRequest.changeUrl(cdnUrl);
           networkRequest.setHeader('Host', domain);
+          if(speedGunArgs.akamaiDebug){
+            networkRequest.setHeader('Pragma', 'akamai-x-get-client-ip, akamai-x-cache-on, akamai-x-cache-remote-on, akamai-x-check-cacheable, akamai-x-get-cache-key, akamai-x-get-extracted-values, akamai-x-get-nonces, akamai-x-get-ssl-client-session-id, akamai-x-get-true-cache-key, akamai-x-serial-no, akamai-x-feo-trace, akamai-x-get-request-id');
+          }
+          
         }
         
       }
@@ -358,7 +377,7 @@ var speedgun = {
 
     onResourceReceived: function (page, config, response) {
       totalBytes += ((typeof response.bodySize === 'number') ? response.bodySize : 0);
-      console.log(response.bodySize,totalBytes);
+
       console.log('########################################');
       console.log('Received:',response.url);
       console.log('Response.bodySize',response.bodySize);
@@ -366,6 +385,8 @@ var speedgun = {
         console.log('header: ',header.name, header.value)
       });
       console.log('########################################');
+      console.log('Total Bytes Delivered after this response:',totalBytes);
+      
     }
   },
 
@@ -1056,6 +1077,8 @@ var speedgun = {
     console.log('    --verbose                Turn on verbose logging');
     console.log('    --crawl                  Crawl all links on the page');
     console.log('    --override               Override DNS entries for all resources (listed in config)');
+    console.log('    --akamaiDebug            Print all debug headers to headers.txt file');
+    console.log('    --detectReflow           Use if not getting startRender results');
     console.log('    --screenshot             Create a png of screen');
     console.log('    --wipe                   Wipe the file instead of appending to it on each report');
     console.log('    --phantomCacheEnabled    Enable PhantomJS cache');
