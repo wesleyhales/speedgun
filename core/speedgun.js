@@ -41,7 +41,8 @@ var fs = require('fs'),
     onInitializedFired = false,
     repaintCount = 0,
     repaintLimit = 0,
-    rendertime = [];
+    rendertime = [],
+    totalBytes = 0;
 
 var speedgun = {
 
@@ -188,34 +189,48 @@ var speedgun = {
 
     },
 
+    // onRepaintRequested: function(page, time, x, y, width, height) {
+    //
+    //   if(onInitializedFired && !(width === 0 && height === 0) && repaintCount <= repaintLimit) {
+    //     console.log('repaint data: ',repaintCount,width,height,x, y,repaintCount,repaintLimit);
+    //     rendertime[repaintCount] = page.evaluate(function (paintDetected) {
+    //       document.body.bgColor = 'white';
+    //       var startRender = Math.floor(performance.now());
+    //       if(!paintDetected) {
+    //         console.log(JSON.stringify({
+    //           label: 'Start Render measured using PhantomJS\'s onRepaintRequested.',
+    //           value: startRender,
+    //           index: 85
+    //         }));
+    //       }
+    //       return startRender;
+    //     },paintDetected);
+    //
+    //     if(rendertime[repaintCount] === null){
+    //       //phantomjs has a problem with some sites and showing an accurate startrender.
+    //       console.log('problem with start render measurement: ', rendertime);
+    //       rendertime[repaintCount] = repaintCount;
+    //     }
+    //
+    //     page.render('paints/firstPaint' + rendertime[repaintCount] + '.png',{format: 'jpeg', quality: '50'});
+    //     repaintCount++;
+    //     paintDetected = true;
+    //   }
+    //
+    // },
+  
     onRepaintRequested: function(page, time, x, y, width, height) {
-      
-      if(onInitializedFired && !(width === 0 && height === 0) && repaintCount <= repaintLimit) {
-        console.log('repaint data: ',repaintCount,width,height,x, y,repaintCount,repaintLimit);
-        rendertime[repaintCount] = page.evaluate(function (paintDetected) {
-          document.body.bgColor = 'white';
+    
+      if(onInitializedFired && !paintDetected && !(width === 0 && height === 0)) {
+        var rendertime = page.evaluate(function () {
           var startRender = Math.floor(performance.now());
-          if(!paintDetected) {
-            console.log(JSON.stringify({
-              label: 'Start Render measured using PhantomJS\'s onRepaintRequested.',
-              value: startRender,
-              index: 85
-            }));
-          }
+          console.log(JSON.stringify({label: 'Start Render measured using PhantomJS\'s onRepaintRequested.', value: startRender, index: 85}));
           return startRender;
-        },paintDetected);
-        
-        if(rendertime[repaintCount] === null){
-          //phantomjs has a problem with some sites and showing an accurate startrender.
-          console.log('problem with start render measurement: ', rendertime);
-          rendertime[repaintCount] = repaintCount;
-        }
-        
-        page.render('paints/firstPaint' + rendertime[repaintCount] + '.png',{format: 'jpeg', quality: '50'});
-        repaintCount++;
+        });
+        page.render('firstPaint' + rendertime + '.png',{format: 'jpeg', quality: '50'});
         paintDetected = true;
       }
- 
+    
     },
 
     onResourceTimeout: function (e) {
@@ -308,8 +323,8 @@ var speedgun = {
     },
 
     onResourceRequested: function (page, config, request, networkRequest) {
-      console.log('_____________________________________');
-      console.log('Resource Requested',request.url);
+      // console.log('_____________________________________');
+      // console.log('Resource Requested',request.url);
       // var now = Date.now();
       // speedgun.reportData.resources.value[request.id] = {
       //   id: request.id,
@@ -332,23 +347,23 @@ var speedgun = {
         
         if (match >= 0) {
           var cdnUrl = request.url.replace(domain, targetDNS);
-          console.log('Rewriting request:', request.url, cdnUrl);
+          //console.log('Rewriting request:', request.url, cdnUrl);
           networkRequest.changeUrl(cdnUrl);
           networkRequest.setHeader('Host', domain);
         }
         
       }
-      console.log('_____________________________________');
+      // console.log('_____________________________________');
     },
 
     onResourceReceived: function (page, config, response) {
+      totalBytes += ((typeof response.bodySize === 'number') ? response.bodySize : 0);
+      console.log(response.bodySize,totalBytes);
       console.log('########################################');
       console.log('Received:',response.url);
       console.log('Response.bodySize',response.bodySize);
       response.headers.forEach(function (header) {
-        //if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
-          console.log('header: ',header.name, header.value)
-        //}
+        console.log('header: ',header.name, header.value)
       });
       console.log('########################################');
     }
@@ -404,6 +419,7 @@ var speedgun = {
       }
 
       function doit(url,index, callback){
+        paintDetected = false;
         timeoutObj[index] = setTimeout(function(){
           console.log('url being loaded: ',url,index, ' at ', (index * 5), ' seconds');
           that.config.url = url;
