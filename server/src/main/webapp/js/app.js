@@ -373,7 +373,7 @@ function resolveCardTemplate(tElement, tAttrs) {
     template = '<md-card class="cell {{property}} {{detail}} z-anim">' +
       '<div class="card ">' +
       '<div class="header">{{detail}}</div>' +
-      '<div class="desc">TODO... Resource that caused a navigation event</div>' +
+      '<div class="desc">Resource that caused a navigation event</div>' +
       '<basicstats data="data" property="{{property}}"></basicstats>' +
       '</div>' +
       '</md-card>';
@@ -382,7 +382,7 @@ function resolveCardTemplate(tElement, tAttrs) {
     template = '<md-card class="cell {{property}} {{detail}} z-anim">' +
       '<div class="card ">' +
       '<div class="header">{{detail}}</div>' +
-      '<div class="desc">{{data[0][uuid][property].label}}</div>' +
+      '<div class="desc">{{propertyLabels[data[0][uuid][property]]}}</div>' +
       '<resourcestats data="data" property="{{property}}"></resourcestats>' +
       '</div>' +
       '</md-card>';
@@ -391,10 +391,53 @@ function resolveCardTemplate(tElement, tAttrs) {
     template = '<md-card class="cell {{property}} {{detail}} z-anim">' +
       '<div class="card ">' +
       '<div class="header">{{property | deCamelCase}}</div>' +
-      '<div class="desc">{{data[0][uuid][property].label}}</div>' +
+      '<div class="desc">{{propertyLabels[data[0][uuid][property]]}}</div>' +
       '<stats data="data" property="{{property}}" suffix="{{suffix}}"></stats>' +
       '</div>' +
       '</md-card>';
+  }
+  
+  propertyLabels = {
+    pageLoadTime: 'Total time to load page. Measuring the time it took from the navigationStart to loadEventEnd events.',
+    perceivedLoadTime: 'User-perceived page load time. The amount of time it took the browser to load the page and execute JavaScript.',
+    requestResponseTime: 'Time spent making a request to the server and receiving the response - after network lookups and negotiations.',
+    fetchTime: 'Fetch start to response end. Total time spent in app cache, domain lookups, and making secure connection',
+    pageProcessTime: 'Total time spent processing the page.',
+    domLoading: 'Return the time immediately before the user agent sets the current document readiness to \"loading\"',
+    domComplete: 'Return the time immediately before the user agent sets the current document readiness to \"complete\"',
+    loadEventStart: 'Return the time immediately before the load event of the current document is fired. It must return zero when the load event is not fired yet.',
+    loadEventEnd: 'Return the time when the load event of the current document is completed. It must return zero when the load event is not fired or is not completed.',
+    loadEventTime: 'Total time spent during the load event.',
+    domInteractive: 'Return the time immediately before the user agent sets the current document readiness to \"interactive\".',
+    connectStart: 'Return the time immediately before the user agent start establishing the connection to the server to retrieve the document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return value of domainLookupEnd.',
+    connectEnd: 'Return the time immediately after the user agent finishes establishing the connection to the server to retrieve the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the value of domainLookupEnd',
+    connectTime: 'Time spent during connect.',
+    secureConnectionStart: 'This attribute is optional. User agents that don\'t have this attribute available must set it as undefined. When this attribute is available, if the scheme of the current page is HTTPS, this attribute must return the time immediately before the user agent starts the handshake process to secure the current connection. If this attribute is available but HTTPS is not used, this attribute must return zero.',
+    fetchStart: 'If the new resource is to be fetched using HTTP GET or equivalent, fetchStart must return the time immediately before the user agent starts checking any relevant application caches. Otherwise, it must return the time when the user agent starts fetching the resource.',
+    domContentLoadedEventStart: 'This attribute must return the time immediately before the user agent fires the DOMContentLoaded event at the Document.',
+    domContentLoadedEventEnd: 'This attribute must return the time immediately after the document\'s DOMContentLoaded event completes.',
+    domContentTime: 'Total time spent during DomContentLoading event',
+    //      If the transport connection fails after a request is sent and the user agent reopens a connection and resend the request, requestStart should return the corresponding values of the new request.
+    //      This interface does not include an attribute to represent the completion of sending the request, e.g., requestEnd.
+    //      Completion of sending the request from the user agent does not always indicate the corresponding completion time in the network transport, which brings most of the benefit of having such an attribute.
+    //      Some user agents have high cost to determine the actual completion time of sending the request due to the HTTP layer encapsulation.
+    requestStart: 'This attribute must return the time immediately before the user agent starts requesting the current document from the server, or from relevant application caches or from local resources.',
+    responseStart: 'This attribute must return the time immediately after the user agent receives the first byte of the response from the server, or from relevant application caches or from local resources.',
+    responseEnd: 'This attribute must return the time immediately after the user agent receives the last byte of the current document or immediately before the transport connection is closed, whichever comes first. The document here can be received either from the server, relevant application caches or from local resources.',
+    responseTime: 'Total time spent during response',
+    domainLookupStart: 'This attribute must return the time immediately before the user agent starts the domain name lookup for the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the same value as fetchStart.',
+    domainLookupEnd: 'This attribute must return the time immediately after the user agent finishes the domain name lookup for the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the same value as fetchStart.',
+    //      In cases where the user agent already has the domain information in cache, domainLookupStart and domainLookupEnd represent the times when the user agent starts and ends the domain data retrieval from the cache.
+    domainLookupTime: 'Total time spent in domain lookup',
+    redirectStart: 'If there are HTTP redirects or equivalent when navigating and if all the redirects or equivalent are from the same origin, this attribute must return the starting time of the fetch that initiates the redirect. Otherwise, this attribute must return zero.',
+    redirectEnd: 'If there are HTTP redirects or equivalent when navigating and all redirects and equivalents are from the same origin, this attribute must return the time immediately after receiving the last byte of the response of the last redirect. Otherwise, this attribute must return zero.',
+    //network level redirects
+    redirectTime: 'Time spent during redirect',
+    unloadEventStart: 'If the previous document and the current document have the same origin [IETF RFC 6454], this attribute must return the time immediately before the user agent starts the unload event of the previous document. If there is no previous document or the previous document has a different origin than the current document, this attribute must return zero.',
+    //      If there are HTTP redirects or equivalent when navigating and not all the redirects or equivalent are from the same origin, both unloadEventStart and unloadEventEnd must return the zero.
+    unloadEventEnd: 'If the previous document and the current document have the same same origin, this attribute must return the time immediately after the user agent finishes the unload event of the previous document. If there is no previous document or the previous document has a different origin than the current document or the unload is not yet completed, this attribute must return zero.',
+    DOMContentLoaded: 'Old perf measurement',
+    Load: 'Old perf measurement'
   }
   return template;
 }
