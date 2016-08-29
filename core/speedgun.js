@@ -9,7 +9,8 @@ var fs = require('fs'),
       output: 'json',
       userAgent: 'chrome',
       configFile: 'config.json',
-      uuid: null
+      uuid: null,
+      reportLocation: null
     },
     unaryArgs = {
       help: false,
@@ -42,7 +43,6 @@ var fs = require('fs'),
     paintDetected = false,
     onInitializedFired = false,
     repaintCount = 1,
-    repaintLimit = 3,
     rendertime = [],
     totalBytes = 0,
     hlimit,
@@ -195,48 +195,43 @@ var speedgun = {
     
     onRepaintRequested: function(page, time, x, y, width, height) {
       
-      var reflow = (hlimit < height || wlimit < width);
+      var reflow = (hlimit < height || wlimit < width),
+        repaintLimit = speedgun.config.reflowPrecision.repaintLimit;
       
       //console.log('x, y, width, height', x, y, width, height);
-      if(onInitializedFired && (width > 100 && height > 100)) { //pull these values from config
-  
+      if(onInitializedFired && (width > 100 && height > 100)) {
         try {
-  
-          
-          var rendertime = page.evaluate(function (repaintCount) {
+          var rendertime = page.evaluate(function (recordIt) {
             var startRender = Math.floor(performance.now());
-  
+            //document.body.bgColor = 'white';
             //only record first one
-            if (repaintCount === 1){
+            if (recordIt){
               console.log(JSON.stringify({
                 label: 'Start Render measured using PhantomJS\'s onRepaintRequested.',
                 value: startRender,
                 index: 85
               }));
             }
-            
             return startRender;
-          },repaintCount);
+          },(repaintCount === repaintLimit));
           //
   
-          console.log('repaintCount before', repaintCount, repaintLimit, speedGunArgs.detectReflow, reflow);
+         //console.log('repaintCount before', repaintCount, repaintLimit, speedGunArgs.detectReflow, reflow);
   
           if(repaintCount <= repaintLimit){
             if(speedGunArgs.detectReflow){
               if(reflow){
                 console.log('write reflow paint');
-                page.render('reflow' + repaintCount + 'Paint' + rendertime + '.png',{format: 'jpeg', quality: '50'});
+                speedgun.renderPageToDisk(page,'reflow' + repaintCount + 'Paint' + rendertime + '.png');
                 repaintCount++;
               }
               
             }else{
               console.log('write paint file');
-              page.render('' + repaintCount + ' paint ' + rendertime + '.png',{format: 'jpeg', quality: '50'});
+              speedgun.renderPageToDisk(page,repaintCount + 'Paint' + rendertime + '.png');
               repaintCount++;
             }
           }
-          
-          
           
           
         } catch (e) {
@@ -306,7 +301,7 @@ var speedgun = {
 
       page.evaluate(function (perfObj) {
   
-        
+        //document.body.bgColor = 'white';
         var nowms = Date.now();
 
         console.log(JSON.stringify({value: nowms, label: '', index: 2}));
@@ -377,7 +372,8 @@ var speedgun = {
 
     onResourceReceived: function (page, config, response) {
       totalBytes += ((typeof response.bodySize === 'number') ? response.bodySize : 0);
-
+      var headers = false;
+      if(headers){
       console.log('########################################');
       console.log('Received:',response.url);
       console.log('Response.bodySize',response.bodySize);
@@ -386,6 +382,7 @@ var speedgun = {
       });
       console.log('########################################');
       console.log('Total Bytes Delivered after this response:',totalBytes);
+      }
       
     }
   },
@@ -456,18 +453,18 @@ var speedgun = {
     var page = WebPage.create();
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.webSecurityEnabled = false;
-    page.settings.resourceTimeout = 20000; // 20 seconds
-    page.viewportSize = { width: config.screenWidth, height: config.screenHeight };
-
-    //    page.clearMemoryCache();
+    page.settings.resourceTimeout = 20000;
+    //page.clearMemoryCache();
 
     if (config.userAgent && config.userAgent != "default") {
       if (config.userAgentAliases[config.userAgent]) {
         config.userAgent = config.userAgentAliases[config.userAgent];
       }
-      page.settings.userAgent = config.userAgent;
+      page.settings.userAgent = config.userAgent.uastring;
     }
-
+  
+    page.viewportSize = { width: config.userAgent.width, height: config.userAgent.height };
+    
     function doPageLoad() {
       setTimeout(function () {
         page.open(config.url);
@@ -584,14 +581,13 @@ var speedgun = {
 
           waitFor(function () {
             // Check in the page if a specific element is now visible
-
             return page.evaluate(function () {
               return (window.performance.timing.loadEventEnd > 0);
             });
           }, function () {
 
             speedgun.reportData = page.evaluate(function (perfObj) {
-
+              //document.body.bgColor = 'white';
               var report = JSON.parse(perfObj),
                   timing = performance.timing,
                   nav = performance.navigation,
@@ -681,7 +677,8 @@ var speedgun = {
             }, JSON.stringify(speedgun.reportData));
 
             //finish up any leftover tasks to complete the report
-            printReport(speedgun.reportData, phantomExit);
+            
+            speedgun.printReport(speedgun.reportData, page, phantomExit);
           });
 
 
@@ -693,43 +690,6 @@ var speedgun = {
       page.onLoadFinished = function (status) {
         phantomExit();
       };
-    }
-
-    function printReport(report, exitphantom) {
-
-      //setup screenshot
-      var reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/speedgun';
-      speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
-
-      if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
-        console.log('Rendering Screenshot to', 'reports/' + reportLocation + speedgun.reportData.screenshot.value);
-        page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value, {format: 'jpeg', quality: '50'});
-      }
-
-      if (speedGunArgs.output === 'csv') {
-        console.log('filename', reportLocation);
-        speedgun.printToFile(report, reportLocation, 'csv', speedGunArgs.wipe, exitphantom);
-      }
-
-      if (speedGunArgs.output === 'json') {
-        speedgun.printToFile(report, reportLocation, 'json', speedGunArgs.wipe, exitphantom);
-      }
-  
-      if (speedGunArgs.output === 'junit') {
-        speedgun.printToFile(report, reportLocation, 'xml', true, exitphantom);
-      }
-
-      if (speedGunArgs.output === 'post') {
-        var postImage = function () {
-          var base64 = null;
-          console.log('Rendering Screenshot to base64');
-          base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
-          speedgun.postIMAGE(base64, 'http://127.0.0.1:8080/rest/performance/imageData', exitphantom);
-        };
-
-        speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData', postImage);
-      }
-
     }
 
     /** Classic waitFor example from PhantomJS
@@ -755,7 +715,6 @@ var speedgun = {
             }
           }, 250); //< repeat check every 250ms
     }
-
 
   },
 
@@ -809,8 +768,44 @@ var speedgun = {
     }
     return target;
   },
+  
+  printReport: function(report, page, exitphantom) {
+    
+    if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
+      this.renderPageToDisk(page);
+    }
+   
+    if (speedGunArgs.output === 'csv') {
+      speedgun.printToFile(report, 'csv', speedGunArgs.wipe, exitphantom);
+    }
+    
+    if (speedGunArgs.output === 'json') {
+      speedgun.printToFile(report, 'json', speedGunArgs.wipe, exitphantom);
+    }
+    
+    if (speedGunArgs.output === 'junit') {
+      speedgun.printToFile(report, 'xml', true, exitphantom);
+    }
+    
+    if (speedGunArgs.output === 'post') {
+      var postImage = function () {
+        console.log('Rendering Screenshot to base64');
+        var base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
+        speedgun.postIMAGETemplate(base64, config.imageAPI, speedGunArgs.uuid, exitphantom);
+      };
+      speedgun.postJSONTemplate(report, config.reportAPI, postImage);
+    }
+  
+  },
+  
+  renderPageToDisk: function(page,postfix){
+    var reportLocation = 'reports/' + speedGunArgs.reportLocation;
+    postfix = (postfix || (speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png'));
+    console.log('Rendering Screenshot to', reportLocation + postfix);
+    page.render(reportLocation + postfix, {format: 'jpeg', quality: '50'});
+  },
 
-  postJSON: function (report, endpoint, postImage) {
+  postJSONTemplate: function (report, endpoint, postImage) {
 
     var settings = {
       operation: "POST",
@@ -826,7 +821,7 @@ var speedgun = {
 
   },
 
-  postIMAGE: function (base64, endpoint, exitphantom) {
+  postIMAGETemplate: function (base64, endpoint, id, exitphantom) {
 
     var settings = {
       operation: "POST",
@@ -837,7 +832,7 @@ var speedgun = {
       data: {}
     };
 
-    settings.data[speedGunArgs.uuid] = base64;
+    settings.data[id] = base64;
     speedgun.postData(settings, endpoint, exitphantom);
   },
 
@@ -854,6 +849,7 @@ var speedgun = {
         } else {
           console.log('Post data success for:' + endpoint);
         }
+        //exiting entire process here
         exitphantom();
       });
 
@@ -875,7 +871,7 @@ var speedgun = {
     }
   },
 
-  printToFile: function (report, filename, extension, createNew, exitphantom) {
+  printToFile: function (report, extension, createNew, exitphantom) {
     var f,
         myfile,
         keys = [],
@@ -917,9 +913,9 @@ var speedgun = {
 
     // changed this, we will always output json/csv/etc right?
     if (speedGunArgs.wipe) {
-      myfile = 'reports/' + filename + '.' + extension;
+      myfile = 'reports/' + speedGunArgs.reportLocation + '.' + extension;
     } else {
-      myfile = 'reports/' + filename + '-' + speedGunArgs.output + '.' + extension;
+      myfile = 'reports/' + speedGunArgs.reportLocation + '-' + speedGunArgs.output + '.' + extension;
     }
 
     console.log('Writing report data to: ', myfile);
@@ -1102,6 +1098,10 @@ var speedgun = {
       console.log('You must supply a URL');
       this.printHelp();
       isFailing = true;
+    }else{
+      if(!speedGunArgs.reportLocation){
+        speedGunArgs.reportLocation = speedGunArgs.url.replace('://', '_').replace(":", "_") + '/speedgun';
+      }
     }
 
     if (isFailing) {

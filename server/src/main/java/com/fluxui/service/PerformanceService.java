@@ -83,6 +83,7 @@ public class PerformanceService implements Serializable {
     } catch (Exception e) {
       e.printStackTrace();
       responseObj.put("error", "failure parsing JSON: " + base64);
+      log.info("______debug: failure parsing json for image")
       builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
       return builder.build();
     }
