@@ -217,19 +217,20 @@ var speedgun = {
           //
   
          //console.log('repaintCount before', repaintCount, repaintLimit, speedGunArgs.detectReflow, reflow);
-  
-          if(repaintCount <= repaintLimit){
-            if(speedGunArgs.detectReflow){
-              if(reflow){
-                console.log('write reflow paint');
-                speedgun.renderPageToDisk(page,'reflow' + repaintCount + 'Paint' + rendertime + '.png');
+          if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
+            if (repaintCount <= repaintLimit) {
+              if (speedGunArgs.detectReflow) {
+                if (reflow) {
+                  console.log('write reflow paint');
+                  speedgun.renderPageToDisk(page, 'reflow' + repaintCount + 'Paint' + rendertime + '.png');
+                  repaintCount++;
+                }
+      
+              } else {
+                console.log('write paint file');
+                speedgun.renderPageToDisk(page, repaintCount + 'Paint' + rendertime + '.png');
                 repaintCount++;
               }
-              
-            }else{
-              console.log('write paint file');
-              speedgun.renderPageToDisk(page,repaintCount + 'Paint' + rendertime + '.png');
-              repaintCount++;
             }
           }
           
@@ -791,9 +792,9 @@ var speedgun = {
       var postImage = function () {
         console.log('Rendering Screenshot to base64');
         var base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
-        speedgun.postIMAGETemplate(base64, config.imageAPI, speedGunArgs.uuid, exitphantom);
+        speedgun.postIMAGETemplate(base64, speedgun.config.imageAPI, speedGunArgs.uuid, exitphantom);
       };
-      speedgun.postJSONTemplate(report, config.reportAPI, postImage);
+      speedgun.postJSONTemplate(report, speedgun.config.reportAPI, postImage);
     }
   
   },
