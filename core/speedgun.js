@@ -171,12 +171,12 @@ var speedgun = {
             if (repaintCount <= repaintLimit) {
               if (speedGunArgs.detectReflow) {
                 if (reflow) {
-                  dataPostQueue.push(page.renderBase64('JPEG', {format: 'jpeg', quality: '50'}));
+                  dataPostQueue.push({'startRender':rendertime,'base64':page.renderBase64('JPEG', {format: 'jpeg', quality: '50'})});
                   repaintCount++;
                 }
       
               } else {
-                dataPostQueue.push(page.renderBase64('JPEG', {format: 'jpeg', quality: '50'}));
+                dataPostQueue.push({'startRender':rendertime,'base64':page.renderBase64('JPEG', {format: 'jpeg', quality: '50'})});
                 repaintCount++;
               }
             }
@@ -712,11 +712,11 @@ var speedgun = {
   printReport: function(report, page, exitphantom) {
     
     if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
-      //render final screenshot to disk
       this.renderPageToDisk(page);
       //render all from queue to disk
+      var reportLocation = 'reports/' + speedGunArgs.reportLocation;
       for(var pageRender in dataPostQueue){
-        //convert base64 images using Buffer and write to disk
+        fs.write(reportLocation + dataPostQueue[pageRender].startRender + '.png', atob(dataPostQueue[pageRender].base64), 'b');
       }
     }
    
