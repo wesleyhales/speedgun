@@ -148,7 +148,6 @@ var speedgun = {
       
       var reflow = (hlimit < height || wlimit < width),
         repaintLimit = speedgun.config.reflowPrecision.repaintLimit;
-      
       //console.log('x, y, width, height', x, y, width, height);
       if(onInitializedFired && (width > 100 && height > 100)) {
         try {
@@ -164,7 +163,7 @@ var speedgun = {
               }));
             }
             return startRender;
-          },(repaintCount === repaintLimit));
+          },(repaintCount === 1));
           //
   
          //console.log('repaintCount before', repaintCount, repaintLimit, speedGunArgs.detectReflow, reflow);
@@ -172,23 +171,12 @@ var speedgun = {
             if (repaintCount <= repaintLimit) {
               if (speedGunArgs.detectReflow) {
                 if (reflow) {
-                  //add this logic at printreport on the queue ss dump
-                  if (speedGunArgs.output === 'post' && speedGunArgs.uuid) {
-                      console.log('adding reflow paint base64 string to queue');
-                      dataPostQueue.push(page.renderBase64('JPEG', {format: 'jpeg', quality: '50'}));
-                  }else{
-                    speedgun.renderPageToDisk(page, 'reflow' + repaintCount + 'Paint' + rendertime + '.png');
-                  }
+                  dataPostQueue.push(page.renderBase64('JPEG', {format: 'jpeg', quality: '50'}));
                   repaintCount++;
                 }
       
               } else {
-                if (speedGunArgs.output === 'post' && speedGunArgs.uuid) {
-                  console.log('adding paint base64 string to queue');
-                  dataPostQueue.push(page.renderBase64('JPEG', {format: 'jpeg', quality: '50'}));
-                }else{
-                  speedgun.renderPageToDisk(page, repaintCount + 'Paint' + rendertime + '.png');
-                }
+                dataPostQueue.push(page.renderBase64('JPEG', {format: 'jpeg', quality: '50'}));
                 repaintCount++;
               }
             }
@@ -681,22 +669,13 @@ var speedgun = {
 
   mergeConfig: function (config, configFile) {
     var result = '', key;
+    configFile = (configFile || 'config.json');
     if (fs.exists(configFile)) {
-      configFile = "config.json";
+      
       result = JSON.parse(fs.read(configFile));
     } else {
-      //some of the page.settings need to be brought here
-      result = {
-        "task": "performance",
-        "userAgent": "chrome",
-        "userAgentAliases": {
-          "chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11"
-        },
-        "wait": 0,
-        "cacheWait": 200,
-        "consolePrefix": "#",
-        "verbose": false
-      }
+      //todo - add default config settings
+      result = {}
     }
     for (key in config) {
       result[key] = config[key];
@@ -733,7 +712,12 @@ var speedgun = {
   printReport: function(report, page, exitphantom) {
     
     if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
+      //render final screenshot to disk
       this.renderPageToDisk(page);
+      //render all from queue to disk
+      for(var pageRender in dataPostQueue){
+        //convert base64 images using Buffer and write to disk
+      }
     }
    
     if (speedGunArgs.output === 'csv') {
@@ -748,13 +732,19 @@ var speedgun = {
       speedgun.printToFile(report, 'xml', true, exitphantom);
     }
     
-    if (speedGunArgs.output === 'post') {
+    if (speedGunArgs.output === 'post' && speedGunArgs.uuid) {
       var postImage = function () {
         console.log('Rendering Screenshot to base64');
         var base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
         speedgun.postIMAGETemplate(base64, speedgun.config.imageAPI, speedGunArgs.uuid, exitphantom);
       };
       speedgun.postJSONTemplate(report, speedgun.config.reportAPI, postImage);
+  
+      for(var pageRender in dataPostQueue){
+        //post images from queue
+        console.log('dataPostQueue',dataPostQueue,dataPostQueue[pageRender]);
+        //speedgun.postIMAGETemplate(dataPostQueue[pageRender], speedgun.config.imageAPI, speedGunArgs.uuid, new function(){});
+      }
     }
   
   },
@@ -803,7 +793,7 @@ var speedgun = {
       settings.data = JSON.stringify(settings.data);
       console.log('settings.data: ', getByteCount(settings.data), ' size in bytes');
       pageInstance.open(endpoint, settings, function (status) {
-        console.log('attempting to POST: ' + settings.data.substring(0, 50));
+        console.log('attempting to POST: ', settings.data.substring(0, 50), ' to ',endpoint,this.config);
         if (status !== 'success') {
           console.log('Unable to post!', status);
         } else {

@@ -69,9 +69,6 @@ public class PerformanceService implements Serializable {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response imageData(String base64) {
-
-//    System.out.println("-----posting Image data: " + base64);
-
   Response.ResponseBuilder builder = null;
   Map<String, String> responseObj = new HashMap<String, String>();
 
@@ -81,22 +78,18 @@ public class PerformanceService implements Serializable {
     try {
       object = readJSON(base64);
     } catch (Exception e) {
+      log.info("______debug: failure parsing json for image" + base64);
       e.printStackTrace();
       responseObj.put("error", "failure parsing JSON: " + base64);
-      log.info("______debug: failure parsing json for image")
       builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
       return builder.build();
     }
 
     try {
       java.sql.Connection con = postgresService.usePostgresDS();
-
-      String query = "UPDATE imagetest set data = (?::jsonb) WHERE id = ?";
+      String query = "INSERT INTO imagetest (data) VALUES (?::jsonb);";
       PreparedStatement statement = con.prepareStatement(query);
       statement.setString(1, object.toString());
-      log.info("perfQueueManager.runNumber " + perfQueueManager.runNumber);
-      statement.setInt(2, perfQueueManager.runNumber);
-
       statement.executeUpdate();
       statement.close();
 
@@ -118,7 +111,6 @@ public class PerformanceService implements Serializable {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response reportData(String report) {
-//    log.info("-----posting report data: " + report);
     Response.ResponseBuilder builder = null;
     Map<String, String> responseObj = new HashMap<String, String>();
 
@@ -145,7 +137,6 @@ public class PerformanceService implements Serializable {
         String query = "INSERT INTO jsontest (data) VALUES (?::jsonb);";
         PreparedStatement statement = con.prepareStatement(query);
         statement.setString(1, object.toString());
-
         statement.executeUpdate();
         statement.close();
 
@@ -171,12 +162,11 @@ public class PerformanceService implements Serializable {
 
 
     Response.ResponseBuilder builder = null;
-		String retVal = "";
+    String retVal = "";
     String response = "{}";
     String taskName = "performance";
     int position = 0;
     UUID random = UUID.randomUUID();
-
 
     boolean keepgoing = false;
     try {
@@ -207,6 +197,19 @@ public class PerformanceService implements Serializable {
       }
 
       position = perfQueueManager.storeMessage(url, taskName, random.toString(), email);
+      //delete from imagetest
+      try {
+        java.sql.Connection con = postgresService.usePostgresDS();
+
+        String query = "DELETE FROM imagetest;";
+        PreparedStatement statement = con.prepareStatement(query);
+        log.info("_____Clear the table for a new report.");
+        statement.executeUpdate();
+        statement.close();
+
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
     } else {
       System.out.println("Bad URL");
       builder = Response.ok(response, MediaType.APPLICATION_JSON);
@@ -239,10 +242,10 @@ public class PerformanceService implements Serializable {
 
     Response.ResponseBuilder builder = null;
     Map<String, String> responseObj = new HashMap<String, String>();
-//    System.out.println("---------uuid base64--" + uuid);
+
     String all = "";
 
-    if(uuid == null || uuid == "null"){
+    if(uuid == null || uuid.equals("null")){
       responseObj.put("error", "uuid cannot be null");
       builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
       return builder.build();
@@ -304,7 +307,7 @@ public class PerformanceService implements Serializable {
     //todo - check to see what this uuid position is and multiply timeout
     Response.ResponseBuilder builder = null;
     Map<String, String> responseObj = new HashMap<String, String>();
-    System.out.println("---------uuid--" + uuid);
+    System.out.println("---------uuid poll--" + uuid);
     String all = "";
 
     if(uuid == null || uuid == "null"){
