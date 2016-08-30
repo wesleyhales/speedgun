@@ -17,11 +17,11 @@
   "cacheWait": 200,
   "consolePrefix": "#",
   "verbose": false,
-  "reportAPI":"http://127.0.0.1:8080/rest/performance/reportData",
-  "imageAPI":"http://127.0.0.1:8080/rest/performance/imageData",
+  "reportAPI":"http://127.0.0.1:8081/rest/performance/reportData",
+  "imageAPI":"http://127.0.0.1:8081/rest/performance/imageData",
   "dns": {
-    "target": "a001.ashleyfurniture.inscname.net",
-     "originalDomain": "www.ashleyfurniturehomestore.com"
+    "target": "a001.demo.inscname.net",
+     "originalDomain": "www.demo.com"
   },
   "reflowPrecision":{
     "repaintLimit":3

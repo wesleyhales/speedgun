@@ -39,7 +39,6 @@ var fs = require('fs'),
       ua: 'userAgent',
       u: 'uuid'
     },
-    pageInstance = WebPage.create(),
     paintDetected = false,
     onInitializedFired = false,
     repaintCount = 1,
@@ -133,6 +132,7 @@ var speedgun = {
         report.startRender = {value: 0, label: '', index: 85};
         report.Load = {value: 0, label: '', index: 41};
         report.navEvents = {label: '', value: [], index: 56};
+        report.totalBytes = {label: '', value: 0, index: 57};
 
         if (string) {
           return JSON.stringify(report);
@@ -148,12 +148,14 @@ var speedgun = {
       
       var reflow = (hlimit < height || wlimit < width),
         repaintLimit = speedgun.config.reflowPrecision.repaintLimit;
+      
       //console.log('x, y, width, height', x, y, width, height);
-      if(onInitializedFired && (width > 100 && height > 100)) {
+      //if(true) { //start from first render
+      if(onInitializedFired && (width > 1 && height > 1)) {
         try {
           var rendertime = page.evaluate(function (recordIt) {
             var startRender = Math.floor(performance.now());
-            //document.body.bgColor = 'white';
+            document.body.bgColor = '#fff';
             //only record first one
             if (recordIt){
               console.log(JSON.stringify({
@@ -164,10 +166,8 @@ var speedgun = {
             }
             return startRender;
           },(repaintCount === 1));
-          //
-  
-         //console.log('repaintCount before', repaintCount, repaintLimit, speedGunArgs.detectReflow, reflow);
-          if (speedGunArgs.screenshot) {
+        
+          if (speedGunArgs.screenshot || speedGunArgs.uuid) {
             if (repaintCount <= repaintLimit) {
               if (speedGunArgs.detectReflow) {
                 if (reflow) {
@@ -181,7 +181,6 @@ var speedgun = {
               }
             }
           }
-          
           
         } catch (e) {
           console.log('___ERROR',e);
@@ -231,8 +230,6 @@ var speedgun = {
       }
 
       speedgun.reportData.navEvents.value.push(eventData);
-      
-
 
     },
 
@@ -255,12 +252,10 @@ var speedgun = {
 
         console.log(JSON.stringify({value: nowms, label: '', index: 2}));
         console.log(JSON.stringify({value: performance.now(), label: '', index: 1}));
-
-        //--------------- Begin ways of old DOM perf with event Listeners
-
-        //        The DOMContentLoaded event is fired when the document has been completely
-        //        loaded and parsed, without waiting for stylesheets, images, and subframes
-        //        to finish loading
+        
+        //The DOMContentLoaded event is fired when the document has been completely
+        //loaded and parsed, without waiting for stylesheets, images, and subframes
+        //to finish loading
         document.addEventListener("DOMContentLoaded", function () {
           console.log(JSON.stringify({value: (Date.now() - nowms), label: 'This is the measured with document.addEventListener(\"DOMContentLoaded\"... The DOMContentLoaded event is fired when the document has been completely loaded and parsed, without waiting for stylesheets, images, and subframes to finish loading', index: 40}));
         }, false);
@@ -274,9 +269,7 @@ var speedgun = {
         window.onerror = function (message, url, linenumber) {
           console.log('error:' + message + " on line " + linenumber + " for " + url);
         };
-
-
-        //--------------- End DOM event Listeners
+        
       });
       
     },
@@ -301,8 +294,6 @@ var speedgun = {
         var domain = config.dns.originalDomain,
             targetDNS = config.dns.target,
             match = request.url.indexOf(domain);
-  
-        //console.log('_______________resourceRequested: ',domain,request.url,config.dns.target,match);
         
         if (match >= 0) {
           var cdnUrl = request.url.replace(domain, targetDNS);
@@ -316,11 +307,10 @@ var speedgun = {
         }
         
       }
-      // console.log('_____________________________________');
     },
 
     onResourceReceived: function (page, config, response) {
-      totalBytes += ((typeof response.bodySize === 'number') ? response.bodySize : 0);
+      speedgun.reportData.totalBytes.value += ((typeof response.bodySize === 'number') ? response.bodySize : 0);
       var headers = false;
       if(headers){
       console.log('########################################');
@@ -330,7 +320,7 @@ var speedgun = {
         console.log('header: ',header.name, header.value)
       });
       console.log('########################################');
-      console.log('Total Bytes Delivered after this response:',totalBytes);
+      console.log('Total Bytes Delivered after this response:',speedgun.reportData.totalBytes.value);
       }
       
     }
@@ -710,6 +700,7 @@ var speedgun = {
   },
   
   printReport: function(report, page, exitphantom) {
+    //saving all the disk writes for report end
     
     if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
       this.renderPageToDisk(page);
@@ -733,18 +724,26 @@ var speedgun = {
     }
     
     if (speedGunArgs.output === 'post' && speedGunArgs.uuid) {
-      var postImage = function () {
-        console.log('Rendering Screenshot to base64');
-        var base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
-        speedgun.postIMAGETemplate(base64, speedgun.config.imageAPI, speedGunArgs.uuid, exitphantom);
-      };
-      speedgun.postJSONTemplate(report, speedgun.config.reportAPI, postImage);
   
-      for(var pageRender in dataPostQueue){
-        //post images from queue
-        console.log('dataPostQueue',dataPostQueue,dataPostQueue[pageRender]);
-        //speedgun.postIMAGETemplate(dataPostQueue[pageRender], speedgun.config.imageAPI, speedGunArgs.uuid, new function(){});
-      }
+      var filler = function(){return null};
+      
+      var postImage = function () {
+        console.log('Rendering Screenshot to base64',dataPostQueue.length);
+        var base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
+        speedgun.postIMAGETemplate(base64, speedgun.config.imageAPI, speedGunArgs.uuid, filler);
+        
+        for(var i = 0;i < dataPostQueue.length;i++){
+          //post images from queue
+          console.log('____posting startRender images',dataPostQueue[i].startRender);
+          if((i+1) === dataPostQueue.length){
+            filler = exitphantom;
+          }
+          speedgun.postIMAGETemplate(dataPostQueue[i].base64, speedgun.config.imageAPI, speedGunArgs.uuid, filler);
+        }
+      };
+      
+      speedgun.postJSONTemplate(report, speedgun.config.reportAPI, postImage);
+      
     }
   
   },
@@ -787,19 +786,21 @@ var speedgun = {
   },
 
   postData: function (settings, endpoint, finalCall) {
-
+    pageInstance = WebPage.create();
     if (settings.data && Object.keys(settings.data).length > 0) {
 
       settings.data = JSON.stringify(settings.data);
       console.log('settings.data: ', getByteCount(settings.data), ' size in bytes');
       pageInstance.open(endpoint, settings, function (status) {
-        console.log('attempting to POST: ', settings.data.substring(0, 50), ' to ',endpoint,this.config);
+        console.log('attempting to POST: ', settings.data.substring(0, 50), ' to ',endpoint);
         if (status !== 'success') {
           console.log('Unable to post!', status);
+          finalCall();
         } else {
           console.log('Post data success for:' + endpoint);
+          finalCall();
         }
-        finalCall();
+        
       });
 
 
