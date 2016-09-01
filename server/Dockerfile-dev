@@ -75,7 +75,7 @@ RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/jboss-as-7.1.
 RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/configuration/standalone_xml_history
 
 RUN mkdir /root/jboss-as-7.1.1.Final-fluxui/speedgun
-#todo
+#todo2
 COPY core/speedgun.js /root/jboss-as-7.1.1.Final-fluxui/speedgun/
 COPY core/config.json /root/jboss-as-7.1.1.Final-fluxui/speedgun/
 COPY core/pconfig.json /root/jboss-as-7.1.1.Final-fluxui/speedgun/

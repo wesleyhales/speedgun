@@ -29,8 +29,6 @@
 
             <div flex="20">
                 <img src="images/sg-logo.png"  class="fade" style="max-width:100%" layout-margin layout-padding/>
-
-
             </div>
 
 
@@ -97,7 +95,7 @@
     <md-content ng-hide="!speedgun[0][uuid].url" class="md-padding">
 
         <h3 class="subheader"  style="padding: 0 0 0 11px;">
-            {{speedgun[0][uuid].url.value}}
+            {{speedgun[0][uuid].url.value}} - Total Bytes: {{speedgun[0][uuid].totalBytes.value}}
             <md-button md-no-ink class="md-primary md-button-colored" ng-click="clear()">[clear]</md-button>
 
             <md-button md-no-inkclass="md-raised md-primary md-button-colored" href="/rest/performance/report?uuid={{uuid}}">[RAW JSON]</md-button>
@@ -108,9 +106,29 @@
             Screenshots
         </h4>
         <div class="ss-container" layout="row" layout-align="space-around">
-            <div ng-repeat="step in screenshots.data" flex>
+            <div ng-repeat="step in screenshots.data">
                 <div ng-repeat="(key, value) in step" flex>
-                    <img class="screenshot-img" ng-src="data:image/jpeg;base64,{{value}}" flex/>
+
+                    <div ng-if="!value.startRender">
+                        <img class="screenshot-img" ng-src="data:image/jpeg;base64,{{value}}" flex/>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <h4 class="subheader" style="padding: 0 0 0 11px">
+            Start Render / Paint
+        </h4>
+        <div class="ss-container" layout="row" layout-align="space-around">
+            <div ng-repeat="step in screenshots.data">
+                <div ng-repeat="(key, value) in step" flex>
+
+                    <div ng-if="value.startRender" layout="column">
+                        <div flex>{{value.startRender}}</div>
+                        <div flex><img class="screenshot-img" ng-src="data:image/jpeg;base64,{{value.base64}}" flex/></div>
+                    </div>
+
                 </div>
             </div>
         </div>

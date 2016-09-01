@@ -17,7 +17,7 @@ if [ "$SERVER_MODE" = "dev" ]; then
     docker rm -f sg-server-name
     docker build -t sg-server -f server/Dockerfile-dev .
      #todo you need to build to /Users/speedgun/server/target/speedgun
-    docker run -d -P --restart=always -v /Users/whales/dev/speedgun/server/target/speedgun:/root/target/speedgun -v /Users/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 8081:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
+    docker run -d -P --restart=always -v /Users/whales/dev/speedgun/core:/root/target/speedgun/jboss-as-7.1.1.Final-fluxui/speedgun/ -v /Users/whales/dev/speedgun/server/target/speedgun:/root/target/speedgun -v /Users/speedgun/logs:/root/jboss-as-7.1.1.Final-fluxui/standalone/log -p 8081:8080 --name sg-server-name --link sg-postgres-name:spn sg-server sh -c "./server-entrypoint.sh"
 elif [ "$SERVER_MODE" = "build" ]; then
    pushd ./server > /dev/null
      cp -rf Dockerfile-prod Dockerfile &&

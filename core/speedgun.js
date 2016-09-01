@@ -738,7 +738,7 @@ var speedgun = {
           if((i+1) === dataPostQueue.length){
             filler = exitphantom;
           }
-          speedgun.postIMAGETemplate(dataPostQueue[i].base64, speedgun.config.imageAPI, speedGunArgs.uuid, filler);
+          speedgun.postIMAGETemplate(dataPostQueue[i], speedgun.config.imageAPI, speedGunArgs.uuid, filler);
         }
       };
       
