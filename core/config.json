@@ -20,8 +20,8 @@
   "reportAPI":"http://127.0.0.1:8080/rest/performance/reportData",
   "imageAPI":"http://127.0.0.1:8080/rest/performance/imageData",
   "dns": {
-    "target": "a027.kellwoodrebeccataylor.inscname.net",
-     "originalDomain": "www.rebeccataylor.com"
+    "target": "www.parkerny.com.inscname.net",
+     "originalDomain": "www.parkerny.com"
   },
   "reflowPrecision":{
     "repaintLimit":3

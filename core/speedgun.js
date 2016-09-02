@@ -42,8 +42,6 @@ var fs = require('fs'),
     paintDetected = false,
     onInitializedFired = false,
     repaintCount = 1,
-    rendertime = [],
-    totalBytes = 0,
     hlimit,
     wlimit,
     dataPostQueue = [];
@@ -133,6 +131,8 @@ var speedgun = {
         report.Load = {value: 0, label: '', index: 41};
         report.navEvents = {label: '', value: [], index: 56};
         report.totalBytes = {label: '', value: 0, index: 57};
+        report.totalResources = {label: '', value: 0, index: 58};
+        report.resources = {label: '', value: {}, index: 58};
 
         if (string) {
           return JSON.stringify(report);
@@ -155,7 +155,7 @@ var speedgun = {
         try {
           var rendertime = page.evaluate(function (recordIt) {
             var startRender = Math.floor(performance.now());
-            document.body.bgColor = '#fff';
+            ///document.body.bgColor = '#fff';
             //only record first one
             if (recordIt){
               console.log(JSON.stringify({
@@ -275,26 +275,26 @@ var speedgun = {
     },
 
     onResourceRequested: function (page, config, request, networkRequest) {
-      // console.log('_____________________________________');
-      // console.log('Resource Requested',request.url);
-      // var now = Date.now();
-      // speedgun.reportData.resources.value[request.id] = {
-      //   id: request.id,
-      //   url: request.url,
-      //   request: request,
-      //   responses: {},
-      //   duration: '',
-      //   times: {
-      //     request: now
-      //   }
-      // };
       
-      if(speedGunArgs.override && config.dns.target){
+      var now = Date.now();
+      speedgun.reportData.resources.value[request.id] = {
+        id: request.id,
+        url: request.url,
+        request: request,
+        responses: {},
+        duration: '',
+        times: {
+          request: now
+        }
+      };
   
+      //disable gzip
+      networkRequest.setHeader('Accept-Encoding','gzip;q=0');
+
+      if(speedGunArgs.override && config.dns.target){
         var domain = config.dns.originalDomain,
             targetDNS = config.dns.target,
             match = request.url.indexOf(domain);
-        
         if (match >= 0) {
           var cdnUrl = request.url.replace(domain, targetDNS);
           //console.log('Rewriting request:', request.url, cdnUrl);
@@ -303,25 +303,44 @@ var speedgun = {
           if(speedGunArgs.akamaiDebug){
             networkRequest.setHeader('Pragma', 'akamai-x-get-client-ip, akamai-x-cache-on, akamai-x-cache-remote-on, akamai-x-check-cacheable, akamai-x-get-cache-key, akamai-x-get-extracted-values, akamai-x-get-nonces, akamai-x-get-ssl-client-session-id, akamai-x-get-true-cache-key, akamai-x-serial-no, akamai-x-feo-trace, akamai-x-get-request-id');
           }
-          
         }
-        
       }
     },
 
     onResourceReceived: function (page, config, response) {
-      speedgun.reportData.totalBytes.value += ((typeof response.bodySize === 'number') ? response.bodySize : 0);
-      var headers = false;
-      if(headers){
-      console.log('########################################');
-      console.log('Received:',response.url);
-      console.log('Response.bodySize',response.bodySize);
-      response.headers.forEach(function (header) {
-        console.log('header: ',header.name, header.value)
-      });
-      console.log('########################################');
-      console.log('Total Bytes Delivered after this response:',speedgun.reportData.totalBytes.value);
+      //todo - the same resource appears multiple times because of chunked response (phantom stage start || end)
+  
+      var now = Date.now(),
+          resource = speedgun.reportData.resources.value[response.id];
+  
+      resource.responses[response.stage] = response;
+      //get/compare resource time on each call to oRR
+      if (!resource.times[response.stage]) {
+        resource.times[response.stage] = now;
+        resource.duration = now - resource.times.request;
       }
+      if (response.bodySize) {
+        resource.size = response.bodySize;
+      } else if (!resource.size) {
+        response.headers.forEach(function (header) {
+          if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
+            resource.size = parseInt(header.value);
+          }
+        });
+      }
+      
+      var headers = true;
+      if(headers){
+        console.log('########################################');
+        console.log('Received:',response.url);
+        console.log('Response.bodySize',response.bodySize);
+        response.headers.forEach(function (header) {
+          console.log('header: ', header.name, header.value);
+        });
+        console.log('########################################');
+      }
+      
+      
       
     }
   },
@@ -524,6 +543,19 @@ var speedgun = {
               return (window.performance.timing.loadEventEnd > 0);
             });
           }, function () {
+  
+            var xresources = speedgun.reportData.resources.value;
+            for(var obj in xresources){
+              var resource = xresources[obj];
+              // console.log('resource id',resource.id);
+              // console.log('reource url',resource.url);
+              // console.log('request', JSON.stringify(resource.request));
+              console.log('size', resource.size);
+              // console.log('duration', resource.duration);
+              // console.log('number',resCount++);
+              speedgun.reportData.totalBytes.value += (resource.size ? resource.size : 0);
+              speedgun.reportData.totalResources.value++;
+            }
 
             speedgun.reportData = page.evaluate(function (perfObj) {
               //document.body.bgColor = 'white';
