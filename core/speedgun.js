@@ -289,7 +289,7 @@ var speedgun = {
       };
   
       //disable gzip
-      networkRequest.setHeader('Accept-Encoding','gzip;q=0');
+      //networkRequest.setHeader('Accept-Encoding','gzip;q=0');
 
       if(speedGunArgs.override && config.dns.target){
         var domain = config.dns.originalDomain,
@@ -314,21 +314,36 @@ var speedgun = {
           resource = speedgun.reportData.resources.value[response.id];
   
       resource.responses[response.stage] = response;
-      //get/compare resource time on each call to oRR
+  
+      function isInt(value) {
+        if (isNaN(value)) {
+          return false;
+        }
+        var x = parseFloat(value);
+        return (x | 0) === x;
+      }
+      
       if (!resource.times[response.stage]) {
         resource.times[response.stage] = now;
         resource.duration = now - resource.times.request;
       }
-      if (response.bodySize) {
+  
+      if (isInt(response.bodySize)) {
         resource.size = response.bodySize;
-      } else if (!resource.size) {
+      }else{
+        resource.size = (resource.size > 0 ? resource.size : 0);
         response.headers.forEach(function (header) {
+  
           if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
-            resource.size = parseInt(header.value);
+            var contentLength = parseInt(header.value,10);
+            if(isInt(header.value) && contentLength > resource.size){
+              resource.size = contentLength;
+            }
           }
+          
         });
+        
       }
-      
       var headers = true;
       if(headers){
         console.log('########################################');
@@ -547,12 +562,7 @@ var speedgun = {
             var xresources = speedgun.reportData.resources.value;
             for(var obj in xresources){
               var resource = xresources[obj];
-              // console.log('resource id',resource.id);
-              // console.log('reource url',resource.url);
-              // console.log('request', JSON.stringify(resource.request));
               console.log('size', resource.size);
-              // console.log('duration', resource.duration);
-              // console.log('number',resCount++);
               speedgun.reportData.totalBytes.value += (resource.size ? resource.size : 0);
               speedgun.reportData.totalResources.value++;
             }
