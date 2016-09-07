@@ -309,7 +309,6 @@ var speedgun = {
 
     onResourceReceived: function (page, config, response) {
       //todo - the same resource appears multiple times because of chunked response (phantom stage start || end)
-  
       var now = Date.now(),
           resource = speedgun.reportData.resources.value[response.id];
   
@@ -344,7 +343,7 @@ var speedgun = {
         });
         
       }
-      var headers = true;
+      var headers = false;
       if(headers){
         console.log('########################################');
         console.log('Received:',response.url);
@@ -354,8 +353,6 @@ var speedgun = {
         });
         console.log('########################################');
       }
-      
-      
       
     }
   },
@@ -562,9 +559,12 @@ var speedgun = {
             var xresources = speedgun.reportData.resources.value;
             for(var obj in xresources){
               var resource = xresources[obj];
-              console.log('size', resource.size);
-              speedgun.reportData.totalBytes.value += (resource.size ? resource.size : 0);
-              speedgun.reportData.totalResources.value++;
+              //todo, here we populate all resource sizes and total page weight but...
+              //todo - this feature depends on https://github.com/ariya/phantomjs/issues/10156#ref-commit-545b03c
+              //speedgun.reportData.totalBytes.value += (resource.size ? resource.size : 0);
+              //speedgun.reportData.totalResources.value++;
+              //console.log('url', resource.url);
+              //console.log('size', resource.size,speedgun.reportData.totalBytes.value);
             }
 
             speedgun.reportData = page.evaluate(function (perfObj) {
@@ -621,7 +621,7 @@ var speedgun = {
               report.loadEventStart.value = validateTimes(timing.loadEventStart);
               report.loadEventEnd.value = validateTimes(timing.loadEventEnd);
 
-              //sometimes, numbers are returned as negative when subtracting from navigationStart. This could possibly be a bug with PhantomJS
+              //sometimes numbers are returned as negative when subtracting from navigationStart. This could possibly be a bug with PhantomJS
               function validateTimes(end, start) {
                 if (!start) {
                   start = navStart;
@@ -648,25 +648,18 @@ var speedgun = {
                 default:
                   report.timing.label = ('Not detected');
               }
-
-              // for (var key in report) {
-              //   //export/bridge data back to phantom context
-              //   console.log(JSON.stringify(report[key]));
-              // }
+              
               return report;
 
             }, JSON.stringify(speedgun.reportData));
 
             //finish up any leftover tasks to complete the report
-            
             speedgun.printReport(speedgun.reportData, page, phantomExit);
+            
           });
-
-
+          
         }
       }
-
-
     } else {
       page.onLoadFinished = function (status) {
         phantomExit();
@@ -703,7 +696,6 @@ var speedgun = {
     var result = '', key;
     configFile = (configFile || 'config.json');
     if (fs.exists(configFile)) {
-      
       result = JSON.parse(fs.read(configFile));
     } else {
       //todo - add default config settings
