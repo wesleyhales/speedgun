@@ -1,11 +1,29 @@
 {
-    "task": "performance",
-    "userAgent": "chrome",
-    "userAgentAliases": {
-        "chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11"
+  "task": "performance",
+  "userAgent": "chrome",
+  "userAgentAliases": {
+    "chrome": {
+      "uastring":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36",
+      "width":1280,
+      "height":1024
     },
-    "wait": 0,
-    "cacheWait" : 200,
-    "consolePrefix": "#",
-    "verbose": false
+    "ios-safari": {
+      "uastring":"Mozilla/5.0 (iPad; CPU OS 7_0 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/30.0.1599.12 Mobile/11A465 Safari/8536.25",
+      "width":375,
+      "height":667
+    }
+  },
+  "wait": 0,
+  "cacheWait": 200,
+  "consolePrefix": "#",
+  "verbose": false,
+  "reportAPI":"http://127.0.0.1:8080/rest/performance/reportData",
+  "imageAPI":"http://127.0.0.1:8080/rest/performance/imageData",
+  "dns": {
+    "target": "www.parkerny.com.inscname.net",
+     "originalDomain": "www.parkerny.com"
+  },
+  "reflowPrecision":{
+    "repaintLimit":3
+  }
 }

@@ -9,7 +9,8 @@ var fs = require('fs'),
       output: 'json',
       userAgent: 'chrome',
       configFile: 'config.json',
-      uuid: null
+      uuid: null,
+      reportLocation: null
     },
     unaryArgs = {
       help: false,
@@ -19,6 +20,9 @@ var fs = require('fs'),
       crawl: false,
       debug: false,
       wipe: false,
+      override: false,
+      akamaiDebug: false,
+      detectReflow: false,
       phantomCacheEnabled: false
     },
     validValues = {
@@ -35,9 +39,12 @@ var fs = require('fs'),
       ua: 'userAgent',
       u: 'uuid'
     },
-    pageInstance = WebPage.create(),
     paintDetected = false,
-    onInitializedFired = false;
+    onInitializedFired = false,
+    repaintCount = 1,
+    hlimit,
+    wlimit,
+    dataPostQueue = [];
 
 var speedgun = {
 
@@ -74,105 +81,58 @@ var speedgun = {
     perfObj: {
 
       data: function (string) {
-
         var report = {};
-
         report.url = {label: 'URL', value: speedGunArgs.url, index: 32};
-
         report.screenshot = {label: 'Screenshot', value: '', index: 33};
-
-        //HRT - High Resolution Time gives us floating point time stamps that can be accurate to microsecond resolution.
-        //The now() method returns the time elapsed from when the navigationStart time in PerformanceTiming happened.
-        report.now = {label: 'HRT now()', value: 0, index: 1};
-
-        report.nowms = {label: 'Date.now()', value: 0, index: 2};
-
+        report.now = {label: '', value: 0, index: 1};
+        report.nowms = {label: '', value: 0, index: 2};
         //high level load times
-        report.pageLoadTime = {label: 'Total time to load page. Measuring the time it took from the navigationStart to loadEventEnd events.', value: 0, index: 3};
-
-        report.perceivedLoadTime = {label: 'User-perceived page load time. The amount of time it took the browser to load the page and execute JavaScript.', value: 0, index: 4};
-
-        report.requestResponseTime = {label: 'Time spent making a request to the server and receiving the response - after network lookups and negotiations.', value: 0, index: 5};
-
-        report.fetchTime = {label: 'Fetch start to response end. Total time spent in app cache, domain lookups, and making secure connection', value: 0, index: 7};
-
-        report.pageProcessTime = {label: 'Total time spent processing the page.', value: 0, index: 8};
-
-        report.domLoading = {value: 0, label: 'Return the time immediately before the user agent sets the current document readiness to \"loading\"', index: 30};
-
-        report.domComplete = {value: 0, label: 'Return the time immediately before the user agent sets the current document readiness to \"complete\"', index: 23};
-
-        report.loadEventStart = {value: 0, label: 'Return the time immediately before the load event of the current document is fired. It must return zero when the load event is not fired yet.', index: 25};
-
-        report.loadEventEnd = {value: 0, label: 'Return the time when the load event of the current document is completed. It must return zero when the load event is not fired or is not completed.', index: 31};
-
-        report.loadEventTime = {label: 'Total time spent during the load event.', value: 0, index: 9};
-
-        report.domInteractive = {value: 0, label: 'Return the time immediately before the user agent sets the current document readiness to \"interactive\".', index: 17};
-
-        report.connectStart = {value: 0, label: 'Return the time immediately before the user agent start establishing the connection to the server to retrieve the document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return value of domainLookupEnd.', index: 11};
-
-        report.connectEnd = {value: 0, label: 'Return the time immediately after the user agent finishes establishing the connection to the server to retrieve the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the value of domainLookupEnd', index: 28};
-
-        report.connectTime = {label: 'Time spent during connect.', value: 0, index: 28};
-
+        report.pageLoadTime = {label: '', value: 0, index: 3};
+        report.perceivedLoadTime = {label: '', value: 0, index: 4};
+        report.requestResponseTime = {label: '', value: 0, index: 5};
+        report.fetchTime = {label: '', value: 0, index: 7};
+        report.pageProcessTime = {label: '', value: 0, index: 8};
+        report.domLoading = {value: 0, label: '', index: 30};
+        report.domComplete = {value: 0, label: '', index: 23};
+        report.loadEventStart = {value: 0, label: '', index: 25};
+        report.loadEventEnd = {value: 0, label: '', index: 31};
+        report.loadEventTime = {label: '', value: 0, index: 9};
+        report.domInteractive = {value: 0, label: '', index: 17};
+        report.connectStart = {value: 0, label: '', index: 11};
+        report.connectEnd = {value: 0, label: '', index: 28};
+        report.connectTime = {label: '', value: 0, index: 28};
         report.navigationStart = {value: 0, label: '', index: 12};
-
-        report.secureConnectionStart = {value: 0, label: 'This attribute is optional. User agents that don\'t have this attribute available must set it as undefined. When this attribute is available, if the scheme of the current page is HTTPS, this attribute must return the time immediately before the user agent starts the handshake process to secure the current connection. If this attribute is available but HTTPS is not used, this attribute must return zero.', index: 13};
-
-        report.fetchStart = {value: 0, label: 'If the new resource is to be fetched using HTTP GET or equivalent, fetchStart must return the time immediately before the user agent starts checking any relevant application caches. Otherwise, it must return the time when the user agent starts fetching the resource.', index: 14};
-
-        report.domContentLoadedEventStart = {value: 0, label: 'This attribute must return the time immediately before the user agent fires the DOMContentLoaded event at the Document.', index: 15};
-
-        report.domContentLoadedEventEnd = {value: 0, label: 'This attribute must return the time immediately after the document\'s DOMContentLoaded event completes.', index: 26};
-
-        report.domContentTime = {label: 'Total time spent during DomContentLoading event', value: 0, index: 10};
-
-
-        //      If the transport connection fails after a request is sent and the user agent reopens a connection and resend the request, requestStart should return the corresponding values of the new request.
-        //      This interface does not include an attribute to represent the completion of sending the request, e.g., requestEnd.
-        //      Completion of sending the request from the user agent does not always indicate the corresponding completion time in the network transport, which brings most of the benefit of having such an attribute.
-        //      Some user agents have high cost to determine the actual completion time of sending the request due to the HTTP layer encapsulation.
-        report.requestStart = {value: 0, label: 'This attribute must return the time immediately before the user agent starts requesting the current document from the server, or from relevant application caches or from local resources.', index: 20};
-
-        report.responseStart = {value: 0, label: 'This attribute must return the time immediately after the user agent receives the first byte of the response from the server, or from relevant application caches or from local resources.', index: 16};
-
-        report.responseEnd = {value: 0, label: 'This attribute must return the time immediately after the user agent receives the last byte of the current document or immediately before the transport connection is closed, whichever comes first. The document here can be received either from the server, relevant application caches or from local resources.', index: 29};
-
-        report.responseTime = {label: 'Total time spent during response', value: 0, index: 34};
-
-        report.domainLookupStart = {value: 0, label: 'This attribute must return the time immediately before the user agent starts the domain name lookup for the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the same value as fetchStart.', index: 24};
-
-        report.domainLookupEnd = {value: 0, label: 'This attribute must return the time immediately after the user agent finishes the domain name lookup for the current document. If a persistent connection [RFC 2616] is used or the current document is retrieved from relevant application caches or local resources, this attribute must return the same value as fetchStart.', index: 18};
-
+        report.secureConnectionStart = {value: 0, label: '', index: 13};
+        report.fetchStart = {value: 0, label: '', index: 14};
+        report.domContentLoadedEventStart = {value: 0, label: '', index: 15};
+        report.domContentLoadedEventEnd = {value: 0, label: '', index: 26};
+        report.domContentTime = {label: '', value: 0, index: 10};
+        report.requestStart = {value: 0, label: '', index: 20};
+        report.responseStart = {value: 0, label: '', index: 16};
+        report.responseEnd = {value: 0, label: '', index: 29};
+        report.responseTime = {label: '', value: 0, index: 34};
+        report.domainLookupStart = {value: 0, label: '', index: 24};
+        report.domainLookupEnd = {value: 0, label: '', index: 18};
         //      In cases where the user agent already has the domain information in cache, domainLookupStart and domainLookupEnd represent the times when the user agent starts and ends the domain data retrieval from the cache.
-        report.domainLookupTime = {label: 'Total time spent in domain lookup', value: 0, index: 35};
-
-        report.redirectStart = {value: 0, label: 'If there are HTTP redirects or equivalent when navigating and if all the redirects or equivalent are from the same origin, this attribute must return the starting time of the fetch that initiates the redirect. Otherwise, this attribute must return zero.', index: 19};
-
-        report.redirectEnd = {value: 0, label: 'If there are HTTP redirects or equivalent when navigating and all redirects and equivalents are from the same origin, this attribute must return the time immediately after receiving the last byte of the response of the last redirect. Otherwise, this attribute must return zero.', index: 27};
-
+        report.domainLookupTime = {label: '', value: 0, index: 35};
+        report.redirectStart = {value: 0, label: '', index: 19};
+        report.redirectEnd = {value: 0, label: '', index: 27};
         //network level redirects
-        report.redirectTime = {label: 'Time spent during redirect', value: 0, index: 6};
-
-        report.unloadEventStart = {value: 0, label: 'If the previous document and the current document have the same origin [IETF RFC 6454], this attribute must return the time immediately before the user agent starts the unload event of the previous document. If there is no previous document or the previous document has a different origin than the current document, this attribute must return zero.', index: 22};
-
+        report.redirectTime = {label: '', value: 0, index: 6};
+        report.unloadEventStart = {value: 0, label: '', index: 22};
         //      If there are HTTP redirects or equivalent when navigating and not all the redirects or equivalent are from the same origin, both unloadEventStart and unloadEventEnd must return the zero.
-        report.unloadEventEnd = {value: 0, label: 'If the previous document and the current document have the same same origin, this attribute must return the time immediately after the user agent finishes the unload event of the previous document. If there is no previous document or the previous document has a different origin than the current document or the unload is not yet completed, this attribute must return zero.', index: 21};
-
+        report.unloadEventEnd = {value: 0, label: '', index: 21};
         //navigation timing
         report.timing = {value: 0, label: '', index: 36};
-
         //PhantomJS Error Detection
         report.errors = {value: [], label: '', index: 37};
-
-        report.DOMContentLoaded = {value: 0, label: 'Old perf measurement', index: 40};
-
+        report.DOMContentLoaded = {value: 0, label: '', index: 40};
         report.startRender = {value: 0, label: '', index: 85};
-
-        report.Load = {value: 0, label: 'Old perf measurement', index: 41};
-
+        report.Load = {value: 0, label: '', index: 41};
         report.navEvents = {label: '', value: [], index: 56};
+        report.totalBytes = {label: '', value: 0, index: 57};
+        report.totalResources = {label: '', value: 0, index: 58};
+        report.resources = {label: '', value: {}, index: 58};
 
         if (string) {
           return JSON.stringify(report);
@@ -183,19 +143,52 @@ var speedgun = {
       }
 
     },
-
+    
     onRepaintRequested: function(page, time, x, y, width, height) {
       
-      if(onInitializedFired && !paintDetected && !(width === 0 && height === 0)) {
-        rendertime = page.evaluate(function () {
-          var startRender = Math.floor(performance.now());
-          console.log(JSON.stringify({label: 'Start Render measured using PhantomJS\'s onRepaintRequested.', value: startRender, index: 85}));
-          return startRender;
-        });
-        // page.render('firstPaint' + rendertime + '.png',{format: 'jpeg', quality: '50'});
-        paintDetected = true;
+      var reflow = (hlimit < height || wlimit < width),
+        repaintLimit = speedgun.config.reflowPrecision.repaintLimit;
+      
+      //console.log('x, y, width, height', x, y, width, height);
+      //if(true) { //start from first render
+      if(onInitializedFired && (width > 1 && height > 1)) {
+        try {
+          var rendertime = page.evaluate(function (recordIt) {
+            var startRender = Math.floor(performance.now());
+            ///document.body.bgColor = '#fff';
+            //only record first one
+            if (recordIt){
+              console.log(JSON.stringify({
+                label: 'Start Render measured using PhantomJS\'s onRepaintRequested.',
+                value: startRender,
+                index: 85
+              }));
+            }
+            return startRender;
+          },(repaintCount === 1));
+        
+          if (speedGunArgs.screenshot || speedGunArgs.uuid) {
+            if (repaintCount <= repaintLimit) {
+              if (speedGunArgs.detectReflow) {
+                if (reflow) {
+                  dataPostQueue.push({'startRender':rendertime,'base64':page.renderBase64('JPEG', {format: 'jpeg', quality: '50'})});
+                  repaintCount++;
+                }
+      
+              } else {
+                dataPostQueue.push({'startRender':rendertime,'base64':page.renderBase64('JPEG', {format: 'jpeg', quality: '50'})});
+                repaintCount++;
+              }
+            }
+          }
+          
+        } catch (e) {
+          console.log('___ERROR',e);
+        }
       }
- 
+  
+      hlimit = height;
+      wlimit = width;
     },
 
     onResourceTimeout: function (e) {
@@ -210,6 +203,7 @@ var speedgun = {
 
     onLoadStarted: function (page, config) {
       console.log('###### onLoadStarted ' + page.url);
+      onInitializedFired = true;
     },
 
     onNavigationRequested: function (page, config, url, type, willNavigate, main) {
@@ -237,15 +231,13 @@ var speedgun = {
 
       speedgun.reportData.navEvents.value.push(eventData);
 
-
     },
 
     onPageCreated: function (page, config) {
-      //      console.log('###### onPageCreated ' + page.url);
+      //console.log('###### onPageCreated ' + page.url);
     },
 
     onInitialized: function (page) {
-      onInitializedFired = true;
       console.log('###### onInitialized ' + page.url);
 
       if (Object.keys(speedgun.reportData).length === 0) {
@@ -254,17 +246,16 @@ var speedgun = {
       }
 
       page.evaluate(function (perfObj) {
-
+  
+        //document.body.bgColor = 'white';
         var nowms = Date.now();
 
         console.log(JSON.stringify({value: nowms, label: '', index: 2}));
         console.log(JSON.stringify({value: performance.now(), label: '', index: 1}));
-
-        //--------------- Begin ways of old DOM perf with event Listeners
-
-        //        The DOMContentLoaded event is fired when the document has been completely
-        //        loaded and parsed, without waiting for stylesheets, images, and subframes
-        //        to finish loading
+        
+        //The DOMContentLoaded event is fired when the document has been completely
+        //loaded and parsed, without waiting for stylesheets, images, and subframes
+        //to finish loading
         document.addEventListener("DOMContentLoaded", function () {
           console.log(JSON.stringify({value: (Date.now() - nowms), label: 'This is the measured with document.addEventListener(\"DOMContentLoaded\"... The DOMContentLoaded event is fired when the document has been completely loaded and parsed, without waiting for stylesheets, images, and subframes to finish loading', index: 40}));
         }, false);
@@ -278,26 +269,94 @@ var speedgun = {
         window.onerror = function (message, url, linenumber) {
           console.log('error:' + message + " on line " + linenumber + " for " + url);
         };
-
-
-        //--------------- End DOM event Listeners
+        
       });
+      
     },
 
-    onResourceRequested: function (page, config, request) {
-      // var domain = 'www.rebeccataylor.com',
-      //     targetDNS = 'a021.kellwoodrebeccataylor.inscname.net',
-      //     match = requestData.url.match(/https?:\/\/www[.]rebeccataylor[.]com\//);
-      //
-      // if (match != null) {
-      //   var cdnUrl = requestData.url.replace(domain, targetDNS);
-      //   console.log('Rewriting request:', requestData.url, cdnUrl);
-      //   networkRequest.changeUrl(cdnUrl);
-      //   networkRequest.setHeader('Host', domain);
-      // }
+    onResourceRequested: function (page, config, request, networkRequest) {
+      
+      var now = Date.now();
+      speedgun.reportData.resources.value[request.id] = {
+        id: request.id,
+        url: request.url,
+        request: request,
+        responses: {},
+        duration: '',
+        times: {
+          request: now
+        }
+      };
+  
+      //disable gzip
+      //networkRequest.setHeader('Accept-Encoding','gzip;q=0');
+
+      if(speedGunArgs.override && config.dns.target){
+        var domain = config.dns.originalDomain,
+            targetDNS = config.dns.target,
+            match = request.url.indexOf(domain);
+        if (match >= 0) {
+          var cdnUrl = request.url.replace(domain, targetDNS);
+          //console.log('Rewriting request:', request.url, cdnUrl);
+          networkRequest.changeUrl(cdnUrl);
+          networkRequest.setHeader('Host', domain);
+          if(speedGunArgs.akamaiDebug){
+            networkRequest.setHeader('Pragma', 'akamai-x-get-client-ip, akamai-x-cache-on, akamai-x-cache-remote-on, akamai-x-check-cacheable, akamai-x-get-cache-key, akamai-x-get-extracted-values, akamai-x-get-nonces, akamai-x-get-ssl-client-session-id, akamai-x-get-true-cache-key, akamai-x-serial-no, akamai-x-feo-trace, akamai-x-get-request-id');
+          }
+        }
+      }
     },
 
     onResourceReceived: function (page, config, response) {
+      //todo - the same resource appears multiple times because of chunked response (phantom stage start || end)
+  
+      var now = Date.now(),
+          resource = speedgun.reportData.resources.value[response.id];
+  
+      resource.responses[response.stage] = response;
+  
+      function isInt(value) {
+        if (isNaN(value)) {
+          return false;
+        }
+        var x = parseFloat(value);
+        return (x | 0) === x;
+      }
+      
+      if (!resource.times[response.stage]) {
+        resource.times[response.stage] = now;
+        resource.duration = now - resource.times.request;
+      }
+  
+      if (isInt(response.bodySize)) {
+        resource.size = response.bodySize;
+      }else{
+        resource.size = (resource.size > 0 ? resource.size : 0);
+        response.headers.forEach(function (header) {
+  
+          if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
+            var contentLength = parseInt(header.value,10);
+            if(isInt(header.value) && contentLength > resource.size){
+              resource.size = contentLength;
+            }
+          }
+          
+        });
+        
+      }
+      var headers = true;
+      if(headers){
+        console.log('########################################');
+        console.log('Received:',response.url);
+        console.log('Response.bodySize',response.bodySize);
+        response.headers.forEach(function (header) {
+          console.log('header: ', header.name, header.value);
+        });
+        console.log('########################################');
+      }
+      
+      
+      
     }
   },
 
@@ -351,6 +410,7 @@ var speedgun = {
       }
 
       function doit(url,index, callback){
+        paintDetected = false;
         timeoutObj[index] = setTimeout(function(){
           console.log('url being loaded: ',url,index, ' at ', (index * 5), ' seconds');
           that.config.url = url;
@@ -366,18 +426,18 @@ var speedgun = {
     var page = WebPage.create();
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.webSecurityEnabled = false;
-    page.settings.resourceTimeout = 20000; // 20 seconds
-    page.viewportSize = { width: 1280, height: 1024 };
-
-    //    page.clearMemoryCache();
+    page.settings.resourceTimeout = 20000;
+    //page.clearMemoryCache();
 
     if (config.userAgent && config.userAgent != "default") {
       if (config.userAgentAliases[config.userAgent]) {
         config.userAgent = config.userAgentAliases[config.userAgent];
       }
-      page.settings.userAgent = config.userAgent;
+      page.settings.userAgent = config.userAgent.uastring;
     }
-
+  
+    page.viewportSize = { width: config.userAgent.width, height: config.userAgent.height };
+    
     function doPageLoad() {
       setTimeout(function () {
         page.open(config.url);
@@ -494,14 +554,21 @@ var speedgun = {
 
           waitFor(function () {
             // Check in the page if a specific element is now visible
-
             return page.evaluate(function () {
               return (window.performance.timing.loadEventEnd > 0);
             });
           }, function () {
+  
+            var xresources = speedgun.reportData.resources.value;
+            for(var obj in xresources){
+              var resource = xresources[obj];
+              console.log('size', resource.size);
+              speedgun.reportData.totalBytes.value += (resource.size ? resource.size : 0);
+              speedgun.reportData.totalResources.value++;
+            }
 
             speedgun.reportData = page.evaluate(function (perfObj) {
-
+              //document.body.bgColor = 'white';
               var report = JSON.parse(perfObj),
                   timing = performance.timing,
                   nav = performance.navigation,
@@ -591,7 +658,8 @@ var speedgun = {
             }, JSON.stringify(speedgun.reportData));
 
             //finish up any leftover tasks to complete the report
-            printReport(speedgun.reportData, phantomExit);
+            
+            speedgun.printReport(speedgun.reportData, page, phantomExit);
           });
 
 
@@ -603,44 +671,6 @@ var speedgun = {
       page.onLoadFinished = function (status) {
         phantomExit();
       };
-    }
-
-    function printReport(report, exitphantom) {
-
-      //setup screenshot
-      var reportLocation = speedgun.reportData.url.value.replace('://', '_').replace(":", "_") + '/speedgun';
-      speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png';
-      page.viewportSize = { width: 1280, height: 1024 };
-
-      if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
-        console.log('Rendering Screenshot to', 'reports/' + reportLocation + speedgun.reportData.screenshot.value);
-        page.render('reports/' + reportLocation + speedgun.reportData.screenshot.value, {format: 'jpeg', quality: '50'});
-      }
-
-      if (speedGunArgs.output === 'csv') {
-        console.log('filename', reportLocation);
-        speedgun.printToFile(report, reportLocation, 'csv', speedGunArgs.wipe, exitphantom);
-      }
-
-      if (speedGunArgs.output === 'json') {
-        speedgun.printToFile(report, reportLocation, 'json', speedGunArgs.wipe, exitphantom);
-      }
-  
-      if (speedGunArgs.output === 'junit') {
-        speedgun.printToFile(report, reportLocation, 'xml', true, exitphantom);
-      }
-
-      if (speedGunArgs.output === 'post') {
-        var postImage = function () {
-          var base64 = null;
-          console.log('Rendering Screenshot to base64');
-          base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
-          speedgun.postIMAGE(base64, 'http://127.0.0.1:8080/rest/performance/imageData', exitphantom);
-        };
-
-        speedgun.postJSON(report, 'http://127.0.0.1:8080/rest/performance/reportData', postImage);
-      }
-
     }
 
     /** Classic waitFor example from PhantomJS
@@ -667,27 +697,17 @@ var speedgun = {
           }, 250); //< repeat check every 250ms
     }
 
-
   },
 
   mergeConfig: function (config, configFile) {
     var result = '', key;
+    configFile = (configFile || 'config.json');
     if (fs.exists(configFile)) {
-      configFile = "config.json";
+      
       result = JSON.parse(fs.read(configFile));
     } else {
-      //some of the page.settings need to be brought here
-      result = {
-        "task": "performance",
-        "userAgent": "chrome",
-        "userAgentAliases": {
-          "chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11"
-        },
-        "wait": 0,
-        "cacheWait": 200,
-        "consolePrefix": "#",
-        "verbose": false
-      }
+      //todo - add default config settings
+      result = {}
     }
     for (key in config) {
       result[key] = config[key];
@@ -720,8 +740,64 @@ var speedgun = {
     }
     return target;
   },
+  
+  printReport: function(report, page, exitphantom) {
+    //saving all the disk writes for report end
+    
+    if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
+      this.renderPageToDisk(page);
+      //render all from queue to disk
+      var reportLocation = 'reports/' + speedGunArgs.reportLocation;
+      for(var pageRender in dataPostQueue){
+        fs.write(reportLocation + dataPostQueue[pageRender].startRender + '.png', atob(dataPostQueue[pageRender].base64), 'b');
+      }
+    }
+   
+    if (speedGunArgs.output === 'csv') {
+      speedgun.printToFile(report, 'csv', speedGunArgs.wipe, exitphantom);
+    }
+    
+    if (speedGunArgs.output === 'json') {
+      speedgun.printToFile(report, 'json', speedGunArgs.wipe, exitphantom);
+    }
+    
+    if (speedGunArgs.output === 'junit') {
+      speedgun.printToFile(report, 'xml', true, exitphantom);
+    }
+    
+    if (speedGunArgs.output === 'post' && speedGunArgs.uuid) {
+  
+      var filler = function(){return null};
+      
+      var postImage = function () {
+        console.log('Rendering Screenshot to base64',dataPostQueue.length);
+        var base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
+        speedgun.postIMAGETemplate(base64, speedgun.config.imageAPI, speedGunArgs.uuid, filler);
+        
+        for(var i = 0;i < dataPostQueue.length;i++){
+          //post images from queue
+          console.log('____posting startRender images',dataPostQueue[i].startRender);
+          if((i+1) === dataPostQueue.length){
+            filler = exitphantom;
+          }
+          speedgun.postIMAGETemplate(dataPostQueue[i], speedgun.config.imageAPI, speedGunArgs.uuid, filler);
+        }
+      };
+      
+      speedgun.postJSONTemplate(report, speedgun.config.reportAPI, postImage);
+      
+    }
+  
+  },
+  
+  renderPageToDisk: function(page,postfix){
+    var reportLocation = 'reports/' + speedGunArgs.reportLocation;
+    postfix = (postfix || (speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png'));
+    console.log('Rendering Screenshot to', reportLocation + postfix);
+    page.render(reportLocation + postfix, {format: 'jpeg', quality: '50'});
+  },
 
-  postJSON: function (report, endpoint, postImage) {
+  postJSONTemplate: function (report, endpoint, postImage) {
 
     var settings = {
       operation: "POST",
@@ -734,10 +810,9 @@ var speedgun = {
 
     settings.data[speedGunArgs.uuid] = report;
     speedgun.postData(settings, endpoint, postImage);
-
   },
 
-  postIMAGE: function (base64, endpoint, exitphantom) {
+  postIMAGETemplate: function (base64, endpoint, id, exitphantom) {
 
     var settings = {
       operation: "POST",
@@ -748,24 +823,26 @@ var speedgun = {
       data: {}
     };
 
-    settings.data[speedGunArgs.uuid] = base64;
+    settings.data[id] = base64;
     speedgun.postData(settings, endpoint, exitphantom);
   },
 
-  postData: function (settings, endpoint, exitphantom) {
-
+  postData: function (settings, endpoint, finalCall) {
+    pageInstance = WebPage.create();
     if (settings.data && Object.keys(settings.data).length > 0) {
 
       settings.data = JSON.stringify(settings.data);
       console.log('settings.data: ', getByteCount(settings.data), ' size in bytes');
       pageInstance.open(endpoint, settings, function (status) {
-        console.log('attempting to POST: ' + settings.data.substring(0, 50));
+        console.log('attempting to POST: ', settings.data.substring(0, 50), ' to ',endpoint);
         if (status !== 'success') {
           console.log('Unable to post!', status);
+          finalCall();
         } else {
           console.log('Post data success for:' + endpoint);
+          finalCall();
         }
-        exitphantom();
+        
       });
 
 
@@ -786,7 +863,7 @@ var speedgun = {
     }
   },
 
-  printToFile: function (report, filename, extension, createNew, exitphantom) {
+  printToFile: function (report, extension, createNew, exitphantom) {
     var f,
         myfile,
         keys = [],
@@ -794,33 +871,43 @@ var speedgun = {
 
     for (var key in report) {
       var value = report[key].value;
-      if (typeof value === 'object') {
-        for (var secondkey in value) {
-          if (key === 'navEvents') {
-            keys.push(key);
-            values.push(value[secondkey].url);
-          } else if (key.indexOf('resourceSingle') >= 0) {
-            //only store for url
-            if (value[secondkey].url) {
+      
+      if(speedGunArgs.format === 'detailed'){
+        if (typeof value === 'object') {
+          for (var secondkey in value) {
+            if (key === 'navEvents') {
               keys.push(key);
-              values.push(value[secondkey].url)
+              values.push(value[secondkey].url);
+            } else if (key.indexOf('resourceSingle') >= 0) {
+              //only store for url
+              if (value[secondkey].url) {
+                keys.push(key);
+                values.push(value[secondkey].url)
+              }
+            } else if (key.indexOf('error') >= 0) {
+              keys.push(key);
+              values.push(value[secondkey])
             }
-          } else if (key.indexOf('error') >= 0) {
-            keys.push(key);
-            values.push(value[secondkey])
           }
+        } else {
+          keys.push(key);
+          values.push(value);
         }
-      } else {
-        keys.push(key);
-        values.push(value);
+      }else{ //print simple
+        if (typeof value !== 'object') {
+          keys.push(key);
+          values.push(value);
+        }
       }
+      
+      
     }
 
     // changed this, we will always output json/csv/etc right?
     if (speedGunArgs.wipe) {
-      myfile = 'reports/' + filename + '.' + extension;
+      myfile = 'reports/' + speedGunArgs.reportLocation + '.' + extension;
     } else {
-      myfile = 'reports/' + filename + '-' + speedGunArgs.output + '.' + extension;
+      myfile = 'reports/' + speedGunArgs.reportLocation + '-' + speedGunArgs.output + '.' + extension;
     }
 
     console.log('Writing report data to: ', myfile);
@@ -850,6 +937,7 @@ var speedgun = {
             break;
           default:
             f = fs.open(myfile, "a");
+            //f.writeLine(keys);
             f.writeLine(values);
             f.close();
             break;
@@ -976,6 +1064,9 @@ var speedgun = {
     console.log('    -u, --uuid               only used for server side run in speedgun.io');
     console.log('    --verbose                Turn on verbose logging');
     console.log('    --crawl                  Crawl all links on the page');
+    console.log('    --override               Override DNS entries for all resources (listed in config)');
+    console.log('    --akamaiDebug            Print all debug headers to headers.txt file');
+    console.log('    --detectReflow           Use if not getting startRender results');
     console.log('    --screenshot             Create a png of screen');
     console.log('    --wipe                   Wipe the file instead of appending to it on each report');
     console.log('    --phantomCacheEnabled    Enable PhantomJS cache');
@@ -999,6 +1090,10 @@ var speedgun = {
       console.log('You must supply a URL');
       this.printHelp();
       isFailing = true;
+    }else{
+      if(!speedGunArgs.reportLocation){
+        speedGunArgs.reportLocation = speedGunArgs.url.replace('://', '_').replace(":", "_") + '/speedgun';
+      }
     }
 
     if (isFailing) {

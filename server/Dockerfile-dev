@@ -75,11 +75,12 @@ RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/tmp/ /root/jboss-as-7.1.
 RUN rm -rf /root/jboss-as-7.1.1.Final-fluxui/standalone/configuration/standalone_xml_history
 
 RUN mkdir /root/jboss-as-7.1.1.Final-fluxui/speedgun
-RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/speedgun.js #v4
-RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/config.json #v4
-RUN cd /root/jboss-as-7.1.1.Final-fluxui/speedgun && curl -O https://raw.githubusercontent.com/wesleyhales/speedgun/master/core/pconfig.json #v4
+#todo2
+COPY core/speedgun.js /root/jboss-as-7.1.1.Final-fluxui/speedgun/
+COPY core/config.json /root/jboss-as-7.1.1.Final-fluxui/speedgun/
+COPY core/pconfig.json /root/jboss-as-7.1.1.Final-fluxui/speedgun/
 
-COPY server-entrypoint.sh /
+COPY server/server-entrypoint.sh /
 
 VOLUME /root/jboss-as-7.1.1.Final-fluxui/standalone/log
 
@@ -89,7 +90,7 @@ RUN apt-get update
 
 RUN apt-get install -y postgresql-client
 
-COPY speedgun.sql /
+COPY server/speedgun.sql /
 
 EXPOSE 3306 8080 8443
 

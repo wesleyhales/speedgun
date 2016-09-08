@@ -11,7 +11,6 @@ import org.hornetq.jms.client.HornetQConnectionFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.jms.*;
-import javax.jms.Connection;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
@@ -23,7 +22,6 @@ import javax.naming.NamingException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.*;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -282,8 +280,8 @@ public class PerfQueueManager {
       for (int i = 0; i <= 4; i++) {
         runNumber = i;
         log.info("run number: " + i);
-        log.info("[Speedgun] run phantomjs: phantomjs --config=speedgun/pconfig.json speedgun/speedgun.js " + url + " -o post -u " + random);
-        Process p = Runtime.getRuntime().exec("phantomjs --config=speedgun/pconfig.json speedgun/speedgun.js " + url + " -o post -u " + random);
+        log.info("[Speedgun] run phantomjs: phantomjs --config=speedgun/pconfig.json speedgun/speedgun.js " + url + " -o post -u " + random + " --configFile speedgun/config.json");
+        Process p = Runtime.getRuntime().exec("phantomjs --config=speedgun/pconfig.json speedgun/speedgun.js " + url + " -o post -u " + random + " --configFile speedgun/config.json");
 
         String line;
         BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
