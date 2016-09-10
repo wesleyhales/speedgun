@@ -281,7 +281,7 @@ var speedgun = {
         id: request.id,
         url: request.url,
         request: request,
-        responses: {},
+        responses: [],
         duration: '',
         times: {
           request: now
@@ -292,6 +292,7 @@ var speedgun = {
       //networkRequest.setHeader('Accept-Encoding','gzip;q=0');
 
       if(speedGunArgs.override && config.dns.target){
+        console.log('============================Overridding DNS')
         var domain = config.dns.originalDomain,
             targetDNS = config.dns.target,
             match = request.url.indexOf(domain);
@@ -310,9 +311,11 @@ var speedgun = {
     onResourceReceived: function (page, config, response) {
       //todo - the same resource appears multiple times because of chunked response (phantom stage start || end)
       var now = Date.now(),
-          resource = speedgun.reportData.resources.value[response.id];
-  
-      resource.responses[response.stage] = response;
+          resource = speedgun.reportData.resources.value[response.id],
+          respObj = {};
+          
+      respObj[response.stage] = response;
+      resource.responses.push(respObj);
   
       function isInt(value) {
         if (isNaN(value)) {
@@ -342,16 +345,6 @@ var speedgun = {
           
         });
         
-      }
-      var headers = false;
-      if(headers){
-        console.log('########################################');
-        console.log('Received:',response.url);
-        console.log('Response.bodySize',response.bodySize);
-        response.headers.forEach(function (header) {
-          console.log('header: ', header.name, header.value);
-        });
-        console.log('########################################');
       }
       
     }
@@ -557,15 +550,68 @@ var speedgun = {
           }, function () {
   
             var xresources = speedgun.reportData.resources.value;
-            for(var obj in xresources){
+            
+            for(var obj in xresources) {
               var resource = xresources[obj];
               //todo, here we populate all resource sizes and total page weight but...
               //todo - this feature depends on https://github.com/ariya/phantomjs/issues/10156#ref-commit-545b03c
               //speedgun.reportData.totalBytes.value += (resource.size ? resource.size : 0);
               //speedgun.reportData.totalResources.value++;
+              
               //console.log('url', resource.url);
               //console.log('size', resource.size,speedgun.reportData.totalBytes.value);
+  
+  
+              //todo add to config
+              var headers = true;
+              if (headers) {
+                var responses = resource.responses;
+  
+                //figure out which onresourcereceived stage was better. start or end. another
+                //approach would be to merge the headers and show one view
+                var response,entry = 'none';
+                for (var i = 0; i < responses.length;i++){
+                  response = responses[i];
+                  if(response.start && response.start.headers.length > 0){
+                    entry = 'start';
+                    break;
+                  }else if(response.end && response.end.headers.length > 0){
+                    entry = 'end';
+                    break;
+                  }
+                  
+                }
+                  
+                var AKAMAI_FEO_ENABLED = false, AKAMAI_CONTENT_TARGETING = false, CACHED_BY_AKAMAI = 'unknown', AKAMAI_RUM_ENABLED = false;
+                if(entry !== 'none'){
+                  response[entry].headers.forEach(function (header) {
+                    if (header.name === 'X-Akamai-Transformed') {AKAMAI_FEO_ENABLED = true;}
+                    if (header.name === 'X-Akamai-Edgescape') {AKAMAI_CONTENT_TARGETING = true;} // https://community.akamai.com/community/web-performance/blog/2016/03/16/content-targeting-a-basic-introduction
+                    if (header.name === 'X-Check-Cacheable' && header.value.indexOf('NO') > -1) {CACHED_BY_AKAMAI = false;}
+                    if (header.name === 'X-Cache' && header.value.indexOf('HIT') > -1) {CACHED_BY_AKAMAI = true;}
+                    if (header.value.indexOf('pmb=mRUM') > -1) {AKAMAI_RUM_ENABLED = true}
+                  });
+                }
+  
+                //todo - beginning of UI data/object
+                console.log('########################################');
+                console.log('Received: ', resource.url);
+                console.log('Response Size: ', resource.size);
+                if(entry !== 'none') {
+                  console.log(AKAMAI_FEO_ENABLED ? 'AKAMAI_FEO_ENABLED' : '');
+                  console.log(AKAMAI_CONTENT_TARGETING ? 'AKAMAI_CONTENT_TARGETING' : '');
+                  console.log(CACHED_BY_AKAMAI ? 'CACHED_BY_AKAMAI' : '');
+                  console.log(AKAMAI_RUM_ENABLED ? 'AKAMAI_RUM_ENABLED' : '');
+                  response[entry].headers.forEach(function (header) {
+                    console.log('header: ', header.name, header.value);
+                  })
+                }else{
+                  console.log('This resource was probably an XHR request.')
+                }
+                console.log('########################################');
+                }
             }
+            
 
             speedgun.reportData = page.evaluate(function (perfObj) {
               //document.body.bgColor = 'white';
