@@ -1,6 +1,6 @@
 {
   "task": "performance",
-  "userAgent": "chrome",
+  "userAgent": "desktop-safari",
   "userAgentAliases": {
     "chrome": {
       "uastring":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36",
@@ -11,6 +11,11 @@
       "uastring":"Mozilla/5.0 (iPad; CPU OS 7_0 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/30.0.1599.12 Mobile/11A465 Safari/8536.25",
       "width":375,
       "height":667
+    },
+    "desktop-safari": {
+      "uastring":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.8 (KHTML, like Gecko) Version/9.1.3 Safari/601.7.8",
+      "width":1280,
+      "height":1024
     }
   },
   "wait": 0,
@@ -20,8 +25,8 @@
   "reportAPI":"http://127.0.0.1:8080/rest/performance/reportData",
   "imageAPI":"http://127.0.0.1:8080/rest/performance/imageData",
   "dns": {
-    "target": "www.parkerny.com.inscname.net",
-     "originalDomain": "www.parkerny.com"
+    "target": "a001.hudsonsbay.inscname.net",
+     "originalDomain": "www.saksfifthavenue.com"
   },
   "reflowPrecision":{
     "repaintLimit":3
