@@ -184,7 +184,7 @@ var speedgun = {
           }
           
         } catch (e) {
-          console.log('___ERROR',e);
+          console.log('___Problem with StartRender measurement... ',e);
         }
       }
   
@@ -289,11 +289,14 @@ var speedgun = {
         }
       };
   
-      //disable gzip
+      //disable gzip - doesn't work for phantom 2.1.1
       //networkRequest.setHeader('Accept-Encoding','gzip;q=0');
 
+      //todo enable turning akamai feo off
+      //?akamai-feo=off
+      
       if(speedGunArgs.override && config.dns.target){
-        console.log('============================Overridding DNS')
+        //console.log('============================Overridding DNS')
         var domain = config.dns.originalDomain,
             targetDNS = config.dns.target,
             match = request.url.indexOf(domain);
@@ -303,21 +306,21 @@ var speedgun = {
           networkRequest.setHeader('Host', domain);
           if(speedGunArgs.cdnDebug){
             networkRequest.setHeader('Pragma', 'akamai-x-get-client-ip, akamai-x-cache-on, akamai-x-cache-remote-on, akamai-x-check-cacheable, akamai-x-get-cache-key, akamai-x-get-extracted-values, akamai-x-get-nonces, akamai-x-get-ssl-client-session-id, akamai-x-get-true-cache-key, akamai-x-serial-no, akamai-x-feo-trace, akamai-x-get-request-id');
+            networkRequest.setHeader('Fastly-Debug', 1);
           }
         }
       }
     },
 
     onResourceReceived: function (page, config, response) {
-      //todo - the same resource appears multiple times because of chunked response (phantom stage start || end)
+      //the same resource appears multiple times because of chunked response (phantom stage start || end)
       var now = Date.now(),
           resource = speedgun.reportData.resources.value[response.id],
           respObj = {},
           validResponse = (response.contentType !== null || response.contentType !== 'null');
           
-      if(!validResponse){}
-  
-      // console.log('----)))))))',response.contentType,response.url,JSON.stringify(response));
+      if(!validResponse){console.log('___Bad Response')}
+      
         respObj[response.stage] = response;
         resource.responses.push(respObj);
     
@@ -358,10 +361,10 @@ var speedgun = {
   reportData: {},
 
   crawl: function(task,linkgrabber,hostmatch){
-
+    var msg;
     //open the page to initiate the crawl
     linkgrabber.open(this.config.url, function (status) {
-      linkgrabber.evaluate(function (hostmatch) {
+      msg = linkgrabber.evaluate(function (hostmatch) {
         var collection = document.getElementsByTagName('a'),
             currentValues = [],
             values = [].map.call(collection, function(obj) {
@@ -374,26 +377,26 @@ var speedgun = {
             });
         //console is used as a channel for sending data out of
         //this evaluate to phantomJS parent context
-        console.log(JSON.stringify(currentValues));
+        return currentValues;
       },hostmatch);
 
     });
 
     var crawlablePages;
 
-    linkgrabber.onConsoleMessage = function (msg) {
-      if(msg && msg.indexOf('[') === 0){
-        try {
-          crawlablePages = JSON.parse(msg);
-          console.log('***Crawling ' + crawlablePages.length + ' total pages.')
-        } catch (e) {
-          console.log('problem parsing links for crawler ',e)
-        }
-        if(crawlablePages.constructor === Array){
-          go(crawlablePages)
-        }
+    
+    if(msg && msg.indexOf('[') === 0){
+      try {
+        crawlablePages = JSON.parse(msg);
+        console.log('***Crawling ' + crawlablePages.length + ' total pages.')
+      } catch (e) {
+        console.log('problem parsing links for crawler ',e)
       }
-    };
+      if(crawlablePages.constructor === Array){
+        go(crawlablePages)
+      }
+    }
+    
 
     var that = this,timeoutObj = {};
     function go(crawlablePages){
@@ -723,10 +726,7 @@ var speedgun = {
   printReport: function(report, page, exitphantom) {
     //saving all the disk writes for report end
     
-    //todo image report.
-    //all resources that are images, size, type, and first party
     speedgun.printResourceReport(page);
-   
   
     if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
       this.renderPageToDisk(page);
@@ -755,7 +755,7 @@ var speedgun = {
       var postImage = function () {
         console.log('Rendering Screenshot to base64',dataPostQueue.length);
         var base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
-        speedgun.postIMAGETemplate(base64, speedgun.config.imageAPI, speedGunArgs.uuid, filler);
+        speedgun.postIMAGE(base64, speedgun.config.imageAPI, speedGunArgs.uuid, filler);
         
         for(var i = 0;i < dataPostQueue.length;i++){
           //post images from queue
@@ -763,11 +763,11 @@ var speedgun = {
           if((i+1) === dataPostQueue.length){
             filler = exitphantom;
           }
-          speedgun.postIMAGETemplate(dataPostQueue[i], speedgun.config.imageAPI, speedGunArgs.uuid, filler);
+          speedgun.postIMAGE(dataPostQueue[i], speedgun.config.imageAPI, speedGunArgs.uuid, filler);
         }
       };
       
-      speedgun.postJSONTemplate(report, speedgun.config.reportAPI, postImage);
+      speedgun.postJSON(report, speedgun.config.reportAPI, postImage);
       
     }
   
@@ -779,7 +779,7 @@ var speedgun = {
     page.render(speedGunArgs.reportLocation + postfix, {format: 'jpeg', quality: '50'});
   },
 
-  postJSONTemplate: function (report, endpoint, postImage) {
+  postJSON: function (report, endpoint, postImage) {
 
     var settings = {
       operation: "POST",
@@ -794,7 +794,7 @@ var speedgun = {
     speedgun.postData(settings, endpoint, postImage);
   },
 
-  postIMAGETemplate: function (base64, endpoint, id, exitphantom) {
+  postIMAGE: function (base64, endpoint, id, exitphantom) {
 
     var settings = {
       operation: "POST",
@@ -826,6 +826,18 @@ var speedgun = {
         }
         
       });
+  
+      function getByteCount( s )
+      {
+        var count = 0, stringLength = s.length, i;
+        s = String( s || "" );
+        for( i = 0 ; i < stringLength ; i++ )
+        {
+          var partCount = encodeURI( s[i] ).split("%").length;
+          count += partCount==1?1:partCount-1;
+        }
+        return count;
+      }
 
 
       pageInstance.onLoadStarted = function (status) {
@@ -957,8 +969,8 @@ var speedgun = {
       tld = hostNameArray[(hostNameArray.length - 2)] + '.' + hostNameArray[(hostNameArray.length - 1)],
       reportResource = {};
   
-    var firstparty = speedGunArgs.reportLocation + 'speedgun-1stparty-resource.txt';
-    var thirdparty = speedGunArgs.reportLocation + 'speedgun-2ndparty-resource.txt';
+    var firstparty = speedGunArgs.reportLocation + '1stparty-resources.txt',
+        thirdparty = speedGunArgs.reportLocation + '3rdparty-resources.txt';
   
     if (fs.exists(firstparty)) {
       fs.remove(firstparty);
@@ -972,9 +984,12 @@ var speedgun = {
       
       var resource = xresources[obj],
         entry = false;
+  
+      resource.size = ((resource.size !== undefined && resource.size !== 'undefined') ? resource.size : 0);
+      
       //todo, here we populate all resource sizes and total page weight but...
       //todo - this feature depends on https://github.com/ariya/phantomjs/issues/10156#ref-commit-545b03c
-      speedgun.reportData.totalBytes.value += (resource.size ? resource.size : 0);
+      speedgun.reportData.totalBytes.value = speedgun.reportData.totalBytes.value + resource.size;
       speedgun.reportData.totalResources.value++;
   
       aurl.href = resource.url;
@@ -984,8 +999,13 @@ var speedgun = {
       reportResource.firstParty = newtld === tld;
       reportResource.url = resource.url;
       reportResource.size = resource.size;
+      reportResource.duration = resource.duration;
+      reportResource.threepjstotal = 0;
+      reportResource.jstotal = 0;
+      
       var f;
       
+      //track first and thrid party sizes and count
       if(reportResource.firstParty){
         f = fp;
         fpResourceCount++;
@@ -996,9 +1016,9 @@ var speedgun = {
         tpResSize += reportResource.size;
       }
       
-      f.writeLine('_______________________________________________________');
       
-      //todo add to config
+      
+      //todo add headers switch to config
       var headers = true, response = {};
       if (headers) {
         var responses = resource.responses;
@@ -1022,49 +1042,146 @@ var speedgun = {
       
         if(entry && speedGunArgs.cdnDebug){
           reportResource.AKAMAI = [];
+          reportResource.INSTART = [];
+          reportResource.FASTLY = [];
+          reportResource.MAXCDN = [];
+          reportResource.GENERIC = [];
+          reportResource.CLOUDFRONT = [];
+          reportResource.status = response[entry].status;
+          
+          var isAkamai = false, isFastly = false, isInstart = false, isMaxcdn = false, isCloudfront = false;
           response[entry].headers.forEach(function (header) {
-            if (header.name === 'X-Akamai-Transformed') {reportResource.AKAMAI.push({feature:"FEO_ENABLED"});}
-            if (header.name === 'X-Akamai-Edgescape') {reportResource.AKAMAI.push({feature:"CONTENT_TARGETING"});} // https://community.akamai.com/community/web-performance/blog/2016/03/16/content-targeting-a-basic-introduction
-            if (header.name === 'X-Check-Cacheable' && header.value.indexOf('NO') > -1) {reportResource.AKAMAI.push({feature:"NOT_CACHED"});}
-            if (header.name === 'X-Cache' && header.value.indexOf('HIT') > -1) {reportResource.AKAMAI.push({feature:"CACHED"});}
-            if (header.value.indexOf('pmb=mRUM') > -1) {reportResource.AKAMAI.push({feature:"RUM_ENABLED"});}
+  
+            if(header.name.toLowerCase().indexOf('akamai') > -1){isAkamai = true}
+            if(header.name.toLowerCase().indexOf('fastly') > -1){isFastly = true}
+            if(header.name.toLowerCase().indexOf('instart') > -1){isInstart = true}
+            if(header.value.toLowerCase().indexOf('netdna') > -1){isMaxcdn = true}
+            if(header.value.toLowerCase().indexOf('cloudfront') > -1){isCloudfront = true}
+            
+            
+            //akamai rules
+            if (header.name.toLowerCase() === 'x-akamai-transformed') {reportResource.AKAMAI.push({feature:"FEO_ENABLED"});}
+            if (header.name.toLowerCase() === 'x-akamai-edgescape') {reportResource.AKAMAI.push({feature:"CONTENT_TARGETING"});} // https://community.akamai.com/community/web-performance/blog/2016/03/16/content-targeting-a-basic-introduction
+            if (header.value.toLowerCase().indexOf('pmb=mrum') > -1) {reportResource.AKAMAI.push({feature:"RUM_ENABLED"});}
+  
+            //fastly rules
+            // https://community.fastly.com/t/deciphering-fastly-debug-header/520
+            
+            //generic use of caching headers
+            if (header.name.toLowerCase() === ('x-check-cacheable' && header.value.indexOf('NO') > -1)) {reportResource.GENERIC.push({feature:"NOT_CACHED"});}
+            if (header.name.toLowerCase() === ('x-cache' && header.value.indexOf('HIT') > -1)) {reportResource.GENERIC.push({feature:"CACHED"});}
+            
+            //instart rules
+            if (header.name === 'x-instart-cache-id') {reportResource.INSTART.push({feature:"CACHED"});}
+            if (header.name === 'X-Instart-Streaming') {
+              if(header.value.indexOf('HtmlStreaming:HIT;InstantLoad:HIT') > -1){reportResource.INSTART.push({feature:"HTML Streaming and InstantLoad are both enabled"});}
+              if(header.value.indexOf('HtmlStreaming:HIT;InstantLoad:SKIP,optimization_disabled') > -1){reportResource.INSTART.push({feature:"HTML Streaming is enabled, InstantLoad is disabled"});}
+              if(header.value.indexOf('HtmlStreaming:MISS,optimization_disabled;InstantLoad:HIT') > -1){reportResource.INSTART.push({feature:"HTML Streaming is disabled, Instant Load is enabled"});}
+              if(header.value.indexOf('HtmlStreaming:MISS,reloaded_request;InstantLoad:SKIP,optimization_disabled') > -1){reportResource.INSTART.push({feature:"HTML Streaming is enabled but was not applied because the request was reloaded; InstantLoad is disabled"});}
+              if(header.value.indexOf('HtmlStreaming:MISS,streaming_cache_not_ready;InstantLoad:SKIP,html_streaming_miss') > -1){reportResource.INSTART.push({feature:"HTML Streaming is enabled but was not applied because the streaming cache was not yet ready; InstantLoad is disabled"});}
+              if(header.value.indexOf('js_profiled') > -1){reportResource.INSTART.push({feature:"JavaScript Streaming is enabled"});}
+              if(header.value.indexOf('js_profiled') > -1){reportResource.INSTART.push({feature:"JavaScript Streaming is enabled and the optimized code was delivered to the client"});}
+            }
+            
           });
-          for(var item in reportResource.AKAMAI){
-            f.writeLine('______akamai: ' + reportResource.AKAMAI[item].feature);
-          }
         }
         
         if(entry){
           reportResource.headers = response[entry].headers;
         }
   
-        f.writeLine('______number: ' + (reportResource.firstParty ? fpResourceCount : tpResourceCount));
-        f.writeLine('______id: ' + speedgun.reportData.totalResources.value);
-        f.writeLine('______url: ' + reportResource.url);
+        var isjs = false, cacheable = true;
         
-        
-        f.writeLine('______bytes sent: ' + reportResource.size);
-        f.writeLine('______total bytes sent: ' + (reportResource.firstParty ? fpResSize : tpResSize));
-        f.writeLine('______firstparty: ' + reportResource.firstParty);
+        //if we get an image content type, evaluate the page and look for more data, e.g. width/height
         reportResource.headers.forEach(function (header) {
-          f.writeLine('______header: ' + header.name + ' ' + header.value);
-          if(header.value.indexOf('image/') > -1){
-            
-            var imageSizes = page.evaluate(function (url,usepath) {
+          //pull detailed image information
+          if(header.value.indexOf('image/') > -1) {
+            reportResource.imageSize = page.evaluate(function (url, usepath) {
               var aurl = document.createElement('a');
               aurl.href = url;
               var selectorUrl = (usepath ? aurl.pathname : url);
               var thisimage = document.querySelector('img[src*="' + selectorUrl + '"]');
-              return 'width: ' + thisimage.naturalWidth + ' height: ' + thisimage.naturalHeight;
-            },reportResource.url,reportResource.firstParty);
-  
-            f.writeLine('______imageSizes: ' + imageSizes);
+              return {"width": thisimage.naturalWidth, "height": thisimage.naturalHeight};
+            }, reportResource.url, reportResource.firstParty);
           }
         });
+        
+        
+        //all report/ui stuff below
+        f.writeLine(' ');
+        f.writeLine('==================== ' + (isAkamai ? 'Akamai' : (isFastly ? 'Fastly' : (isInstart ? 'Instart Logic' : (isMaxcdn ? 'MaxCDN' : (isCloudfront ? 'CloudFront' : 'Unknown'))))) + ' ===================');
+        for(var item in reportResource.AKAMAI){
+          f.writeLine('______akamai: ' + reportResource.AKAMAI[item].feature);
+        }
+        for(var item in reportResource.INSTART){
+          f.writeLine('______Instart Logic: ' + reportResource.INSTART[item].feature);
+        }
+        
+        f.writeLine('______number: ' + (reportResource.firstParty ? fpResourceCount : tpResourceCount));
+        f.writeLine('______id: ' + speedgun.reportData.totalResources.value);
+        f.writeLine('______url: ' + reportResource.url);
   
+        if(resource.times.end){
+          var endTime = new Date(resource.times.end);
+          f.writeLine('______received: ' + endTime.getHours() + ':' + endTime.getMinutes() + ':' + endTime.getSeconds() + '.' + endTime.getMilliseconds() + 'ms');
+        }
+        f.writeLine('______duration: ' + reportResource.duration + 'ms');
+        f.writeLine('______bytes sent: ' + reportResource.size);
+        f.writeLine('______total bytes sent so far: ' + (reportResource.firstParty ? fpResSize : tpResSize));
+        f.writeLine('______HTTP status: ' + reportResource.status);
+        f.writeLine(' ');
+  
+        function configAlert(string){
+          f.writeLine('<');
+          f.writeLine('<-!!!!! Config ALERT------------------ ' + string);
+          f.writeLine('<');
+        }
+        
+        reportResource.headers.forEach(function (header) {
+  
+          f.writeLine('______header: ' + header.name + ' ' + header.value);
+          //case of Javascript file without the extension
+          if(header.name.indexOf('Content-Type') > -1 && header.value.indexOf('javascript') > -1 && reportResource.url.indexOf('.js') === -1){
+            isjs = true;
+            configAlert('If applying Javascript related feature, this file needs to be added to config manually because the URL does not end in ".js".');
+          }
+  
+          if(header.name.indexOf('Cache-Control') > -1 && header.value.indexOf('no-cache') > -1){
+            cacheable = false;
+            configAlert('Not Cacheable - file size is: ' + reportResource.size + ' and transfer time was: ' + reportResource.duration);
+          }
+          
+        });
+          
+        //Defaults do not apply and config needs to be changed
+        if(reportResource.size < 1500 && reportResource.firstParty){
+          configAlert('Image will Not be transcoded because it falls below 1500 bytes');
+        }
+        
+        //Defaults do not apply and config needs to be changed
+        if(reportResource.imageSize && (reportResource.imageSize.width > 1024 || reportResource.imageSize.height > 1024) && reportResource.firstParty){
+          configAlert('Image will Not be transcoded because it exceeds the default 1024 max width or height');
+        }
+
+        if(reportResource.url.indexOf('edgekey.net') > -1){
+          configAlert('This image is being transcoded through Akamai\'s 3rd party domain');
+        }
+        
+        //qualified first party javascript caching info
+        if(reportResource.firstParty && isjs && cacheable){
+          reportResource.jstotal += reportResource.size;
+          configAlert('Javascript is cacheable. Total size is: ' + reportResource.size + ' Total bytes so far: ' + reportResource.threepjstotal);
+        }
+  
+        //qualified third party javascript caching info
+        if(!reportResource.firstParty && isjs && cacheable){
+          reportResource.threepjstotal += reportResource.size;
+          configAlert('Potential 3PJS Cacheable. Total size is: ' + reportResource.size + ' Total bytes so far: ' + reportResource.jstotal);
+        }
         
       }
     }
+    
     fp.close();
     tp.close();
   },
@@ -1162,8 +1279,8 @@ var speedgun = {
     console.log('    --verbose                Turn on verbose logging');
     console.log('    --crawl                  Crawl all links on the page');
     console.log('    --override               Override DNS entries for all resources (listed in config)');
-    console.log('    --cdnDebug            Print all debug headers to headers.txt file');
-    console.log('    --detectReflow           Use if not getting startRender results');
+    console.log('    --cdnDebug               Print all debug headers to headers.txt file');
+    console.log('    --detectReflow           Use if not getting good startRender results');
     console.log('    --screenshot             Create a png of screen');
     console.log('    --wipe                   Wipe the file instead of appending to it on each report');
     console.log('    --phantomCacheEnabled    Enable PhantomJS cache');
@@ -1191,6 +1308,10 @@ var speedgun = {
       if(!speedGunArgs.reportLocation){
         speedGunArgs.reportLocation = 'reports/' + speedGunArgs.url.replace('://', '_').replace(":", "_") + '/';
       }
+      //todo
+      // if(speedGunArgs.akamaiOff){
+      //   speedGunArgs.url = speedGunArgs.url + '?akamai-feo=off';
+      // }
     }
 
     if (isFailing) {
@@ -1199,17 +1320,5 @@ var speedgun = {
   }
 
 };
-
-function getByteCount( s )
-{
-  var count = 0, stringLength = s.length, i;
-  s = String( s || "" );
-  for( i = 0 ; i < stringLength ; i++ )
-  {
-    var partCount = encodeURI( s[i] ).split("%").length;
-    count += partCount==1?1:partCount-1;
-  }
-  return count;
-}
 
 speedgun.run();

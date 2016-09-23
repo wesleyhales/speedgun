@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 
 args=("$@")
-DOMAIN=${args[0]}
-OVERRIDE=${args[1]}
+DOMAIN=${args[1]}
+OVERRIDE=${args[2]}
+TIMES=${args[0]}
 
 COUNTER=0
-while [  $COUNTER -lt 5 ]; do
+while [  $COUNTER -lt $TIMES ]; do
    echo The counter is $COUNTER
    let COUNTER=COUNTER+1
-   phantomjs --config=pconfig.json speedgun.js $DOMAIN -o csv $OVERRIDE --screenshot > $DOMAIN_headers.txt
+   phantomjs --config=pconfig.json speedgun.js $DOMAIN -o csv $OVERRIDE --cdnDebug --screenshot
    sleep 5
 done
 

@@ -26,9 +26,9 @@
   "imageAPI":"http://127.0.0.1:8080/rest/performance/imageData",
   "dns": {
     "target": "a001.hudsonsbay.inscname.net",
-     "originalDomain": "www.saksfifthavenue.com"
+     "originalDomain": "www.lordandtaylor.com"
   },
   "reflowPrecision":{
-    "repaintLimit":3
+    "repaintLimit":2
   }
 }
