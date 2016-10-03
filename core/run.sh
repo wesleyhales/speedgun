@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 args=("$@")
+TIMES=${args[0]}
 DOMAIN=${args[1]}
 OVERRIDE=${args[2]}
-TIMES=${args[0]}
 
 COUNTER=0
 while [  $COUNTER -lt $TIMES ]; do

@@ -53,8 +53,13 @@ fi
 #export to CSV from sg-server-name postgres client
 #psql -h ${SPN_PORT_5432_TCP_ADDR} -p 5432 -U postgres
 #\c speedgun
-#\COPY jsontest to 'jsontest.csv' DELIMITER ',' CSV HEADER;
+#\COPY timingdata to 'timingdata.csv' DELIMITER ',' CSV HEADER;
 #or...
-#select count(*) from jsontest; for total records
+#select count(*) from timingdata; for total records
 #or..
 #fish out by copying to a shared dir i.e. jboss/standalone/log/
+#
+#if [[ "$OSTYPE" == "linux-gnu" ]]; then
+#    mint/mint.sh
+#elif [[ "$OSTYPE" == "darwin"* ]]; then
+#    mint/mint-mac.sh

@@ -1,21 +1,13 @@
 package com.fluxui.jms;
 
-/**
- * Created with IntelliJ IDEA.
- * User: wesleyhales
- * Date: 8/9/12
- * Time: 7:16 PM
- * To change this template use File | Settings | File Templates.
- */
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
-import java.util.Properties;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class PerfJMSClient {

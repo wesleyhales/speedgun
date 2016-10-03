@@ -3,7 +3,6 @@ package com.fluxui.service;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.Json;
@@ -87,7 +86,7 @@ public class BeaconService {
 
 
     Client client = ClientBuilder.newBuilder().build();
-    WebTarget target = client.target("http://speedgun.io/rest/beacon/receive");
+    WebTarget target = client.target("http://speedgun.io/sg/beacon/receive");
 
     //post the data
     //time,cpu,etc...

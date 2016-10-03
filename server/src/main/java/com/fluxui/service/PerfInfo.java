@@ -1,8 +1,5 @@
 package com.fluxui.service;
 
-/**
- * Created by wesleyhales on 12/14/14.
- */
 public class PerfInfo {
 
   private int availableCores;

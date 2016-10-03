@@ -25,13 +25,6 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.logging.Logger;
 
-/**
- * Created with IntelliJ IDEA.
- * User: wesleyhales
- * Date: 8/11/12
- * Time: 6:29 PM
- * To change this template use File | Settings | File Templates.
- */
 @ApplicationScoped
 public class PerfQueueManager {
 

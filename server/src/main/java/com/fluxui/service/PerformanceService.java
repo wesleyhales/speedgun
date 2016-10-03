@@ -11,9 +11,7 @@ import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.json.JsonString;
 import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 
@@ -87,7 +85,7 @@ public class PerformanceService implements Serializable {
 
     try {
       java.sql.Connection con = postgresService.usePostgresDS();
-      String query = "INSERT INTO imagetest (data) VALUES (?::jsonb);";
+      String query = "INSERT INTO imagedata (data) VALUES (?::jsonb);";
       PreparedStatement statement = con.prepareStatement(query);
       statement.setString(1, object.toString());
       statement.executeUpdate();
@@ -114,12 +112,6 @@ public class PerformanceService implements Serializable {
     Response.ResponseBuilder builder = null;
     Map<String, String> responseObj = new HashMap<String, String>();
 
-//    if(report == null || report.isEmpty() ){
-//      responseObj.put("error", "empty report");
-//      builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
-//      return builder.build();
-//    }
-
     if(!report.isEmpty()) {
 
       JsonObject object = null;
@@ -134,7 +126,7 @@ public class PerformanceService implements Serializable {
 
       try {
         java.sql.Connection con = postgresService.usePostgresDS();
-        String query = "INSERT INTO jsontest (data) VALUES (?::jsonb);";
+        String query = "INSERT INTO timingdata (data) VALUES (?::jsonb);";
         PreparedStatement statement = con.prepareStatement(query);
         statement.setString(1, object.toString());
         statement.executeUpdate();
@@ -152,8 +144,6 @@ public class PerformanceService implements Serializable {
 
     return builder.build();
   }
-
-
 
   @GET
   @Path("/go")
@@ -187,13 +177,8 @@ public class PerformanceService implements Serializable {
 
     if (keepgoing) {
 
-//            HashMap<String,String> tempMap = new HashMap<String,String>();
-//            tempMap.put("url",url);
-//            tempMap.put("uuid",random.toString());
-
       if (cached.equals("true")) {
         taskName = "performancecache";
-        //tempMap.put("taskName",taskName);
       }
 
       position = perfQueueManager.storeMessage(url, taskName, random.toString(), email);
@@ -201,7 +186,7 @@ public class PerformanceService implements Serializable {
       try {
         java.sql.Connection con = postgresService.usePostgresDS();
 
-        String query = "DELETE FROM imagetest;";
+        String query = "DELETE FROM imagedata;";
         PreparedStatement statement = con.prepareStatement(query);
         log.info("_____Clear the table for a new report.");
         statement.executeUpdate();
@@ -255,7 +240,7 @@ public class PerformanceService implements Serializable {
 
     try {
       java.sql.Connection con = postgresService.usePostgresDS();
-      String query = "SELECT * FROM imagetest WHERE data ->> ? > '1'";
+      String query = "SELECT * FROM imagedata WHERE data ->> ? > '1'";
 
       if(con != null){
         PreparedStatement statement = con.prepareStatement(query);
@@ -310,7 +295,7 @@ public class PerformanceService implements Serializable {
     System.out.println("---------uuid poll--" + uuid);
     String all = "";
 
-    if(uuid == null || uuid == "null"){
+    if(uuid == null || uuid.equals("null")){
       responseObj.put("error", "uuid cannot be null");
       builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
       return builder.build();
@@ -320,7 +305,7 @@ public class PerformanceService implements Serializable {
 
     try {
       java.sql.Connection con = postgresService.usePostgresDS();
-      String query = "SELECT * FROM jsontest WHERE data -> ? > '1'";
+      String query = "SELECT * FROM timingdata WHERE data -> ? > '1'";
 
       if(con != null){
         PreparedStatement statement = con.prepareStatement(query);
@@ -357,11 +342,6 @@ public class PerformanceService implements Serializable {
       responseObj.put("error", e.getMessage());
       builder = Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
     }
-
-
-
-//        return "{\"status\":\"pending\",\"position\":\"" + PerfQueueManager.incomingMsgs + "\"}";
-
 
     builder.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     builder.header("Access-Control-Allow-Origin", "*");
