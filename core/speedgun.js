@@ -289,7 +289,6 @@ var speedgun = {
 
     onResourceRequested: function (page, config, request, networkRequest) {
   
-      
       //block a certain file from being downloaded/executed
       var match = request.url.match(/\/ga*.*js/g);
       if (match != null) {
@@ -430,7 +429,8 @@ var speedgun = {
         paintDetected = false;
         timeoutObj[index] = setTimeout(function(){
           console.log('url being loaded: ',url,index, ' at ', (index * 5), ' seconds');
-          that.config.url = url;
+          speedGunArgs.url = that.config.url = url;
+          speedGunArgs.reportLocation = 'reports/' + url.replace('://', '_').replace(":", "_") + '/';
           that.load(that.config, task, that,callback);
         },(5000))
       }
@@ -750,7 +750,6 @@ var speedgun = {
   
   printReport: function(report, page, exitphantom) {
     //saving all the disk writes for report end
-    
     reporting.printResourceReport(page);
   
     if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
