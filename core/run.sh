@@ -9,7 +9,7 @@ COUNTER=0
 while [  $COUNTER -lt $TIMES ]; do
    echo The counter is $COUNTER
    let COUNTER=COUNTER+1
-   phantomjs --config=pconfig.json speedgun.js $DOMAIN -o csv $OVERRIDE --cdnDebug --screenshot
+   phantomjs --config=pconfig.json speedgun.js $DOMAIN -o csv --cdnDebug --screenshot
    sleep 5
 done
 

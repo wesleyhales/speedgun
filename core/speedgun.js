@@ -257,10 +257,17 @@ var speedgun = {
         //
         // window.navigator = {plugins: plugins};
         // window.navigator.__proto__ = oldNavigator.__proto__;
-        // delete window.callPhantom;delete window._phantom;
+        delete window.callPhantom;delete window._phantom;
         // Function.prototype.bind = function(){};
         
         //document.body.bgColor = 'white';
+  
+        // function sleepFor( sleepDuration ){
+        //   var now = new Date().getTime();
+        //   while(new Date().getTime() < now + sleepDuration){ /* do nothing */ }
+        // }
+        // sleepFor(10000);
+        
         var nowms = Date.now();
 
         console.log(JSON.stringify({value: nowms, label: '', index: 2}));
@@ -324,11 +331,11 @@ var speedgun = {
           var cdnUrl = request.url.replace(domain, targetDNS);
           networkRequest.changeUrl(cdnUrl);
           networkRequest.setHeader('Host', domain);
-          if(speedGunArgs.cdnDebug){
-            networkRequest.setHeader('Pragma', 'akamai-x-get-client-ip, akamai-x-cache-on, akamai-x-cache-remote-on, akamai-x-check-cacheable, akamai-x-get-cache-key, akamai-x-get-extracted-values, akamai-x-get-nonces, akamai-x-get-ssl-client-session-id, akamai-x-get-true-cache-key, akamai-x-serial-no, akamai-x-feo-trace, akamai-x-get-request-id');
-            networkRequest.setHeader('Fastly-Debug', 1);
-          }
         }
+      }
+      if(speedGunArgs.cdnDebug){
+        networkRequest.setHeader('Pragma', 'akamai-x-get-client-ip, akamai-x-cache-on, akamai-x-cache-remote-on, akamai-x-check-cacheable, akamai-x-get-cache-key, akamai-x-get-extracted-values, akamai-x-get-nonces, akamai-x-get-ssl-client-session-id, akamai-x-get-true-cache-key, akamai-x-serial-no, akamai-x-feo-trace, akamai-x-get-request-id');
+        networkRequest.setHeader('Fastly-Debug', 1);
       }
     },
 
@@ -552,7 +559,9 @@ var speedgun = {
         callback();
       }else{
         console.log('!!exit phantom!!', callback);
-        phantom.exit(0);
+        //speedgun.renderPageToDisk(page);
+        window.setTimeout(function(){phantom.exit(0);},0);
+        
       }
     };
 
@@ -686,7 +695,7 @@ var speedgun = {
   /** Classic waitFor example from PhantomJS
    */
   waitFor: function(testFx, onReady, timeOutMillis) {
-  var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 10000, //< Default Max Timout is 10s
+  var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 20000, //< Default Max Timout is 10s
     start = new Date().getTime(),
     condition = false,
     interval = setInterval(function () {
@@ -800,7 +809,11 @@ var speedgun = {
   renderPageToDisk: function(page,postfix){
     postfix = (postfix || (speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png'));
     console.log('Rendering Screenshot to', speedGunArgs.reportLocation + postfix);
-    page.render(speedGunArgs.reportLocation + postfix, {format: 'jpeg', quality: '50'});
+    window.setTimeout(function(){
+      page.render(speedGunArgs.reportLocation + postfix, {format: 'jpeg', quality: '50'});
+    },0);
+    
+   
   },
 
   postJSON: function (report, endpoint, postImage) {

@@ -89,8 +89,8 @@ module.exports = {
           reportResource.CLOUDFRONT = {active:false,features:[]};
           
           reportResource.status = response[entry].status;
-        
-          // var isAkamai = false, isFastly = false, isInstart = false, isMaxcdn = false, isCloudfront = false;
+          
+          // add more from proprietary headers section here: https://www.cedexis.com/blog/fun-with-headers/
           response[entry].headers.forEach(function (header) {
           
             if(header.name.toLowerCase().indexOf('akamai') > -1){reportResource.AKAMAI.active = true}

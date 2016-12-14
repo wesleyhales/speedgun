@@ -25,10 +25,10 @@
   "reportAPI":"http://127.0.0.1:8080/sg/performance/reportData",
   "imageAPI":"http://127.0.0.1:8080/sg/performance/imageData",
   "dns": {
-    "target": "a001.hudsonsbay.inscname.net",
-     "originalDomain": "www.lordandtaylor.com"
+    "target": "a001.ashleyfurniture.inscname.net",
+    "originalDomain": "www.ashleyfurniturehomestore.com"
   },
   "reflowPrecision":{
-    "repaintLimit":2
+    "repaintLimit":0
   }
 }
