@@ -10,7 +10,7 @@ var mimetype = require('./mimetype');
 //the path should be the one that has 16 folders labeled 0,1,2,3,...,F
 cache.cachePath = '/Users/whales/Library/Caches/Ofi\ Labs/PhantomJS/data8/';
 
-var url = 'http://cnn.com';
+var url = 'http://images.apple.com';
 page.viewportSize = { width: 1300, height: 768 };
 
 //when the resource is received, go ahead and include a reference to it in the cache object

@@ -19,6 +19,7 @@ var fs = require('fs'),
       verbose: false,
       screenshot: false,
       crawl: false,
+      crawlAllDomains: false,
       debug: false,
       wipe: false,
       override: false,
@@ -135,6 +136,7 @@ var speedgun = {
         report.totalResources = {label: '', value: 0, index: 58};
         report.imageList = {label: '', value: [], index: 59};
         report.resources = {label: '', value: {}, index: 60};
+        report.i10c = {label: '', value: '', index: 61};
 
         if (string) {
           return JSON.stringify(report);
@@ -302,6 +304,8 @@ var speedgun = {
         //console.log('Blocking Request (#' + request.url);
         //networkRequest.cancel();
       }
+  
+      //console.log('Requesting (# '+ request.id + ' ' + request.url);
       
       var now = Date.now();
       speedgun.reportData.resources.value[request.id] = {
@@ -315,7 +319,7 @@ var speedgun = {
         }
       };
   
-      //disable gzip - doesn't work for (some sites) phantom 2.1.1
+      //disable gzip to get Content-Length header - doesn't work for (some sites) phantom 2.1.1
       //networkRequest.setHeader('Accept-Encoding','gzip;q=0');
       //networkRequest.setHeader('Accept-Encoding','gzip');
 
@@ -390,24 +394,43 @@ var speedgun = {
   crawl: function(task,linkgrabber,hostmatch){
     var msg;
     //open the page to initiate the crawl
+    linkgrabber.onConsoleMessage = function (msg) {
+      //debug dump
+      (speedGunArgs.debug ? console.log(msg) : null);
+    };
     linkgrabber.open(this.config.url, function (status) {
       
-      msg = linkgrabber.evaluate(function (hostmatch) {
+      msg = linkgrabber.evaluate(function (hostmatch,crawlAllDomains) {
         var collection = document.getElementsByTagName('a'),
             currentValues = [],
             values = [].map.call(collection, function(obj) {
               if(currentValues.indexOf(obj.href) < 0){
                 //match only on same domain. todo - make configurable
-                if(hostmatch && (hostmatch.indexOf(obj.hostname) > -1)){
-                  currentValues.push(obj.href);
+                var tld = obj.hostname.split('.');
+                if(tld.length > 1){
+                  tld = tld[tld.length -2] + '.' + tld[tld.length -1];
+                }else{
+                  tld = obj.hostname;
                 }
+                
+                if(crawlAllDomains){
+                  currentValues.push(obj.href);
+                }else{
+                  if(hostmatch && (hostmatch.indexOf(tld) > -1)){
+                    //console.log('<a href="' + obj.href + '">' + obj.href + '</a>');
+                    //console.log('"' + obj.href + '",');
+                    console.log('192.33.31.55          ' + obj.hostname);
+                    currentValues.push(obj.href);
+                  }
+                }
+                
               }
             });
         return currentValues;
-      },hostmatch);
+      },hostmatch,speedGunArgs.crawlAllDomains);
     });
     var crawlablePages;
-  
+    
     speedgun.waitFor(function () {
         return msg !== undefined;
       }, function () {
@@ -428,7 +451,7 @@ var speedgun = {
 
       function callback(){
         var page = crawlablePages.shift();
-        console.log('### Running speedgun report for: ',page, crawlablePages.length + ' left to go...');
+        console.log('### Running speedgun report for: ' + page + ' ' + crawlablePages.length + ' left to go...');
         doit(page,crawlablePages.length,callback)
       }
 
@@ -437,7 +460,11 @@ var speedgun = {
         timeoutObj[index] = setTimeout(function(){
           console.log('url being loaded: ',url,index, ' at ', (index * 5), ' seconds');
           speedGunArgs.url = that.config.url = url;
-          speedGunArgs.reportLocation = 'reports/' + url.replace('://', '_').replace(":", "_") + '/';
+          try {
+            speedGunArgs.reportLocation = 'reports/' + url.replace('://', '_').replace(":", "_") + '/';
+          } catch (e) {
+            speedGunArgs.reportLocation = 'reports/';
+          }
           that.load(that.config, task, that,callback);
         },(5000))
       }
@@ -517,10 +544,10 @@ var speedgun = {
           incoming = msg;
 
       //debug dump
-      (speedGunArgs.debug ? console.log('console: ',msg) : null);
+      (speedGunArgs.debug ? console.log('console: ' + msg) : null);
 
       if (msg.indexOf('error:') >= 0) {
-        speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length, msg.length)));
+        speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length + msg.length)));
         error = true;
       }
 
@@ -560,8 +587,7 @@ var speedgun = {
       }else{
         console.log('!!exit phantom!!', callback);
         //speedgun.renderPageToDisk(page);
-        window.setTimeout(function(){phantom.exit(0);},0);
-        
+        phantom.exit(0);
       }
     };
 
@@ -589,17 +615,20 @@ var speedgun = {
             // Check in the page if a specific element is now visible
             return page.evaluate(function () {
               return (window.performance.timing.loadEventEnd > 0);
+              //return (I10C.Morph >= 1)
+              // return (performance.now() > 10000)
             });
           }, function () {
-            
+            console.log('before eval');
             speedgun.reportData = page.evaluate(function (perfObj) {
+              //return all html document.documentElement.outerHTML
               var report = JSON.parse(perfObj),
                   timing = performance.timing,
                   nav = performance.navigation,
                   navStart = timing.navigationStart;
 
               //--------------- Begin PhantomJS supported user timing and performance timing measurements
-
+              //report.i10c.value = I10C.Morph;
               //try to calculate understandable load numbers
               report.pageLoadTime.value = validateTimes(timing.loadEventEnd);
               report.perceivedLoadTime.value = validateTimes(report.nowms.value); //from https://developer.mozilla.org/en-US/docs/Navigation_timing
@@ -676,7 +705,8 @@ var speedgun = {
               return report;
 
             }, JSON.stringify(speedgun.reportData));
-
+             
+            //console.log('______i10c' + JSON.stringify(speedgun.reportData.i10c));
             //finish up any leftover tasks to complete the report
             speedgun.printReport(speedgun.reportData, page, phantomExit);
             
@@ -695,10 +725,11 @@ var speedgun = {
   /** Classic waitFor example from PhantomJS
    */
   waitFor: function(testFx, onReady, timeOutMillis) {
-  var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 20000, //< Default Max Timout is 10s
+  var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 40000, //< Default Max Timout is 10s
     start = new Date().getTime(),
     condition = false,
     interval = setInterval(function () {
+      console.log('check',condition)
       if ((new Date().getTime() - start < maxtimeOutMillis) && !condition) {
         // If not time-out yet and condition not yet fulfilled
         condition = (typeof(testFx) === "string" ? eval(testFx) : testFx()); //< defensive code
@@ -722,12 +753,14 @@ var speedgun = {
     if (fs.exists(configFile)) {
       result = JSON.parse(fs.read(configFile));
     } else {
-      //todo - add default config settings
-      result = {}
+      result = {};
     }
     for (key in config) {
-      result[key] = config[key];
+      if(!result[key]) {
+        result[key] = config[key];
+      }
     }
+    
 
     return result;
   },
@@ -808,12 +841,8 @@ var speedgun = {
   
   renderPageToDisk: function(page,postfix){
     postfix = (postfix || (speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png'));
-    console.log('Rendering Screenshot to', speedGunArgs.reportLocation + postfix);
-    window.setTimeout(function(){
-      page.render(speedGunArgs.reportLocation + postfix, {format: 'jpeg', quality: '50'});
-    },0);
-    
-   
+    console.log('Rendering Screenshot to ' + speedGunArgs.reportLocation + postfix);
+    page.render(speedGunArgs.reportLocation + postfix, {format: 'jpeg', quality: '50'});
   },
 
   postJSON: function (report, endpoint, postImage) {
@@ -1090,7 +1119,8 @@ var speedgun = {
     console.log('    -v, --version            Not implemented yet');
     console.log('    -u, --uuid               only used for server side run in speedgun.io');
     console.log('    --verbose                Turn on verbose logging');
-    console.log('    --crawl                  Crawl all links on the page');
+    console.log('    --crawl                  Crawl all links within same tld on the page');
+    console.log('    --crawlAllDomains        Crawl all links on the page, not just first party tld');
     console.log('    --override               Override DNS entries for all resources (listed in config)');
     console.log('    --cdnDebug               Print all debug headers to headers.txt file');
     console.log('    --detectReflow           Use if not getting good startRender results');

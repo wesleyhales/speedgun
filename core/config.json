@@ -3,7 +3,12 @@
   "userAgent": "chrome",
   "userAgentAliases": {
     "chrome": {
-      "uastring":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36",
+      "uastring":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2883.95 Safari/537.36",
+      "width":1280,
+      "height":1024
+    },
+    "none": {
+      "uastring":"",
       "width":1280,
       "height":1024
     },
