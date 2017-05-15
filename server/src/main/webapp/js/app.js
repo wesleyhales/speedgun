@@ -10,7 +10,7 @@ angular.module('app', [
 ]).service('api', ['$q', '$http', '$timeout', function ($q, $http, $timeout) {
   var numReports = 5, retryDelay = 2500;
   this.go = function(url, email, cached){
-    //http://localhost:8081/rest/performance/go?url=http%3A%2F%2Fgoogle.com&cached=false&email=
+    //http://localhost:8081/sg/performance/go?url=http%3A%2F%2Fgoogle.com&cached=false&email=
     //console.log('go',url, email, cached)
     var config = {
       params : {
@@ -19,11 +19,11 @@ angular.module('app', [
         email : email || ''
       }
     };
-    return $http.get(host + '/rest/performance/go', config);
+    return $http.get(host + '/sg/performance/go', config);
     //return $q.when(mockinit);
   };
   this.imageData = function(uuid){
-    var base64url = host + '/rest/performance/checkimage';
+    var base64url = host + '/sg/performance/checkimage';
     var config = {
       params : {
         uuid : uuid
@@ -32,13 +32,13 @@ angular.module('app', [
     return $http.get(base64url, config);
   };
   this.getNodes = function(){
-    var nodeList = 'http://speedgun.io/rest/beacon/getlist';
+    var nodeList = 'http://speedgun.io/sg/beacon/getlist';
     return $http.get(nodeList);
   };
   this.get = function (uuid) {
 //        if (!uuid) return $q.when(speedgun);
-//      http://127.0.0.1:8080/rest/performance/checkimage?uuid=586930c7-5cc3-46a5-9802-fbd36ff05c1a
-    var url = host + '/rest/performance/report';
+//      http://127.0.0.1:8080/sg/performance/checkimage?uuid=586930c7-5cc3-46a5-9802-fbd36ff05c1a
+    var url = host + '/sg/performance/report';
     
     var config = {
       params : {

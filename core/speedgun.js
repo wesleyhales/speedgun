@@ -1,5 +1,6 @@
 #!/usr/bin/env phantomjs
 var fs = require('fs'),
+    reporting = require('./modules/reporting'),
     WebPage = require('webpage'),
     system = require('system'),
     args = system.args,
@@ -18,10 +19,11 @@ var fs = require('fs'),
       verbose: false,
       screenshot: false,
       crawl: false,
+      crawlAllDomains: false,
       debug: false,
       wipe: false,
       override: false,
-      akamaiDebug: false,
+      cdnDebug: false,
       detectReflow: false,
       phantomCacheEnabled: false
     },
@@ -113,14 +115,14 @@ var speedgun = {
         report.responseTime = {label: '', value: 0, index: 34};
         report.domainLookupStart = {value: 0, label: '', index: 24};
         report.domainLookupEnd = {value: 0, label: '', index: 18};
-        //      In cases where the user agent already has the domain information in cache, domainLookupStart and domainLookupEnd represent the times when the user agent starts and ends the domain data retrieval from the cache.
+        //In cases where the user agent already has the domain information in cache, domainLookupStart and domainLookupEnd represent the times when the user agent starts and ends the domain data retrieval from the cache.
         report.domainLookupTime = {label: '', value: 0, index: 35};
         report.redirectStart = {value: 0, label: '', index: 19};
         report.redirectEnd = {value: 0, label: '', index: 27};
         //network level redirects
         report.redirectTime = {label: '', value: 0, index: 6};
         report.unloadEventStart = {value: 0, label: '', index: 22};
-        //      If there are HTTP redirects or equivalent when navigating and not all the redirects or equivalent are from the same origin, both unloadEventStart and unloadEventEnd must return the zero.
+        //If there are HTTP redirects or equivalent when navigating and not all the redirects or equivalent are from the same origin, both unloadEventStart and unloadEventEnd must return zero.
         report.unloadEventEnd = {value: 0, label: '', index: 21};
         //navigation timing
         report.timing = {value: 0, label: '', index: 36};
@@ -132,7 +134,9 @@ var speedgun = {
         report.navEvents = {label: '', value: [], index: 56};
         report.totalBytes = {label: '', value: 0, index: 57};
         report.totalResources = {label: '', value: 0, index: 58};
-        report.resources = {label: '', value: {}, index: 58};
+        report.imageList = {label: '', value: [], index: 59};
+        report.resources = {label: '', value: {}, index: 60};
+        report.i10c = {label: '', value: '', index: 61};
 
         if (string) {
           return JSON.stringify(report);
@@ -183,7 +187,7 @@ var speedgun = {
           }
           
         } catch (e) {
-          console.log('___ERROR',e);
+          console.log('___Problem with StartRender measurement... ',e);
         }
       }
   
@@ -246,8 +250,26 @@ var speedgun = {
       }
 
       page.evaluate(function (perfObj) {
-  
+        //phantomjs spoofing and detection bypass
+        // var oldNavigator = navigator;
+        // var oldPlugins = oldNavigator.plugins;
+        // var plugins = {};
+        // plugins.length = 1;
+        // plugins.__proto__ = oldPlugins.__proto__;
+        //
+        // window.navigator = {plugins: plugins};
+        // window.navigator.__proto__ = oldNavigator.__proto__;
+        delete window.callPhantom;delete window._phantom;
+        // Function.prototype.bind = function(){};
+        
         //document.body.bgColor = 'white';
+  
+        // function sleepFor( sleepDuration ){
+        //   var now = new Date().getTime();
+        //   while(new Date().getTime() < now + sleepDuration){ /* do nothing */ }
+        // }
+        // sleepFor(10000);
+        
         var nowms = Date.now();
 
         console.log(JSON.stringify({value: nowms, label: '', index: 2}));
@@ -275,87 +297,94 @@ var speedgun = {
     },
 
     onResourceRequested: function (page, config, request, networkRequest) {
+  
+      //block a certain file from being downloaded/executed
+      var match = request.url.match(/\/ga*.*js/g);
+      if (match != null) {
+        //console.log('Blocking Request (#' + request.url);
+        //networkRequest.cancel();
+      }
+  
+      //console.log('Requesting (# '+ request.id + ' ' + request.url);
       
       var now = Date.now();
       speedgun.reportData.resources.value[request.id] = {
         id: request.id,
         url: request.url,
         request: request,
-        responses: {},
+        responses: [],
         duration: '',
         times: {
           request: now
         }
       };
   
-      //disable gzip
+      //disable gzip to get Content-Length header - doesn't work for (some sites) phantom 2.1.1
       //networkRequest.setHeader('Accept-Encoding','gzip;q=0');
+      //networkRequest.setHeader('Accept-Encoding','gzip');
 
+      //todo enable turning akamai feo off
+      //?akamai-feo=off
+      
       if(speedGunArgs.override && config.dns.target){
+        //console.log('============================Overridding DNS')
         var domain = config.dns.originalDomain,
             targetDNS = config.dns.target,
             match = request.url.indexOf(domain);
         if (match >= 0) {
           var cdnUrl = request.url.replace(domain, targetDNS);
-          //console.log('Rewriting request:', request.url, cdnUrl);
           networkRequest.changeUrl(cdnUrl);
           networkRequest.setHeader('Host', domain);
-          if(speedGunArgs.akamaiDebug){
-            networkRequest.setHeader('Pragma', 'akamai-x-get-client-ip, akamai-x-cache-on, akamai-x-cache-remote-on, akamai-x-check-cacheable, akamai-x-get-cache-key, akamai-x-get-extracted-values, akamai-x-get-nonces, akamai-x-get-ssl-client-session-id, akamai-x-get-true-cache-key, akamai-x-serial-no, akamai-x-feo-trace, akamai-x-get-request-id');
-          }
         }
+      }
+      if(speedGunArgs.cdnDebug){
+        networkRequest.setHeader('Pragma', 'akamai-x-get-client-ip, akamai-x-cache-on, akamai-x-cache-remote-on, akamai-x-check-cacheable, akamai-x-get-cache-key, akamai-x-get-extracted-values, akamai-x-get-nonces, akamai-x-get-ssl-client-session-id, akamai-x-get-true-cache-key, akamai-x-serial-no, akamai-x-feo-trace, akamai-x-get-request-id');
+        networkRequest.setHeader('Fastly-Debug', 1);
       }
     },
 
     onResourceReceived: function (page, config, response) {
-      //todo - the same resource appears multiple times because of chunked response (phantom stage start || end)
-  
+      //the same resource appears multiple times because of chunked response (phantom stage start || end)
       var now = Date.now(),
-          resource = speedgun.reportData.resources.value[response.id];
-  
-      resource.responses[response.stage] = response;
-  
-      function isInt(value) {
-        if (isNaN(value)) {
-          return false;
-        }
-        var x = parseFloat(value);
-        return (x | 0) === x;
-      }
-      
-      if (!resource.times[response.stage]) {
-        resource.times[response.stage] = now;
-        resource.duration = now - resource.times.request;
-      }
-  
-      if (isInt(response.bodySize)) {
-        resource.size = response.bodySize;
-      }else{
-        resource.size = (resource.size > 0 ? resource.size : 0);
-        response.headers.forEach(function (header) {
-  
-          if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
-            var contentLength = parseInt(header.value,10);
-            if(isInt(header.value) && contentLength > resource.size){
-              resource.size = contentLength;
-            }
-          }
+          resource = speedgun.reportData.resources.value[response.id],
+          respObj = {},
+          validResponse = (response.contentType !== null || response.contentType !== 'null');
           
-        });
+      if(!validResponse){console.log('___Bad Response')}
+      
+        respObj[response.stage] = response;
+        resource.responses.push(respObj);
+    
+        function isInt(value) {
+          if (isNaN(value)) {
+            return false;
+          }
+          var x = parseFloat(value);
+          return (x | 0) === x;
+        }
         
-      }
-      var headers = true;
-      if(headers){
-        console.log('########################################');
-        console.log('Received:',response.url);
-        console.log('Response.bodySize',response.bodySize);
-        response.headers.forEach(function (header) {
-          console.log('header: ', header.name, header.value);
-        });
-        console.log('########################################');
-      }
-      
-      
+        if (!resource.times[response.stage]) {
+          resource.times[response.stage] = now;
+          resource.duration = now - resource.times.request;
+        }
+    
+        if (isInt(response.bodySize)) {
+          resource.size = response.bodySize;
+        }else{
+          resource.size = (resource.size > 0 ? resource.size : 0);
+          response.headers.forEach(function (header) {
+    
+            if (header.name.toLowerCase() == 'content-length' && header.value != 0) {
+              var contentLength = parseInt(header.value,10);
+              if(isInt(header.value) && contentLength > resource.size){
+                resource.size = contentLength;
+              }
+            }
+            
+          });
+          
+        }
+        
       
     }
   },
@@ -363,33 +392,50 @@ var speedgun = {
   reportData: {},
 
   crawl: function(task,linkgrabber,hostmatch){
-
+    var msg;
     //open the page to initiate the crawl
+    linkgrabber.onConsoleMessage = function (msg) {
+      //debug dump
+      (speedGunArgs.debug ? console.log(msg) : null);
+    };
     linkgrabber.open(this.config.url, function (status) {
-      linkgrabber.evaluate(function (hostmatch) {
+      
+      msg = linkgrabber.evaluate(function (hostmatch,crawlAllDomains) {
         var collection = document.getElementsByTagName('a'),
             currentValues = [],
             values = [].map.call(collection, function(obj) {
               if(currentValues.indexOf(obj.href) < 0){
                 //match only on same domain. todo - make configurable
-                if(hostmatch && (hostmatch.indexOf(obj.hostname) > -1)){
-                  currentValues.push(obj.href);
+                var tld = obj.hostname.split('.');
+                if(tld.length > 1){
+                  tld = tld[tld.length -2] + '.' + tld[tld.length -1];
+                }else{
+                  tld = obj.hostname;
                 }
+                
+                if(crawlAllDomains){
+                  currentValues.push(obj.href);
+                }else{
+                  if(hostmatch && (hostmatch.indexOf(tld) > -1)){
+                    //console.log('<a href="' + obj.href + '">' + obj.href + '</a>');
+                    //console.log('"' + obj.href + '",');
+                    console.log('192.33.31.55          ' + obj.hostname);
+                    currentValues.push(obj.href);
+                  }
+                }
+                
               }
             });
-        //console is used as a channel for sending data out of
-        //this evaluate to phantomJS parent context
-        console.log(JSON.stringify(currentValues));
-      },hostmatch);
-
+        return currentValues;
+      },hostmatch,speedGunArgs.crawlAllDomains);
     });
-
     var crawlablePages;
-
-    linkgrabber.onConsoleMessage = function (msg) {
-      if(msg && msg.indexOf('[') === 0){
+    
+    speedgun.waitFor(function () {
+        return msg !== undefined;
+      }, function () {
         try {
-          crawlablePages = JSON.parse(msg);
+          crawlablePages = msg;
           console.log('***Crawling ' + crawlablePages.length + ' total pages.')
         } catch (e) {
           console.log('problem parsing links for crawler ',e)
@@ -397,15 +443,15 @@ var speedgun = {
         if(crawlablePages.constructor === Array){
           go(crawlablePages)
         }
-      }
-    };
-
+    });
+    
+    
     var that = this,timeoutObj = {};
     function go(crawlablePages){
 
       function callback(){
         var page = crawlablePages.shift();
-        console.log('### Running speedgun report for: ',page, crawlablePages.length + ' left to go...');
+        console.log('### Running speedgun report for: ' + page + ' ' + crawlablePages.length + ' left to go...');
         doit(page,crawlablePages.length,callback)
       }
 
@@ -413,7 +459,12 @@ var speedgun = {
         paintDetected = false;
         timeoutObj[index] = setTimeout(function(){
           console.log('url being loaded: ',url,index, ' at ', (index * 5), ' seconds');
-          that.config.url = url;
+          speedGunArgs.url = that.config.url = url;
+          try {
+            speedGunArgs.reportLocation = 'reports/' + url.replace('://', '_').replace(":", "_") + '/';
+          } catch (e) {
+            speedGunArgs.reportLocation = 'reports/';
+          }
           that.load(that.config, task, that,callback);
         },(5000))
       }
@@ -428,6 +479,13 @@ var speedgun = {
     page.settings.webSecurityEnabled = false;
     page.settings.resourceTimeout = 20000;
     //page.clearMemoryCache();
+  
+    // page.customHeaders = {
+    //   "X-Test": "foo2",
+    //   "DNT": "1",
+    //   "ACCEPT_ENCODING":"gzip",
+    //   "ACCEPT_LANGUAGE":"*"
+    // };
 
     if (config.userAgent && config.userAgent != "default") {
       if (config.userAgentAliases[config.userAgent]) {
@@ -486,10 +544,10 @@ var speedgun = {
           incoming = msg;
 
       //debug dump
-      (speedGunArgs.debug ? console.log('console: ',msg) : null);
+      (speedGunArgs.debug ? console.log('console: ' + msg) : null);
 
       if (msg.indexOf('error:') >= 0) {
-        speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length, msg.length)));
+        speedgun.reportData.errors.value.push(encodeURIComponent(msg.substring('error:'.length + msg.length)));
         error = true;
       }
 
@@ -528,6 +586,7 @@ var speedgun = {
         callback();
       }else{
         console.log('!!exit phantom!!', callback);
+        //speedgun.renderPageToDisk(page);
         phantom.exit(0);
       }
     };
@@ -551,31 +610,25 @@ var speedgun = {
 
         if (onLoadStarted) {
           onLoadStarted = false;
-
-          waitFor(function () {
+  
+          speedgun.waitFor(function () {
             // Check in the page if a specific element is now visible
             return page.evaluate(function () {
               return (window.performance.timing.loadEventEnd > 0);
+              //return (I10C.Morph >= 1)
+              // return (performance.now() > 10000)
             });
           }, function () {
-  
-            var xresources = speedgun.reportData.resources.value;
-            for(var obj in xresources){
-              var resource = xresources[obj];
-              console.log('size', resource.size);
-              speedgun.reportData.totalBytes.value += (resource.size ? resource.size : 0);
-              speedgun.reportData.totalResources.value++;
-            }
-
+            console.log('before eval');
             speedgun.reportData = page.evaluate(function (perfObj) {
-              //document.body.bgColor = 'white';
+              //return all html document.documentElement.outerHTML
               var report = JSON.parse(perfObj),
                   timing = performance.timing,
                   nav = performance.navigation,
                   navStart = timing.navigationStart;
 
               //--------------- Begin PhantomJS supported user timing and performance timing measurements
-
+              //report.i10c.value = I10C.Morph;
               //try to calculate understandable load numbers
               report.pageLoadTime.value = validateTimes(timing.loadEventEnd);
               report.perceivedLoadTime.value = validateTimes(report.nowms.value); //from https://developer.mozilla.org/en-US/docs/Navigation_timing
@@ -621,7 +674,7 @@ var speedgun = {
               report.loadEventStart.value = validateTimes(timing.loadEventStart);
               report.loadEventEnd.value = validateTimes(timing.loadEventEnd);
 
-              //sometimes, numbers are returned as negative when subtracting from navigationStart. This could possibly be a bug with PhantomJS
+              //sometimes numbers are returned as negative when subtracting from navigationStart. This could possibly be a bug with PhantomJS
               function validateTimes(end, start) {
                 if (!start) {
                   start = navStart;
@@ -648,70 +701,66 @@ var speedgun = {
                 default:
                   report.timing.label = ('Not detected');
               }
-
-              // for (var key in report) {
-              //   //export/bridge data back to phantom context
-              //   console.log(JSON.stringify(report[key]));
-              // }
+              
               return report;
 
             }, JSON.stringify(speedgun.reportData));
-
+             
+            //console.log('______i10c' + JSON.stringify(speedgun.reportData.i10c));
             //finish up any leftover tasks to complete the report
-            
             speedgun.printReport(speedgun.reportData, page, phantomExit);
+            
           });
-
-
+          
         }
       }
-
-
     } else {
       page.onLoadFinished = function (status) {
         phantomExit();
       };
     }
 
-    /** Classic waitFor example from PhantomJS
-     */
-    function waitFor(testFx, onReady, timeOutMillis) {
-      var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 10000, //< Default Max Timout is 10s
-          start = new Date().getTime(),
-          condition = false,
-          interval = setInterval(function () {
-            if ((new Date().getTime() - start < maxtimeOutMillis) && !condition) {
-              // If not time-out yet and condition not yet fulfilled
-              condition = (typeof(testFx) === "string" ? eval(testFx) : testFx()); //< defensive code
-            } else {
-              if (!condition) {
-                // If condition still not fulfilled (timeout but condition is 'false')
-                console.log("'waitFor()' timeout");
-                phantom.exit(1);
-              } else {
-                // Condition fulfilled (timeout and/or condition is 'true')
-                typeof(onReady) === "string" ? eval(onReady) : onReady(); //< Do what it's supposed to do once the condition is fulfilled
-                clearInterval(interval); //< Stop this interval
-              }
-            }
-          }, 250); //< repeat check every 250ms
-    }
-
+  },
+  
+  /** Classic waitFor example from PhantomJS
+   */
+  waitFor: function(testFx, onReady, timeOutMillis) {
+  var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 40000, //< Default Max Timout is 10s
+    start = new Date().getTime(),
+    condition = false,
+    interval = setInterval(function () {
+      console.log('check',condition)
+      if ((new Date().getTime() - start < maxtimeOutMillis) && !condition) {
+        // If not time-out yet and condition not yet fulfilled
+        condition = (typeof(testFx) === "string" ? eval(testFx) : testFx()); //< defensive code
+      } else {
+        if (!condition) {
+          // If condition still not fulfilled (timeout but condition is 'false')
+          console.log("'waitFor()' timeout");
+          phantom.exit(1);
+        } else {
+          // Condition fulfilled (timeout and/or condition is 'true')
+          typeof(onReady) === "string" ? eval(onReady) : onReady(); //< Do what it's supposed to do once the condition is fulfilled
+          clearInterval(interval); //< Stop this interval
+        }
+      }
+    }, 250); //< repeat check every 250ms
   },
 
   mergeConfig: function (config, configFile) {
     var result = '', key;
     configFile = (configFile || 'config.json');
     if (fs.exists(configFile)) {
-      
       result = JSON.parse(fs.read(configFile));
     } else {
-      //todo - add default config settings
-      result = {}
+      result = {};
     }
     for (key in config) {
-      result[key] = config[key];
+      if(!result[key]) {
+        result[key] = config[key];
+      }
     }
+    
 
     return result;
   },
@@ -743,13 +792,13 @@ var speedgun = {
   
   printReport: function(report, page, exitphantom) {
     //saving all the disk writes for report end
-    
+    reporting.printResourceReport(page);
+  
     if (!speedGunArgs.uuid && speedGunArgs.screenshot) {
       this.renderPageToDisk(page);
       //render all from queue to disk
-      var reportLocation = 'reports/' + speedGunArgs.reportLocation;
       for(var pageRender in dataPostQueue){
-        fs.write(reportLocation + dataPostQueue[pageRender].startRender + '.png', atob(dataPostQueue[pageRender].base64), 'b');
+        fs.write(speedGunArgs.reportLocation + dataPostQueue[pageRender].startRender + '.png', atob(dataPostQueue[pageRender].base64), 'b');
       }
     }
    
@@ -772,7 +821,7 @@ var speedgun = {
       var postImage = function () {
         console.log('Rendering Screenshot to base64',dataPostQueue.length);
         var base64 = page.renderBase64('JPEG', {format: 'jpeg', quality: '50'});
-        speedgun.postIMAGETemplate(base64, speedgun.config.imageAPI, speedGunArgs.uuid, filler);
+        speedgun.postIMAGE(base64, speedgun.config.imageAPI, speedGunArgs.uuid, filler);
         
         for(var i = 0;i < dataPostQueue.length;i++){
           //post images from queue
@@ -780,24 +829,23 @@ var speedgun = {
           if((i+1) === dataPostQueue.length){
             filler = exitphantom;
           }
-          speedgun.postIMAGETemplate(dataPostQueue[i], speedgun.config.imageAPI, speedGunArgs.uuid, filler);
+          speedgun.postIMAGE(dataPostQueue[i], speedgun.config.imageAPI, speedGunArgs.uuid, filler);
         }
       };
       
-      speedgun.postJSONTemplate(report, speedgun.config.reportAPI, postImage);
+      speedgun.postJSON(report, speedgun.config.reportAPI, postImage);
       
     }
   
   },
   
   renderPageToDisk: function(page,postfix){
-    var reportLocation = 'reports/' + speedGunArgs.reportLocation;
     postfix = (postfix || (speedgun.reportData.screenshot.value = speedgun.reportData.nowms.value + '.png'));
-    console.log('Rendering Screenshot to', reportLocation + postfix);
-    page.render(reportLocation + postfix, {format: 'jpeg', quality: '50'});
+    console.log('Rendering Screenshot to ' + speedGunArgs.reportLocation + postfix);
+    page.render(speedGunArgs.reportLocation + postfix, {format: 'jpeg', quality: '50'});
   },
 
-  postJSONTemplate: function (report, endpoint, postImage) {
+  postJSON: function (report, endpoint, postImage) {
 
     var settings = {
       operation: "POST",
@@ -812,7 +860,7 @@ var speedgun = {
     speedgun.postData(settings, endpoint, postImage);
   },
 
-  postIMAGETemplate: function (base64, endpoint, id, exitphantom) {
+  postIMAGE: function (base64, endpoint, id, exitphantom) {
 
     var settings = {
       operation: "POST",
@@ -844,6 +892,18 @@ var speedgun = {
         }
         
       });
+  
+      function getByteCount( s )
+      {
+        var count = 0, stringLength = s.length, i;
+        s = String( s || "" );
+        for( i = 0 ; i < stringLength ; i++ )
+        {
+          var partCount = encodeURI( s[i] ).split("%").length;
+          count += partCount==1?1:partCount-1;
+        }
+        return count;
+      }
 
 
       pageInstance.onLoadStarted = function (status) {
@@ -899,16 +959,10 @@ var speedgun = {
           values.push(value);
         }
       }
-      
-      
     }
 
-    // changed this, we will always output json/csv/etc right?
-    if (speedGunArgs.wipe) {
-      myfile = 'reports/' + speedGunArgs.reportLocation + '.' + extension;
-    } else {
-      myfile = 'reports/' + speedGunArgs.reportLocation + '-' + speedGunArgs.output + '.' + extension;
-    }
+
+    myfile = speedGunArgs.reportLocation + 'speedgun-' + speedGunArgs.output + '.' + extension;
 
     console.log('Writing report data to: ', myfile);
 
@@ -971,6 +1025,8 @@ var speedgun = {
     }
     exitphantom();
   },
+  
+
 
   /**
    * Format test results as JUnit XML for CI
@@ -1063,10 +1119,11 @@ var speedgun = {
     console.log('    -v, --version            Not implemented yet');
     console.log('    -u, --uuid               only used for server side run in speedgun.io');
     console.log('    --verbose                Turn on verbose logging');
-    console.log('    --crawl                  Crawl all links on the page');
+    console.log('    --crawl                  Crawl all links within same tld on the page');
+    console.log('    --crawlAllDomains        Crawl all links on the page, not just first party tld');
     console.log('    --override               Override DNS entries for all resources (listed in config)');
-    console.log('    --akamaiDebug            Print all debug headers to headers.txt file');
-    console.log('    --detectReflow           Use if not getting startRender results');
+    console.log('    --cdnDebug               Print all debug headers to headers.txt file');
+    console.log('    --detectReflow           Use if not getting good startRender results');
     console.log('    --screenshot             Create a png of screen');
     console.log('    --wipe                   Wipe the file instead of appending to it on each report');
     console.log('    --phantomCacheEnabled    Enable PhantomJS cache');
@@ -1092,8 +1149,12 @@ var speedgun = {
       isFailing = true;
     }else{
       if(!speedGunArgs.reportLocation){
-        speedGunArgs.reportLocation = speedGunArgs.url.replace('://', '_').replace(":", "_") + '/speedgun';
+        speedGunArgs.reportLocation = 'reports/' + speedGunArgs.url.replace('://', '_').replace(":", "_") + '/';
       }
+      //todo
+      // if(speedGunArgs.akamaiOff){
+      //   speedGunArgs.url = speedGunArgs.url + '?akamai-feo=off';
+      // }
     }
 
     if (isFailing) {
@@ -1102,17 +1163,5 @@ var speedgun = {
   }
 
 };
-
-function getByteCount( s )
-{
-  var count = 0, stringLength = s.length, i;
-  s = String( s || "" );
-  for( i = 0 ; i < stringLength ; i++ )
-  {
-    var partCount = encodeURI( s[i] ).split("%").length;
-    count += partCount==1?1:partCount-1;
-  }
-  return count;
-}
 
 speedgun.run();

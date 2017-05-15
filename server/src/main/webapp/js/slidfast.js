@@ -604,7 +604,7 @@
 
            ip : function() {
                //dev
-               var ai = new slidfast.core.ajax('/rest/presenters/ip',function(text,url){
+               var ai = new slidfast.core.ajax('/sg/presenters/ip',function(text,url){
                    ip = text;
                },false);
                ai.doGet();
