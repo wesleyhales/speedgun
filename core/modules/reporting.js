@@ -231,21 +231,6 @@ module.exports = {
           f.writeLine('______number: ' + (reportResource.firstParty ? fpResourceCount : tpResourceCount));
           f.writeLine('______id: ' + speedgun.reportData.totalResources.value);
           f.writeLine('______url: ' + reportResource.url);
-          if(reportResource.url.indexOf('/g00/') >= 1){
-            try {
-              var startingIndex = reportResource.url.indexOf('_/') + 2,
-                endingIndex = reportResource.url.indexOf('_$');
-              //console.log(1 + ' ' + startingIndex);
-              //console.log(2 + ' ' + endingIndex);
-              var base64URL = (reportResource.url.slice(startingIndex, endingIndex));
-              //console.log('wtf1 ' + ' ' + reportResource.url);
-              //console.log('wtf2 ' + ' ' + base64URL);
-              decodeURIComponent(base64URL);
-              f.writeLine('______url /g00: ' + atob(base64URL));
-            }catch(e){
-              // console.log('wtf' + e + ' ' + atob('TU9SRVBIRVVTNiRodHRwOi8vd3d3Lm5hbm92aXNvci5pby9AcDEvY2xpZW50L21vcnBoZXVzL2luc3RhcnQuanM'));
-            }
-          }
           
           if (resource.times.end) {
             var endTime = new Date(resource.times.end);
